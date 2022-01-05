@@ -12,8 +12,8 @@ class CreateProjects < ActiveRecord::Migration[6.0]
       t.string :slack_channel
       t.string :security_id
       t.string :security_key
-      t.text :regions
-      t.text :resource_groups
+      t.json :regions
+      t.json :resource_groups
       t.string :account_id
       t.string :project_tag
       t.string :subscription_id

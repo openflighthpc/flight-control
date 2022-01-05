@@ -1,6 +1,7 @@
 class Project < ApplicationRecord
   validates :name, presence: true, uniqueness: true
-  validates :slack_channel, :start_date, :filter_level, :type, :archived, presence: true
+  validates :slack_channel, :start_date, :filter_level, :security_id, :security_key,
+            :type, :archived, presence: true
   validate :start_date_valid, on: [:update, :create]
   validate :end_date_valid, on: [:update, :create], if: -> { end_date != nil }
   validate :end_date_after_start, on: [:update, :create], if: -> { end_date != nil }
@@ -33,7 +34,7 @@ class Project < ApplicationRecord
   def date_valid?(date)
     begin
       Date.parse(date)
-    rescue ArgumentError
+    rescue ArgumentError, TypeError
       false
     end
   end
