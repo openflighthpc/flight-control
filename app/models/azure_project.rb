@@ -14,6 +14,10 @@ class AzureProject < Project
 
   default_scope { where(platform: "azure") }
 
+  def describe_resource_groups
+    resource_groups.join(", ")
+  end
+
   private
 
   def resource_groups_if_group_filter

@@ -3,7 +3,7 @@ require_relative 'project'
 class AwsProject < Project
   alias_attribute :access_key_ident, :security_id
   alias_attribute :key, :security_key
-  validates :regions, :account_id, presence: true
+  validates :regions, presence: true
   validates :filter_level,
     presence: true,
     inclusion: {
@@ -14,6 +14,10 @@ class AwsProject < Project
   validate :regions_not_empty
 
   default_scope { where(platform: "aws") }
+
+  def describe_regions
+    regions.join(", ")
+  end
 
   private
 

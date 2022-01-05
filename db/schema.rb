@@ -22,14 +22,13 @@ ActiveRecord::Schema.define(version: 2022_01_05_101333) do
     t.string "filter_level"
     t.date "start_date"
     t.date "end_date"
-    t.boolean "visualiser"
-    t.boolean "archived"
+    t.boolean "visualiser", default: true
+    t.boolean "archived", default: false
     t.string "slack_channel"
     t.string "security_id"
     t.string "security_key"
     t.json "regions"
     t.json "resource_groups"
-    t.string "account_id"
     t.string "project_tag"
     t.string "subscription_id"
     t.string "tenant_id"

@@ -1,9 +1,8 @@
 class Project < ApplicationRecord
+  before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
   validates :name, presence: true, uniqueness: true
   validates :slack_channel, :start_date, :filter_level, :security_id, :security_key,
-            :type, :archived, presence: true
-  validate :start_date_valid, on: [:update, :create]
-  validate :end_date_valid, on: [:update, :create], if: -> { end_date != nil }
+            :type, presence: true
   validate :end_date_after_start, on: [:update, :create], if: -> { end_date != nil }
   validates :platform,
     presence: true,
@@ -13,10 +12,15 @@ class Project < ApplicationRecord
     }
   scope :active, -> { where(archived: false) }
 
+
   private
 
+  def set_type
+    type = "#{platform.capitalize}Project"
+  end
+
   def start_date_valid
-    errors.add(:start_date, "Must be a valid date") if !date_valid?(start_date)
+    #errors.add(:start_date, "Must be a valid date") if !date_valid?(start_date)
   end
 
   def end_date_valid
@@ -24,18 +28,8 @@ class Project < ApplicationRecord
   end
 
   def end_date_after_start
-    starting = date_valid?(start_date)
-    ending = date_valid?(end_date)
-    if starting && ending && ending <= starting    
+    if start_date && end_date && end_date <= start_date    
       errors.add(:end_date, "Must be after start date")
-    end
-  end
-
-  def date_valid?(date)
-    begin
-      Date.parse(date)
-    rescue ArgumentError, TypeError
-      false
     end
   end
 end
