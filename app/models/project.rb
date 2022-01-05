@@ -16,16 +16,16 @@ class Project < ApplicationRecord
   private
 
   def start_date_valid
-    errors.add(:start_date, "Must be a valid date") if !date_valid?(self.start_date)
+    errors.add(:start_date, "Must be a valid date") if !date_valid?(start_date)
   end
 
   def end_date_valid
-    errors.add(:end_date, "Must be a valid date") if !date_valid?(self.end_date)
+    errors.add(:end_date, "Must be a valid date") if !date_valid?(end_date)
   end
 
   def end_date_after_start
-    starting = date_valid?(self.start_date)
-    ending = date_valid?(self.end_date)
+    starting = date_valid?(start_date)
+    ending = date_valid?(end_date)
     if starting && ending && ending <= starting    
       errors.add(:end_date, "Must be after start date")
     end
