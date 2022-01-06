@@ -26,7 +26,6 @@ class AzureAuthoriser < AzureService
         },
         timeout: DEFAULT_TIMEOUT
       )
-      puts response
       if response.success?
         body = JSON.parse(response.body)
         @project.bearer_token = body['access_token']

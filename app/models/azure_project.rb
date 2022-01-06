@@ -1,5 +1,5 @@
 require_relative 'project'
-require_relative 'services/azure_authoriser'
+require_relative 'services/azure_instance_recorder'
 
 class AzureProject < Project
   alias_attribute :azure_client_id, :security_id
@@ -19,10 +19,14 @@ class AzureProject < Project
     resource_groups.join(", ")
   end
 
-  # In futur ethis will be part of services, not project
+  # In future this will be part of services, not project
   def refresh_auth_token
     @authorisor ||= AzureAuthoriser.new(self)
     @authorisor.refresh_auth_token
+  end
+
+  def record_instance_logs(rerun=false)
+    AzureInstanceRecorder.new(self).record_logs(rerun)
   end
 
   private

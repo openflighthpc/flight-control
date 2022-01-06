@@ -10,10 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_05_101333) do
+ActiveRecord::Schema.define(version: 2022_01_06_115658) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "instance_logs", force: :cascade do |t|
+    t.bigint "project_id"
+    t.string "instance_type"
+    t.string "instance_name"
+    t.text "instance_id"
+    t.string "platform"
+    t.string "region"
+    t.string "compute_group"
+    t.string "status"
+    t.date "date"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["date"], name: "index_instance_logs_on_date"
+    t.index ["project_id"], name: "index_instance_logs_on_project_id"
+  end
 
   create_table "projects", force: :cascade do |t|
     t.string "name"

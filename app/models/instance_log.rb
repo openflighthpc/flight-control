@@ -1,0 +1,2 @@
+class InstanceLog < ApplicationRecord
+end

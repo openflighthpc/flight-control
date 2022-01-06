@@ -1,4 +1,7 @@
+require_relative 'instance_log'
+
 class Project < ApplicationRecord
+  has_many :instance_logs
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
   validates :name, presence: true, uniqueness: true
   validates :slack_channel, :start_date, :filter_level, :security_id, :security_key,
