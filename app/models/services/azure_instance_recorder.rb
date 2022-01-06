@@ -18,8 +18,8 @@ class AzureInstanceRecorder < AzureService
     outcome = ""
     today_logs = @project.instance_logs.where(date: Date.today)
     if today_logs.any?
-      if rerun 
-        outcome = "Overwriting existing logs. "
+      if rerun
+        outcome = "Updating existing logs. "
       else
         return "Logs already recorded for today. Run script again with 'rerun' to overwrite existing logs."
       end

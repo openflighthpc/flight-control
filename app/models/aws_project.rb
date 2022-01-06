@@ -20,6 +20,10 @@ class AwsProject < Project
     regions.join(", ")
   end
 
+  def record_instance_logs(rerun=false)
+    AwsInstanceRecorder.new(self).record_logs(rerun)
+  end
+
   private
 
   def project_tag_if_tag_filter

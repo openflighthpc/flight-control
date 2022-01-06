@@ -9,7 +9,7 @@ class AwsInstanceRecorder
     @project = project
   end
 
-  def record_instance_logs(rerun=false)
+  def record_logs(rerun=false)
     # can't record instance logs if resource group deleted
     if @project.archived
       return "Logs not recorded, project is archived"
@@ -18,8 +18,8 @@ class AwsInstanceRecorder
     outcome = ""
     today_logs = @project.instance_logs.where(date: Date.today)
     if today_logs.any?
-      if rerun 
-        outcome = "Overwriting existing logs. "
+      if rerun
+        outcome = "Updating existing logs. "
       else
         return "Logs already recorded for today. Run script again with 'rerun' to overwrite existing logs."
       end
