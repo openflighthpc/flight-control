@@ -71,7 +71,7 @@ class AzureInstanceRecorder < AzureService
       end
       # If any instances have been deleted, ensure logs recorded as inactive.
       # Can't delete them as that may interfere with forecasts, action logs, etc.
-      if log_ids.length != active_nodes.length
+      if log_ids.length != today_logs.count
         obsolete_logs = today_logs.where("id NOT IN (?)", log_ids.compact)
         obsolete_logs.update_all(status: "VM Deallocated")
       end

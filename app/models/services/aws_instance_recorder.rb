@@ -30,6 +30,7 @@ class AwsInstanceRecorder
     any_nodes = false
     log_recorded = false
     if !today_logs.any? || rerun
+      log_ids = []
       @project.regions.each do |region|
         begin
           instances_checker = Aws::EC2::Client.new(access_key_id: @project.access_key_ident, secret_access_key: @project.key, region: region)
@@ -57,21 +58,36 @@ class AwsInstanceRecorder
                 compute_group = tag.value
               end
             end
+            status = instance.state.name
 
-            log = InstanceLog.create(
-              instance_id: instance.instance_id,
-              project_id: @project.id,
-              instance_name: named,
-              instance_type: instance.instance_type,
-              compute_group: compute_group,
-              status: instance.state.name,
-              platform: "aws",
-              region: region,
-              date: Date.today
-            )
+            log = today_logs.find_by(instance_id: instance.instance_id)
+            if !log
+              log = InstanceLog.create(
+                instance_id: instance.instance_id,
+                project_id: @project.id,
+                instance_name: named,
+                instance_type: instance.instance_type,
+                compute_group: compute_group,
+                status: status,
+                platform: "aws",
+                region: region,
+                date: Date.today
+              )
+            else
+              log.status = status
+              log.compute_group = compute_group # rare, but could have changed
+              log.save
+            end
             log_recorded = true if log.valid? && log.persisted?
+            log_ids << log.id
           end
         end
+      end
+      # If any instances have been deleted, ensure logs recorded as inactive.
+      # Can't delete them as that may interfere with forecasts, action logs, etc.
+      if log_ids.length != today_logs.count
+        obsolete_logs = today_logs.where("id NOT IN (?)", log_ids.compact)
+        obsolete_logs.update_all(status: "stopped")
       end
     end
     outcome << (log_recorded ? "Logs recorded" : (any_nodes ? "Logs NOT recorded" : "No logs to record"))
