@@ -15,7 +15,6 @@ class Project < ApplicationRecord
     }
   scope :active, -> { where(archived: false) }
 
-
   private
 
   def set_type

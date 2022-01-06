@@ -1,5 +1,6 @@
 require_relative 'azure_service'
 require_relative 'azure_authoriser'
+require_relative '../instance_log'
 
 class AzureInstanceRecorder < AzureService
 
@@ -26,6 +27,7 @@ class AzureInstanceRecorder < AzureService
       outcome = "Writing new logs for today. "
     end
     
+    any_nodes = false
     log_recorded = false
     if !today_logs.any? || rerun
       active_nodes = determine_current_compute_nodes
@@ -55,7 +57,7 @@ class AzureInstanceRecorder < AzureService
             instance_name: name,
             compute_group: compute_group,
             status: status,
-            platform: 'Azure',
+            platform: 'azure',
             region: region,
             date: Date.today
           )

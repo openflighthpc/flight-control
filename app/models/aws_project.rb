@@ -1,4 +1,5 @@
 require_relative 'project'
+require_relative 'services/aws_instance_recorder'
 
 class AwsProject < Project
   alias_attribute :access_key_ident, :security_id

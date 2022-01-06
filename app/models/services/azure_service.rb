@@ -17,4 +17,3 @@ class AzureApiError < StandardError
     super(msg)
   end
 end
-
