@@ -41,22 +41,17 @@ class AzureInstanceRecorder < AzureService
         instance_id_breakdown[4] = resource_group
         instance_id = instance_id_breakdown.join("/")
  
-        name = node['id'].match(/virtualMachines\/(.*)\/providers/i)[1]
+        name = node['name']
         region = node['location']
-        cnode = today_compute_nodes.detect do |compute_node|
-                  compute_node['name'] == name  && resource_group == compute_node['id'].split("/")[4].downcase
-                end
-        next if !cnode
-
-        type = cnode['properties']['hardwareProfile']['vmSize']
-        compute_group = cnode.key?('tags') ? cnode['tags']['compute_group'] : nil
+        type = node['properties']['hardwareProfile']['vmSize']
+        compute_group = node['tags']['compute_group']
         log = InstanceLog.create(
           instance_id: instance_id,
           project_id: @project.id,
           instance_type: type,
           instance_name: name,
           compute_group: compute_group,
-          status: node['properties']['availabilityState'],
+          status: node['status'],
           platform: 'Azure',
           region: region,
           date: Date.today
@@ -68,18 +63,16 @@ class AzureInstanceRecorder < AzureService
     outcome
   end
 
+  # Azure APIs won't tell us instances' tags and statuses in the same query,
+  # so we must make two and compare & combine the results
   def determine_current_compute_nodes
     instances_with_statuses = api_query_compute_nodes
     instances_with_compute_groups = api_query_compute_nodes(false).select do |vm|
       vm.key?('tags') && vm['tags']['type'] == 'compute'
     end
-    # puts "statusings"
-    # puts instances_with_statuses
-    # puts "groupings"
-    # puts instances_with_compute_groups
     instances_with_compute_groups.each do |instance|
       status_result = instances_with_statuses.detect { |i| i["id"].downcase == instance["id"].downcase }
-      status = status_result["properties"]["instanceView"]["statuses"].find { |status| status["code"] == "PowerState/deallocated" }["displayStatus"]
+      status = status_result["properties"]["instanceView"]["statuses"].find { |status| status["code"].starts_with?("PowerState") }["displayStatus"]
       instance["status"] = status
     end
   end
