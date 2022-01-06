@@ -26,11 +26,11 @@ class AzureInstanceRecorder < AzureService
       outcome = "Writing new logs for today. "
     end
     
-    today_logs.delete_all if rerun
     log_recorded = false
-    if !today_logs.any?
+    if !today_logs.any? || rerun
       active_nodes = determine_current_compute_nodes
       any_nodes = active_nodes.any?
+      log_ids = []
       active_nodes&.each do |node|
         # Azure API returns ids with inconsistent capitalisations so need to edit them here
         instance_id = node['id']
@@ -45,18 +45,33 @@ class AzureInstanceRecorder < AzureService
         region = node['location']
         type = node['properties']['hardwareProfile']['vmSize']
         compute_group = node['tags']['compute_group']
-        log = InstanceLog.create(
-          instance_id: instance_id,
-          project_id: @project.id,
-          instance_type: type,
-          instance_name: name,
-          compute_group: compute_group,
-          status: node['status'],
-          platform: 'Azure',
-          region: region,
-          date: Date.today
-        )
+        status = node['status']
+        log = today_logs.find_by(instance_id: instance_id)
+        if !log
+          log = InstanceLog.create(
+            instance_id: instance_id,
+            project_id: @project.id,
+            instance_type: type,
+            instance_name: name,
+            compute_group: compute_group,
+            status: status,
+            platform: 'Azure',
+            region: region,
+            date: Date.today
+          )
+        else
+          log.status = status
+          log.compute_group = compute_group # rare, but could have changed
+          log.save
+        end
         log_recorded = true if log.valid? && log.persisted?
+        log_ids << log.id
+      end
+      # If any instances have been deleted, ensure logs recorded as inactive.
+      # Can't delete them as that may interfere with forecasts, action logs, etc.
+      if log_ids.length != active_nodes.length
+        obsolete_logs = today_logs.where("id NOT IN (?)", log_ids.compact)
+        obsolete_logs.update_all(status: "VM Deallocated")
       end
     end
     outcome << (log_recorded ? "Logs recorded" : (any_nodes ? "Logs NOT recorded" : "No logs to record"))
