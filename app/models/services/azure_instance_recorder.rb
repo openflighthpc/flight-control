@@ -3,13 +3,17 @@ require_relative 'azure_authoriser'
 
 class AzureInstanceRecorder < AzureService
 
+  def initialize(project)
+    super(project)
+    @authorisor = AzureAuthoriser.new(project)
+  end
+
   def record_logs(rerun=false)
     # can't record instance logs if resource group deleted
     if @project.archived
       return "Logs not recorded, project is archived"
     end
 
-    AzureAuthoriser.new(@project).refresh_auth_token
     outcome = ""
     today_logs = @project.instance_logs.where(date: Date.today)
     if today_logs.any?
@@ -21,10 +25,11 @@ class AzureInstanceRecorder < AzureService
     else
       outcome = "Writing new logs for today. "
     end
+    
     today_logs.delete_all if rerun
     log_recorded = false
     if !today_logs.any?
-      active_nodes = api_query_active_nodes
+      active_nodes = determine_current_compute_nodes
       any_nodes = active_nodes.any?
       active_nodes&.each do |node|
         # Azure API returns ids with inconsistent capitalisations so need to edit them here
@@ -63,65 +68,33 @@ class AzureInstanceRecorder < AzureService
     outcome
   end
 
-  def api_query_active_nodes
-    uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/providers/Microsoft.ResourceHealth/availabilityStatuses"
-    query = {
-      'api-version': '2020-05-01',
-    }
-    attempt = 0
-    error = AzureApiError.new("Timeout error querying node status Azpire API for project #{@project.name}."\
-                              "All #{MAX_API_ATTEMPTS} attempts timed out.")
-    begin
-      attempt += 1 
-      response = HTTParty.get(
-        uri,
-        query: query,
-        headers: { 'Authorization': "Bearer #{@project.bearer_token}" },
-        timeout: DEFAULT_TIMEOUT
-      )
-      if response.success?
-        nodes = response['value']
-        nodes.select do |node|
-          next if !node['id'].match(/virtualmachines/i)
-          r_group = node['id'].split('/')[4].downcase
-          if @project.filter_level == "subscription" || (@project.filter_level == "resource group" && @project.resource_groups.include?(r_group))
-            today_compute_nodes.any? do |cn|
-              node['id'].match(/virtualMachines\/(.*)\/providers/i)[1] == cn['name']
-            end
-          end
-        end
-      elsif response.code == 504
-        raise Net::ReadTimeout
-      else
-        raise AzureApiError.new("Error querying node status Azure API for project #{name}.\nError code #{response.code}.\n#{response if @verbose}")
-      end
-    rescue Net::ReadTimeout
-      msg = "Attempt #{attempt}: Request timed out.\n"
-      if response
-        msg << "Error code #{response.code}.\n#{response if @verbose}\n"
-      end
-      error.error_messages.append(msg)
-      if attempt < MAX_API_ATTEMPTS
-        retry
-      else
-        raise error
-      end
+  def determine_current_compute_nodes
+    instances_with_statuses = api_query_compute_nodes
+    instances_with_compute_groups = api_query_compute_nodes(false).select do |vm|
+      vm.key?('tags') && vm['tags']['type'] == 'compute'
+    end
+    # puts "statusings"
+    # puts instances_with_statuses
+    # puts "groupings"
+    # puts instances_with_compute_groups
+    instances_with_compute_groups.each do |instance|
+      status_result = instances_with_statuses.detect { |i| i["id"].downcase == instance["id"].downcase }
+      status = status_result["properties"]["instanceView"]["statuses"].find { |status| status["code"] == "PowerState/deallocated" }["displayStatus"]
+      instance["status"] = status
     end
   end
 
-  def today_compute_nodes
-    @today_compute_nodes ||= api_query_compute_nodes
-  end
-
-  def api_query_compute_nodes
+  def api_query_compute_nodes(status_only=true)
     uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/providers/Microsoft.Compute/virtualMachines"
     query = {
       'api-version': '2020-06-01',
+      'statusOnly': status_only
     }
     attempt = 0
     error = AzureApiError.new("Timeout error querying compute nodes for project"\
                               "#{@project.name}. All #{MAX_API_ATTEMPTS} attempts timed out.")
     begin
+      @authorisor.refresh_auth_token
       attempt += 1
       response = HTTParty.get(
         uri,
@@ -132,8 +105,8 @@ class AzureInstanceRecorder < AzureService
 
       if response.success?
         vms = response['value']
-        vms.select { |vm| vm.key?('tags') && vm['tags']['type'] == 'compute' && (@project.filter_level == "subscription" ||
-        (@project.filter_level == "resource group" && @project.resource_groups.include?(vm['id'].split('/')[4].downcase))) }
+        vms.select { |vm| @project.filter_level == "subscription" ||
+        (@project.filter_level == "resource group" && @project.resource_groups.include?(vm['id'].split('/')[4].downcase)) }
       elsif response.code == 504
         raise Net::ReadTimeout
       else
