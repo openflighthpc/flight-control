@@ -1,4 +1,5 @@
 require_relative 'project'
+require_relative 'services/azure_authoriser'
 
 class AzureProject < Project
   alias_attribute :azure_client_id, :security_id
@@ -16,6 +17,12 @@ class AzureProject < Project
 
   def describe_resource_groups
     resource_groups.join(", ")
+  end
+
+  # In futur ethis will be part of services, not project
+  def refresh_auth_token
+    @authorisor ||= AzureAuthoriser.new(self)
+    @authorisor.refresh_auth_token
   end
 
   private

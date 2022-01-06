@@ -66,11 +66,12 @@ class ProjectManager
       end
       value = get_non_blank(attribute, attribute, options)
       project.write_attribute(attribute.to_sym, value)
-      if project.azure? && attribute == "filter_level" && project.filter_level == "resource group" && !project.resource_groups.any?
+      if project.platform == "azure" && attribute == "filter_level" && project.filter_level == "resource group" && 
+         !project.resource_groups.any?
         puts "This project has no resource groups - please add at least one."
         update_resource_groups(project)
       end
-      if project.aws? && attribute == "filter_level" && project.filter_level == "tag" && !project.project_tag
+      if project.platform == "aws" && attribute == "filter_level" && project.filter_level == "tag" && !project.project_tag
         value = get_non_blank("Project tag", "Project tag")
         project.write_attribute(:project_tag, value)
       end
@@ -495,7 +496,7 @@ class ProjectManager
     puts "start_date: #{project.start_date}"
     puts "end_date: #{project.end_date}"
     puts "archived: #{project.archived}"
-    puts "visualiser: #{projec.visualiser}"
+    puts "visualiser: #{project.visualiser}"
     #puts "budget: #{project.current_budget}c.u./month"
     puts "filter_level: #{project.filter_level}"
     puts "slack_channel: #{project.slack_channel}"
@@ -513,7 +514,7 @@ class ProjectManager
       puts "subscription_id: #{project.subscription_id}"
       puts "tenant_id: #{project.tenant_id}"
       puts "azure_client_id: hidden"
-      puts "client_secret: secret"
+      puts "client_secret: hidden"
     end
   end
 
