@@ -95,7 +95,7 @@ class AzureInstanceRecorder < AzureService
   def api_query_compute_nodes(status_only=true)
     uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/providers/Microsoft.Compute/virtualMachines"
     query = {
-      'api-version': '2020-06-01',
+      'api-version': '2021-07-01',
       'statusOnly': status_only
     }
     attempt = 0
