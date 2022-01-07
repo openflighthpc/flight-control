@@ -21,7 +21,9 @@ end
 
 def record_logs(project, rerun)
   begin
-    puts "Project #{project.name}: #{project.record_instance_logs(rerun)}"
+    print "Project #{project.name}: "
+    print  project.record_instance_logs(rerun)
+    puts
   rescue AzureApiError, AwsSdkError => e
     error = <<~MSG
     Generation of instance logs for project *#{project.name}* stopped due to error:

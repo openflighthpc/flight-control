@@ -15,6 +15,28 @@ class Project < ApplicationRecord
     }
   scope :active, -> { where(archived: false) }
 
+  def record_instance_logs(rerun=false)
+    # can't record instance logs if resource group deleted
+    if archived
+      return "Logs not recorded, project is archived"
+    end
+
+    if instance_logs.where(date: Date.today).any?
+      if rerun
+        print "Updating existing logs. "
+      else
+        return "Logs already recorded for today. Run task again with 'rerun' as true to overwrite existing logs."
+      end
+    else
+      print "Writing new logs for today. "
+    end
+    instance_recorder&.record_logs(rerun)
+  end
+
+  def instance_recorder
+    # platform specific, so none in this superclass
+  end
+
   private
 
   def set_type

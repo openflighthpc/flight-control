@@ -19,14 +19,8 @@ class AzureProject < Project
     resource_groups.join(", ")
   end
 
-  # In future this will be part of services, not project
-  def refresh_auth_token
-    @authorisor ||= AzureAuthoriser.new(self)
-    @authorisor.refresh_auth_token
-  end
-
-  def record_instance_logs(rerun=false)
-    AzureInstanceRecorder.new(self).record_logs(rerun)
+  def instance_recorder
+    @recorder ||= AzureInstanceRecorder.new(self)
   end
 
   private
