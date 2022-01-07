@@ -10,10 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_06_115658) do
+ActiveRecord::Schema.define(version: 2022_01_07_115624) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "cost_logs", force: :cascade do |t|
+    t.bigint "project_id"
+    t.decimal "cost"
+    t.string "scope"
+    t.date "date"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["date"], name: "index_cost_logs_on_date"
+    t.index ["project_id"], name: "index_cost_logs_on_project_id"
+  end
 
   create_table "instance_logs", force: :cascade do |t|
     t.bigint "project_id"
