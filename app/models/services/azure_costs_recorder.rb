@@ -6,6 +6,7 @@ class AzureCostsRecorder < AzureService
 
   def record_logs(date, rerun, verbose)
     all_costs = get_all_costs(date)
+    
   end
 
   # The Azure API now treats 'modern' and 'legacy' subscriptions differently.
@@ -86,5 +87,29 @@ class AzureCostsRecorder < AzureService
         raise error
       end
     end 
+  end
+
+  def data_out_costs(cost_entries, subscription_version)
+    cost_entries.select do |cost|
+      meter_name = subscription_version == "modern" ? cost["properties"]["meterName"] : cost["properties"]["meterDetails"]["meterName"]
+      meter_name == "Data Transfer Out"
+    end
+  end
+
+  def core_costs(cost_entries, subscription_version)
+    cost_entries.select do |cost|
+      meter_name = subscription_version == "modern" ? cost["properties"]["meterName"] : cost["properties"]["meterDetails"]["meterName"]
+      cost["tags"] && cost["tags"]["type"] == "core" &&
+      meter_name != "Data Transfer Out" && 
+      !meter_name.include?("Disks")
+    end
+  end
+
+  def core_storage_costs(cost_entries, subscription_version)
+    cost_entries.select do |cost|
+      meter_name = subscription_version == "modern" ? cost["properties"]["meterName"] : cost["properties"]["meterDetails"]["meterName"]
+      cost["tags"] && cost["tags"]["type"] == "core" &&
+      meter_name.include?("Disks")
+    end
   end
 end
