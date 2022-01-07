@@ -1,6 +1,8 @@
 require_relative 'instance_log'
 
 class Project < ApplicationRecord
+  DEFAULT_COSTS_DATE = Date.today - 3
+  SCOPES = %w[data_out core core_storage total compute]
   has_many :instance_logs
   has_many :cost_logs
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
@@ -15,6 +17,14 @@ class Project < ApplicationRecord
       message: "%{value} is not a valid platform"
     }
   scope :active, -> { where(archived: false) }
+
+  def latest_instance_logs
+    instance_logs.where(date: instance_logs.maximum(:date))
+  end
+
+  def compute_groups
+    latest_instance_logs.distinct.pluck(:compute_group).compact
+  end
 
   def record_instance_logs(rerun=false)
     # can't record instance logs if resource group deleted
@@ -34,7 +44,28 @@ class Project < ApplicationRecord
     instance_recorder&.record_logs(rerun)
   end
 
+  def record_cost_logs(date=DEFAULT_COSTS_DATE, rerun=false, verbose=false)# can't record instance logs if resource group deleted
+    if archived
+      puts "Logs not recorded, project is archived"
+      return
+    end
+
+    if date < start_date
+      puts "Given date is before the project start date"
+      return
+    elsif date > Date.today
+      puts "Given date is in the future"
+      return
+    end
+
+    costs_recorder&.record_logs(date, rerun, verbose)
+  end
+
   def instance_recorder
+    # platform specific, so none in this superclass
+  end
+
+  def costs_recorder
     # platform specific, so none in this superclass
   end
 

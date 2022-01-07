@@ -31,6 +31,7 @@ gem 'bootsnap', '>= 1.4.2', require: false
 gem 'table_print'
 gem 'httparty'
 gem 'aws-sdk-ec2'
+gem 'aws-sdk-costexplorer'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

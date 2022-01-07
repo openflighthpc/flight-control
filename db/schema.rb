@@ -18,6 +18,7 @@ ActiveRecord::Schema.define(version: 2022_01_07_115624) do
   create_table "cost_logs", force: :cascade do |t|
     t.bigint "project_id"
     t.decimal "cost"
+    t.string "currency"
     t.string "scope"
     t.date "date"
     t.datetime "created_at", precision: 6, null: false
