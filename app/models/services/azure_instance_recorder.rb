@@ -1,13 +1,8 @@
 require_relative 'azure_service'
-require_relative 'azure_authoriser'
+require_relative '../azure_project'
 require_relative '../instance_log'
 
 class AzureInstanceRecorder < AzureService
-
-  def initialize(project)
-    super(project)
-    @authorisor = AzureAuthoriser.new(project)
-  end
 
   def record_logs(rerun=false)
     today_logs = @project.instance_logs.where(date: Date.today)
@@ -87,7 +82,7 @@ class AzureInstanceRecorder < AzureService
     error = AzureApiError.new("Timeout error querying compute nodes for project"\
                               "#{@project.name}. All #{MAX_API_ATTEMPTS} attempts timed out.")
     begin
-      @authorisor.refresh_auth_token
+      @project.authoriser.refresh_auth_token
       attempt += 1
       response = HTTParty.get(
         uri,
