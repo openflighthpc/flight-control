@@ -1,4 +1,5 @@
 require_relative 'instance_log'
+require_relative 'cost_log'
 
 class Project < ApplicationRecord
   DEFAULT_COSTS_DATE = Date.today - 3
@@ -56,6 +57,17 @@ class Project < ApplicationRecord
     elsif date > Date.today
       puts "Given date is in the future"
       return
+    end
+
+    if cost_logs.where(date: date).any?
+      if rerun
+        print "Updating existing logs. "
+      else
+        print "Logs already recorded for today. Run task again with 'rerun' as true to overwrite existing logs."
+        return
+      end
+    else
+      print "Writing new logs for today. "
     end
 
     costs_recorder&.record_logs(date, rerun, verbose)

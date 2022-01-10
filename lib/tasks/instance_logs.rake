@@ -4,25 +4,27 @@ require_relative "../../app/models/instance_log"
 
 namespace :instance_logs do
   namespace :record do
-    task :all, [:rerun] => :environment do |task, args|
-      Project.active.each { |project| record_logs(project, args["rerun"]) }
+    task :all, [:rerun, :verbose] => :environment do |task, args|
+      Project.active.each do |project|
+        record_instance_logs(project, args["rerun"] == "true", args["verbose"] == "true")
+      end
     end
 
-    task :by_project, [:project, :rerun] => :environment do |task, args|
+    task :by_project, [:project, :rerun, :verbose] => :environment do |task, args|
       project = Project.find_by(name: args["project"])
       if !project
         puts "No project found with that name"
       else
-        record_logs(project, args["rerun"])
+        record_instance_logs(project, args["rerun"] == "true", args["verbose"] == "true")
       end
     end
   end
 end
 
-def record_logs(project, rerun)
+def record_instance_logs(project, rerun, verbose)
   begin
     print "Project #{project.name}: "
-    print  project.record_instance_logs(rerun)
+    print  project.record_instance_logs(rerun, verbose)
     puts
   rescue AzureApiError, AwsSdkError => e
     error = <<~MSG

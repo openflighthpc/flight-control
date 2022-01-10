@@ -14,6 +14,7 @@ class AzureCostsRecorder < AzureService
       scope_costs = determine_scope_costs(all_costs, subscription_version)
       create_logs(scope_costs, date, currency)
     end
+    true
   end
 
   def create_logs(scope_costs, date, currency)
