@@ -1,7 +1,7 @@
 require_relative 'project'
-require_relative 'services/azure_instance_recorder'
-require_relative 'services/azure_costs_recorder'
-require_relative 'services/azure_authoriser'
+require_relative '../services/azure_instance_recorder'
+require_relative '../services/azure_costs_recorder'
+require_relative '../services/azure_authoriser'
 
 class AzureProject < Project
   alias_attribute :azure_client_id, :security_id

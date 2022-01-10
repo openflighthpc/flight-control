@@ -1,6 +1,5 @@
 require_relative 'azure_service'
-require_relative '../azure_project'
-require_relative '../instance_log'
+require_relative '../models/instance_log'
 
 class AzureInstanceRecorder < AzureService
 

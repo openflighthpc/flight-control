@@ -1,6 +1,5 @@
 require_relative 'azure_service'
-require_relative '../azure_project'
-require_relative '../cost_log'
+require_relative '../models/cost_log'
 
 class AzureCostsRecorder < AzureService
 

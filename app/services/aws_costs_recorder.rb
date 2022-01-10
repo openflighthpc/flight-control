@@ -1,5 +1,5 @@
-require_relative '../aws_project'
-require_relative '../cost_log'
+require_relative '../models/aws_project'
+require_relative '../models/cost_log'
 require_relative 'aws_sdk_error'
 require 'aws-sdk-costexplorer'
 
