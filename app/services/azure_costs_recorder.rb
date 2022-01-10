@@ -10,12 +10,26 @@ class AzureCostsRecorder < AzureService
     if !existing_logs || rerun
       all_costs = get_all_costs(date, date, verbose)
       subscription_version = all_costs[0]["kind"] if all_costs.any?
-      Project::SCOPES.each { |scope| record_costs(all_costs, date, scope, subscription_version) }
-      all_compute_costs = compute_costs(all_costs, subscription_version)
-      @project.compute_groups.each do |group|
-        group_costs = all_compute_group_costs(all_compute_costs, subscription_version, group)
-        record_costs(group_costs, date, group, subscription_version, group)
-        record_costs(group_costs, date, "#{group}_storage", subscription_version, group)  
+      currency = get_currency(all_costs[0], subscription_version)
+      scope_costs = determine_scope_costs(all_costs, subscription_version)
+      create_logs(scope_costs, date, currency)
+    end
+  end
+
+  def create_logs(scope_costs, date, currency)
+    scope_costs.each do |scope, total|
+      log = @project.cost_logs.find_by(date: date, scope: scope)
+      if log
+        log.assign_attributes(cost: total, currency: currency)
+        log.save!
+      else
+        log = CostLog.create(
+          project_id: @project.id,
+          cost: total,
+          currency: currency,
+          date: date,
+          scope: scope,
+        )
       end
     end
   end
@@ -23,37 +37,41 @@ class AzureCostsRecorder < AzureService
   # The Azure API now treats 'modern' and 'legacy' subscriptions differently.
   # Despite being the same API, with the same version, these types return data
   # with different key structures. This method caters to both.
-  def record_costs(all_costs, date, scope, subscription_version, compute_group=nil)
-    puts "#{Time.now} recording #{scope}"
-    if compute_group
-      if scope.include?("storage")
-        filtered_costs = compute_group_storage_costs(all_costs, subscription_version)
-      else
-        filtered_costs = compute_group_costs(all_costs, subscription_version)
-      end
-    else
-      filtered_costs = self.send("#{scope}_costs", all_costs, subscription_version)
+  def determine_scope_costs(all_costs, subscription_version)
+    costs = {}
+    Project::SCOPES.each { |scope| costs[scope] = 0.0 }
+    @project.compute_groups.each do |group|
+      costs[group] = 0.0
+      costs["#{group}_storage"] = 0.0
     end
     cost_key = get_cost_key(subscription_version)
-    total = filtered_costs.reduce(0.0) { |sum, cost| sum + cost['properties'][cost_key] }
-    currency_key = get_currency_key(subscription_version)
-    currency = all_costs.first["properties"][currency_key] if all_costs.any?
-    currency ||= "GBP"
-    
-    log = @project.cost_logs.find_by(date: date, scope: scope)
-    if log
-      log.assign_attributes(cost: total, currency: currency)
-      log.save!
-    else
-      log = CostLog.create(
-        project_id: @project.id,
-        cost: total,
-        currency: currency,
-        date: date,
-        scope: scope,
-      )
+
+    all_costs.each do |cost|
+      value = cost['properties'][cost_key]
+      meter_name = get_meter_name(cost, subscription_version)
+      costs["total"] += value
+      # Other than total, all other datasets are mutually exclusive,
+      # so we can iterate once through all costs to get values.
+      if data_out_cost?(meter_name)
+        costs["data_out"] += value
+      elsif core_cost?(cost)
+        if storage_cost?(meter_name)
+          costs["core_storage"] += value
+        else
+          costs["core"] += value
+        end
+      elsif compute_cost?(cost)
+        compute_group = cost["tags"]["compute_group"] if cost["tags"]
+        if compute_group # in an if clause in case not tagged correctly
+          if storage_cost?(meter_name)
+            costs["#{compute_group}_storage"] += value
+          elsif virtual_machine_cost?(cost, subscription_version)
+            costs[compute_group] += value
+          end
+        end
+      end
     end
-    log
+    costs
   end
 
   # The Azure API now treats 'modern' and 'legacy' subscriptions differently.
@@ -138,66 +156,7 @@ class AzureCostsRecorder < AzureService
 
   private
 
-  def total_costs(cost_entries, subscription_version)
-    cost_entries
-  end
-
-  def data_out_costs(cost_entries, subscription_version)
-    cost_entries.select do |cost|
-      meter_name = get_meter_name(cost, subscription_version)
-      meter_name == "Data Transfer Out"
-    end
-  end
-
-  def core_costs(cost_entries, subscription_version)
-    cost_entries.select do |cost|
-      meter_name = get_meter_name(cost, subscription_version)
-      cost["tags"] && cost["tags"]["type"] == "core" &&
-      meter_name != "Data Transfer Out" && 
-      !storage_cost?(meter_name)
-    end
-  end
-
-  def storage_costs(cost_entries, subscription_version)
-    cost_entries.select do |cost|
-      meter_name = get_meter_name(cost, subscription_version)
-      storage_cost?(meter_name)
-    end
-  end
-
-  def core_storage_costs(cost_entries, subscription_version)
-    cost_entries.select do |cost|
-      meter_name = get_meter_name(cost, subscription_version)
-      cost["tags"] && cost["tags"]["type"] == "core" &&
-      storage_cost?(meter_name)
-    end
-  end
-
-  def compute_costs(cost_entries, subscription_version)
-    cost_entries.select do |cost|
-      cost["tags"] && cost["tags"]["type"] == "compute"
-    end
-  end
-
-  def all_compute_group_costs(compute_cost_entries, subscription_version, group)
-    compute_cost_entries.select do |cost|
-      cost["tags"] && cost["tags"]["compute_group"] == group
-    end
-  end
-
-  def compute_group_storage_costs(compute_group_cost_entries, subscription_version)
-    compute_group_cost_entries.select do |cost|
-      storage_cost?(get_meter_name(cost, subscription_version))
-    end
-  end
-
-  # Just instance costs
-  def compute_group_costs(compute_group_cost_entries, subscription_version)
-    compute_group_cost_entries.select do |cost|
-      get_meter_category(cost, subscription_version) == "Virtual Machines"
-    end
-  end
-
+  # These methods to handle differences in output depending upon subscription version
   def get_meter_name(cost, subscription_version)
     subscription_version == "modern" ? cost["properties"]["meterName"] : cost["properties"]["meterDetails"]["meterName"]
   end
@@ -210,11 +169,29 @@ class AzureCostsRecorder < AzureService
     subscription_version == "modern" ? "costInBillingCurrency" : "cost"
   end
 
-  def get_currency_key(subscription_version)
-    subscription_version == "modern" ? "billingCurrencyCode" : "billingCurrency"
+  def get_currency(cost, subscription_version)
+    currency_key = subscription_version == "modern" ? "billingCurrencyCode" : "billingCurrency"
+    currency = cost["properties"][currency_key] if cost
+    currency ||= "GBP"
+  end
+
+  def data_out_cost?(meter_name)
+    meter_name == "Data Transfer Out"
   end
 
   def storage_cost?(meter_name)
     meter_name.include?("Disks")
+  end
+
+  def core_cost?(cost)
+    cost["tags"] && cost["tags"]["type"] == "core"
+  end
+
+  def compute_cost?(cost)
+    cost["tags"] && cost["tags"]["type"] == "compute"
+  end
+
+  def virtual_machine_cost?(cost, subscription_version)
+    get_meter_category(cost, subscription_version) == "Virtual Machines"
   end
 end
