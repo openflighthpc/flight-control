@@ -3,7 +3,7 @@ require_relative '../models/instance_log'
 
 class AzureInstanceRecorder < AzureService
 
-  def record_logs(rerun=false)
+  def record_logs(rerun=false, verbose=false)
     today_logs = @project.instance_logs.where(date: Date.today)
     any_nodes = false
     log_recorded = false
@@ -60,8 +60,8 @@ class AzureInstanceRecorder < AzureService
   # Azure APIs won't tell us instances' tags and statuses in the same query,
   # so we must make two and compare & combine the results
   def determine_current_compute_nodes
-    instances_with_statuses = api_query_compute_nodes
-    instances_with_compute_groups = api_query_compute_nodes(false).select do |vm|
+    instances_with_statuses = api_query_compute_nodes(true, verbose)
+    instances_with_compute_groups = api_query_compute_nodes(false, verbose).select do |vm|
       vm.key?('tags') && vm['tags']['type'] == 'compute'
     end
     instances_with_compute_groups.each do |instance|
@@ -71,7 +71,7 @@ class AzureInstanceRecorder < AzureService
     end
   end
 
-  def api_query_compute_nodes(status_only=true)
+  def api_query_compute_nodes(status_only, verbose=false)
     uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/providers/Microsoft.Compute/virtualMachines"
     query = {
       'api-version': '2021-07-01',

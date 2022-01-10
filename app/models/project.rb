@@ -2,7 +2,7 @@ require_relative 'instance_log'
 
 class Project < ApplicationRecord
   DEFAULT_COSTS_DATE = Date.today - 3
-  SCOPES = %w[data_out core core_storage total compute]
+  SCOPES = %w[data_out core core_storage total]
   has_many :instance_logs
   has_many :cost_logs
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
@@ -26,7 +26,7 @@ class Project < ApplicationRecord
     latest_instance_logs.distinct.pluck(:compute_group).compact
   end
 
-  def record_instance_logs(rerun=false)
+  def record_instance_logs(rerun=false, verbose=false)
     # can't record instance logs if resource group deleted
     if archived
       return "Logs not recorded, project is archived"

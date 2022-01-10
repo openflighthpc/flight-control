@@ -37,9 +37,11 @@ It is recommended to check that all expected resources (IPs, volumes, etc/) have
 
 Please note that if you change a project's `filter_level` and/or `project_tag` and generate new cost logs for a prior date, this will overwrite the data using the current filter level/ project tag.
 
-##### Instance type tags
+##### Type and compute group tags
 
-This application includes in its breakdown details of instances specifically used as compute nodes. For this to be measured accurately, the appropriate instances should have a tag added with the key `type` and the value `compute`. Again, these should be added at the point of creation. If compute groups are also being used, these should be added using the tag `compute_group`, with a value of the group name. Similarly, core infrastructure can be identified using a tag with the key `type` and the value `core`.
+For `compute` costs to be measured accurately, the appropriate instances and disks should have a tag added with the key `type` and the value `compute`. Again, these should be added at the point of creation. If compute groups are also being used, these should be added using the tag `compute_group`, with a value of the group name.
+
+Similarly, core infrastructure must be identified using a tag with the key `type` and the value `core`.
 
 ##### Admin
 
@@ -49,9 +51,7 @@ This application makes use of a number of AWS sdks, which require a valid `Acces
 
 ### Azure
 
-In this application, Azure projects are tracked either by a subscription, or by one or more resource groups (that must be part of the same subscription). In addition, it is required that compute nodes be given the `"type" => "compute"` tag on the Azure platform and core infrastructure given the `"type" => "core"` tag. If compute groups are being used, compute nodes must also be identified with the tag `"compute_group" => "groupname"`.
-
-Tags are available in the Azure instances API after a few minutes, but will only be reflected in costs for dates/times after the tags have been added.
+In this application, Azure projects are tracked either by a subscription, or by one or more resource groups (that must be part of the same subscription).
 
 In order to run the application, an app and service principal must be created in Azure Active Directory (see https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal for more details).
 
@@ -75,6 +75,13 @@ Azure projects require the following details to be obtained prior to project cre
 - Resource group name(s), if the project is set at resource group level
 
 The first three can be obtained via the app you created in Azure Active Directory. The subscription ID is located in the overview for the subscription containing the project, as is the resource group name in the overview for the resource group. A project may have more than one resource group, but these must be part of the same subscription.
+
+##### Type and compute group tags
+
+Compute nodes and their disks must be given the `"type" => "compute"` tags
+and `"compute_group" => "groupname"` on the Azure platform. Core infrastructure (including disks) must be given the `"type" => "core"` tag.
+
+Tags are available in the Azure instances API after a few minutes, but will only be reflected in costs for dates/times after the tags have been added.
 
 ### Adding and updating projects
 

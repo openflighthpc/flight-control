@@ -11,6 +11,8 @@ class AwsCostsRecorder
     @explorer = Aws::CostExplorer::Client.new(access_key_id: @project.access_key_ident, secret_access_key: @project.key)
   end
 
+  # AWS allows/requires specific filters in the query, so we make one query for each
+  # cost type.
   def record_logs(date, rerun, verbose)
     end_date = start_date + 1.day
     Project::SCOPES.each { |scope| record_costs(date, end_date, rerun, verbose, scope) }
@@ -116,14 +118,6 @@ class AwsCostsRecorder
     query[:filter][:and] << { not: data_out_filter }
     query[:filter][:and] << storage_filter
     query[:filter][:and] << core_filter
-    query
-  end
-
-  # total compute instance run costs (excluding storage)
-  def compute_cost_query(start_date, end_date=(start_date + 1))
-    query = total_cost_query(start_date, end_date)
-    query[:filter][:and] += instance_run_cost_filter
-    query[:filter][:and] << compute_filter
     query
   end
 
