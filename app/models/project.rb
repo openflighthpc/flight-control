@@ -1,5 +1,6 @@
 require_relative 'instance_log'
 require_relative 'cost_log'
+require 'httparty'
 
 class Project < ApplicationRecord
   DEFAULT_COSTS_DATE = Date.today - 3
@@ -18,6 +19,10 @@ class Project < ApplicationRecord
       message: "%{value} is not a valid platform"
     }
   scope :active, -> { where(archived: false) }
+
+  def self.slack_token
+    @@slack_token ||= Rails.application.config.slack_token
+  end
 
   def latest_instance_logs
     instance_logs.where(date: instance_logs.maximum(:date))
@@ -79,6 +84,12 @@ class Project < ApplicationRecord
 
   def costs_recorder
     # platform specific, so none in this superclass
+  end
+
+  def send_slack_message(msg)
+    HTTParty.post("https://slack.com/api/chat.postMessage",
+                  headers: {"Authorization": "Bearer #{Project.slack_token}"},
+                  body: {"text": msg, "channel": slack_channel, "as_user": true})
   end
 
   private
