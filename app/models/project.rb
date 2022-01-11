@@ -50,27 +50,21 @@ class Project < ApplicationRecord
     instance_recorder&.record_logs(rerun)
   end
 
-  def record_cost_logs(date=DEFAULT_COSTS_DATE, rerun=false, verbose=false)# can't record instance logs if resource group deleted
-    if date < start_date
-      puts "Given date is before the project start date"
-      return false
-    elsif date > Date.today
-      puts "Given date is in the future"
-      return false
-    end
+  def record_cost_logs(date=DEFAULT_COSTS_DATE, rerun=false, text=false, verbose=false)
+    check_costs_date(date)
 
     if cost_logs.where(date: date).any?
       if rerun
-        print "Updating existing logs. "
+        print "Updating existing logs. " if text
       else
-        print "Logs already recorded for today. Run task again with 'rerun' as true to overwrite existing logs."
+        print "Logs already recorded for today. Run task again with 'rerun' as true to overwrite existing logs." if text
         return false
       end
     else
-      print "Writing new logs for today. "
+      print "Writing new logs for today. " if text
     end
-
-    costs_recorder&.record_logs(date, rerun, verbose)
+    result = costs_recorder&.record_logs(date, rerun, verbose)
+    print "Success" if costs_recorder&.record_logs(date, rerun, verbose) && text
   end
 
   def instance_recorder
@@ -82,6 +76,8 @@ class Project < ApplicationRecord
   end
 
   def daily_report(date=DEFAULT_COSTS_DATE, rerun=false, slack=true, text=true, verbose=false)
+    return if !check_costs_date(date)
+
     date_logs = cost_logs.where(date: date)
     any_logs = date_logs.any?
     cached = true
@@ -111,7 +107,7 @@ class Project < ApplicationRecord
 
     if text
       puts msg.gsub(":moneybag:", "").gsub("*", "").gsub("\t", "")
-      puts "_" * 50
+      print "_" * 50
     end
   end
 
@@ -139,5 +135,16 @@ class Project < ApplicationRecord
     if start_date && end_date && end_date <= start_date    
       errors.add(:end_date, "Must be after start date")
     end
+  end
+
+  def check_costs_date(date)
+    if date < start_date
+      puts "#{name}: given date is before the project start date for"
+      return false
+    elsif date > Date.today
+      puts "#{name}: Given date is in the future"
+      return false
+    end
+    return true
   end
 end
