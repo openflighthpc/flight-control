@@ -29,7 +29,6 @@ class AwsCostsRecorder
   # in the future will have option to create for multiple days at once
   def record_costs(start_date, end_date, rerun, verbose, scope, compute_group=nil)
     log = @project.cost_logs.find_by(date: start_date, scope: scope)
-
     if !log || rerun
       if compute_group
         storage = scope.include?("storage")
@@ -42,7 +41,6 @@ class AwsCostsRecorder
       rescue Aws::CostExplorer::Errors::ServiceError, Seahorse::Client::NetworkingError => error
         raise AwsSdkError.new("Unable to determine core costs for project #{@project.name}. #{error if @verbose}") 
       end
-
       # for daily report will just be one day, but multiple when run for a range
       response.each do |day|
         date = day[:time_period][:start]
@@ -56,9 +54,9 @@ class AwsCostsRecorder
             project_id: @project.id,
             cost: cost,
             currency: "USD",
-            compute: !!compute_group,
+            compute: compute_group.present?,
             date: date,
-            scope: scope,
+            scope: scope
           )
         end
       end

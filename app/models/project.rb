@@ -81,13 +81,13 @@ class Project < ApplicationRecord
     # platform specific, so none in this superclass
   end
 
-  def daily_report(date=DEFAULT_COSTS_DATE, rerun=false, verbose=false)
+  def daily_report(date=DEFAULT_COSTS_DATE, rerun=false, slack=true, text=true, verbose=false)
     date_logs = cost_logs.where(date: date)
     any_logs = date_logs.any?
     cached = true
     if !any_logs || rerun
       cached = false
-      record_cost_logs
+      record_cost_logs(date, rerun, verbose)
     end
     compute = date_logs.where(compute: true).sum(:cost)
     data_out = date_logs.find_by(scope: "data_out").cost
@@ -103,9 +103,16 @@ class Project < ApplicationRecord
       "*Compute Costs (#{currency}):* #{compute.to_f.ceil(2)}",
       "*Data Out Costs (#{currency}):* #{data_out.to_f.ceil(2)}",
       "*Total Costs (#{currency}):* #{total.to_f.ceil(2)}",
-      "*Total Compute Units (Flat):* #{total_cost_log.compute_cost}",
-      "*Total Compute Units (Risk):* #{total_cost_log.risk_cost}"
+      "*Total Compute Units (Flat):* #{total_log.compute_cost}",
+      "*Total Compute Units (Risk):* #{total_log.risk_cost}"
     ].compact.join("\n") + "\n"
+
+    send_slack_message(msg) if slack
+
+    if text
+      puts msg.gsub(":moneybag:", "").gsub("*", "").gsub("\t", "")
+      puts "_" * 50
+    end
   end
 
   def send_slack_message(msg)

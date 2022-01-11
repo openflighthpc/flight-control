@@ -1,6 +1,6 @@
 class CostLog < ApplicationRecord
   belongs_to :project
-  validates :cost, :currency, :scope, :date, :compute, presence: true
+  validates :cost, :currency, :scope, :date, presence: true
   default_scope { order(:date) }
 
   def self.usd_gbp_conversion
@@ -12,7 +12,7 @@ class CostLog < ApplicationRecord
   end
 
   def self.at_risk_conversion
-    @@gbp_compute_conversion ||= Rails.application.config.at_risk_conversion || 1.25
+    @@risk_conversion ||= Rails.application.config.at_risk_conversion || 1.25
   end
 
   def compute_cost
