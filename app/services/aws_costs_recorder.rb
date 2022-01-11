@@ -56,6 +56,7 @@ class AwsCostsRecorder
             project_id: @project.id,
             cost: cost,
             currency: "USD",
+            compute: !!compute_group,
             date: date,
             scope: scope,
           )

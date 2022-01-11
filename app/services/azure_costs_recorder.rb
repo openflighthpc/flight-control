@@ -18,7 +18,9 @@ class AzureCostsRecorder < AzureService
   end
 
   def create_logs(scope_costs, date, currency)
-    scope_costs.each do |scope, total|
+    scope_costs.each do |scope, details|
+      total = details[:total]
+      compute = details[:compute]
       log = @project.cost_logs.find_by(date: date, scope: scope)
       if log
         log.assign_attributes(cost: total, currency: currency)
@@ -28,6 +30,7 @@ class AzureCostsRecorder < AzureService
           project_id: @project.id,
           cost: total,
           currency: currency,
+          compute: compute,
           date: date,
           scope: scope,
         )
@@ -40,34 +43,34 @@ class AzureCostsRecorder < AzureService
   # with different key structures. This method caters to both.
   def determine_scope_costs(all_costs, subscription_version)
     costs = {}
-    Project::SCOPES.each { |scope| costs[scope] = 0.0 }
+    Project::SCOPES.each { |scope| costs[scope] = {total: 0.0, compute: false}}
     @project.compute_groups.each do |group|
-      costs[group] = 0.0
-      costs["#{group}_storage"] = 0.0
+      costs[group] = {total: 0.0, compute: true}
+      costs["#{group}_storage"] = {total: 0.0, compute: true}
     end
     cost_key = get_cost_key(subscription_version)
 
     all_costs.each do |cost|
       value = cost['properties'][cost_key]
       meter_name = get_meter_name(cost, subscription_version)
-      costs["total"] += value
+      costs["total"][:total] += value
       # Other than total, all other datasets are mutually exclusive,
       # so we can iterate once through all costs to get values.
       if data_out_cost?(meter_name)
-        costs["data_out"] += value
+        costs["data_out"][:total] += value
       elsif core_cost?(cost)
         if storage_cost?(meter_name)
-          costs["core_storage"] += value
+          costs["core_storage"][:total] += value
         else
-          costs["core"] += value
+          costs["core"][:total] += value
         end
       elsif compute_cost?(cost)
         compute_group = cost["tags"]["compute_group"] if cost["tags"]
         if compute_group # in an if clause in case not tagged correctly
           if storage_cost?(meter_name)
-            costs["#{compute_group}_storage"] += value
+            costs["#{compute_group}_storage"][:total] += value
           elsif virtual_machine_cost?(cost, subscription_version)
-            costs[compute_group] += value
+            costs[compute_group][:total] += value
           end
         end
       end

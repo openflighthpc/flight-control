@@ -8,7 +8,7 @@ class AzureInstanceRecorder < AzureService
     any_nodes = false
     log_recorded = false
     if !today_logs.any? || rerun
-      active_nodes = determine_current_compute_nodes
+      active_nodes = determine_current_compute_nodes(verbose)
       any_nodes = active_nodes.any?
       log_ids = []
       active_nodes&.each do |node|
@@ -59,7 +59,7 @@ class AzureInstanceRecorder < AzureService
 
   # Azure APIs won't tell us instances' tags and statuses in the same query,
   # so we must make two and compare & combine the results
-  def determine_current_compute_nodes
+  def determine_current_compute_nodes(verbose)
     instances_with_statuses = api_query_compute_nodes(true, verbose)
     instances_with_compute_groups = api_query_compute_nodes(false, verbose).select do |vm|
       vm.key?('tags') && vm['tags']['type'] == 'compute'

@@ -4,7 +4,7 @@ require 'httparty'
 
 class Project < ApplicationRecord
   DEFAULT_COSTS_DATE = Date.today - 3
-  SCOPES = %w[data_out core core_storage total]
+  SCOPES = %w[total data_out core core_storage]
   has_many :instance_logs
   has_many :cost_logs
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
@@ -29,7 +29,7 @@ class Project < ApplicationRecord
   end
 
   def compute_groups
-    latest_instance_logs.distinct.pluck(:compute_group).compact
+    @groups ||= latest_instance_logs.distinct.pluck(:compute_group).compact
   end
 
   def record_instance_logs(rerun=false, verbose=false)
@@ -51,17 +51,12 @@ class Project < ApplicationRecord
   end
 
   def record_cost_logs(date=DEFAULT_COSTS_DATE, rerun=false, verbose=false)# can't record instance logs if resource group deleted
-    if archived
-      puts "Logs not recorded, project is archived"
-      return
-    end
-
     if date < start_date
       puts "Given date is before the project start date"
-      return
+      return false
     elsif date > Date.today
       puts "Given date is in the future"
-      return
+      return false
     end
 
     if cost_logs.where(date: date).any?
@@ -69,7 +64,7 @@ class Project < ApplicationRecord
         print "Updating existing logs. "
       else
         print "Logs already recorded for today. Run task again with 'rerun' as true to overwrite existing logs."
-        return
+        return false
       end
     else
       print "Writing new logs for today. "
@@ -84,6 +79,19 @@ class Project < ApplicationRecord
 
   def costs_recorder
     # platform specific, so none in this superclass
+  end
+
+  def daily_report(date=DEFAULT_COSTS_DATE, rerun=false, verbose=false)
+    date_logs = cost_logs.where(date: date)
+    any_logs = date_logs.any?
+    cached = true
+    if !any_logs || rerun
+      cached = false
+      costs = record_cost_logs
+      if logs
+
+      end
+    end
   end
 
   def send_slack_message(msg)
