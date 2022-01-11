@@ -29,7 +29,7 @@ class Project < ApplicationRecord
   end
 
   def compute_groups
-    @groups ||= latest_instance_logs.distinct.pluck(:compute_group).compact
+    latest_instance_logs.distinct.pluck(:compute_group).compact
   end
 
   def record_instance_logs(rerun=false, verbose=false)
@@ -87,11 +87,25 @@ class Project < ApplicationRecord
     cached = true
     if !any_logs || rerun
       cached = false
-      costs = record_cost_logs
-      if logs
-
-      end
+      record_cost_logs
     end
+    compute = date_logs.where(compute: true).sum(:cost)
+    data_out = date_logs.find_by(scope: "data_out").cost
+    total_log = date_logs.find_by(scope: "total")
+    total = total_log.cost
+    currency = total_log.currency
+
+    date_warning = date > Date.today - 2 ? "\nWarning: costs data takes roughly 48 hours to update, so these figures may be inaccurate\n" : nil
+    msg = [
+      "#{date_warning if date_warning}",
+      "#{"*Cached report*" if cached}",
+      ":moneybag: Usage for *#{name}* on #{date.to_s} :moneybag:",
+      "*Compute Costs (#{currency}):* #{compute.to_f.ceil(2)}",
+      "*Data Out Costs (#{currency}):* #{data_out.to_f.ceil(2)}",
+      "*Total Costs (#{currency}):* #{total.to_f.ceil(2)}",
+      "*Total Compute Units (Flat):* #{total_cost_log.compute_cost}",
+      "*Total Compute Units (Risk):* #{total_cost_log.risk_cost}"
+    ].compact.join("\n") + "\n"
   end
 
   def send_slack_message(msg)

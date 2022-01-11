@@ -61,4 +61,7 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   config.slack_token = ""
+  config.usd_gbp_conversion = 0.77
+  config.gbp_compute_conversion = 12.5
+  config.at_risk_conversion = 1.25
 end
