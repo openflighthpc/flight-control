@@ -13,8 +13,10 @@ namespace :instance_logs do
         # jobs stored in memory and lost when rake ends.
         fork do
           Rake::Task['instance_logs:record:by_project'].execute(arguments)
+          exit
         end
       end
+      Process.waitall
     end
 
     multitask :by_project, [:project, :rerun, :verbose] => :environment do |task, args|

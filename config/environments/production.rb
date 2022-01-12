@@ -110,12 +110,6 @@ Rails.application.configure do
   # config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
   # config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
 
-  config.active_job.queue_adapter = ActiveJob::QueueAdapters::AsyncAdapter.new(
-    min_threads: 0,
-    max_threads: 10,
-    idletime: 180.seconds
-  )
-
   config.slack_token = ""
   config.usd_gbp_conversion = 0.77
   config.gbp_compute_conversion = 12.5
