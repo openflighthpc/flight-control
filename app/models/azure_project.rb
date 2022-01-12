@@ -2,6 +2,7 @@ require_relative 'project'
 require_relative '../services/azure_instance_recorder'
 require_relative '../services/azure_costs_recorder'
 require_relative '../services/azure_authoriser'
+require_relative '../services/azure_instance_details_recorder'
 
 class AzureProject < Project
   alias_attribute :azure_client_id, :security_id
@@ -31,6 +32,10 @@ class AzureProject < Project
 
   def costs_recorder
     @costs_recorder ||= AzureCostsRecorder.new(self)
+  end
+
+  def instance_details_recorder
+    @instance_details_recorder ||= AzureInstanceDetailsRecorder.new(self)
   end
 
   private

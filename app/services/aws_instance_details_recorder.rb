@@ -13,7 +13,7 @@ class AwsInstanceDetailsRecorder
   end
 
   def record
-    regions = AwsProject.all.map(&:regions).flatten.uniq | ["eu-west-2"]
+    regions = AwsProject.all.pluck(:regions).flatten.uniq | ["eu-west-2"]
     regions.sort!
 
     timestamp = begin
