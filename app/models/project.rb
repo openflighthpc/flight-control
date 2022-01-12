@@ -68,11 +68,19 @@ class Project < ApplicationRecord
     print "Success" if costs_recorder&.record_logs(date, rerun, verbose) && text
   end
 
+  def record_instance_details
+    instance_details_recorder.record
+  end
+
   def instance_recorder
     # platform specific, so none in this superclass
   end
 
   def costs_recorder
+    # platform specific, so none in this superclass
+  end
+
+  def instance_details_recorder
     # platform specific, so none in this superclass
   end
 

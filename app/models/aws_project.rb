@@ -1,6 +1,7 @@
 require_relative 'project'
 require_relative '../services/aws_instance_recorder'
 require_relative '../services/aws_costs_recorder'
+require_relative '../services/aws_instance_details_recorder'
 
 class AwsProject < Project
   alias_attribute :access_key_ident, :security_id
@@ -27,6 +28,11 @@ class AwsProject < Project
 
   def costs_recorder
     @costs_recorder ||= AwsCostsRecorder.new(self)
+  end
+
+  # Instance type prices and sizes
+  def instance_details_recorder
+    @instance_details_recorder ||= AwsInstanceDetailsRecorder.new(self)
   end
 
   private
