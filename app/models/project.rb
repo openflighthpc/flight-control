@@ -37,17 +37,18 @@ class Project < ApplicationRecord
     if archived
       return "Logs not recorded, project is archived"
     end
-
+    
+    outcome = ""
     if instance_logs.where(date: Date.today).any?
       if rerun
-        print "Updating existing logs. "
+        outcome << "Updating existing logs. "
       else
         return "Logs already recorded for today. Run task again with 'rerun' as true to overwrite existing logs."
       end
     else
-      print "Writing new logs for today. "
+      outcome << "Writing new logs for today. "
     end
-    instance_recorder&.record_logs(rerun)
+    outcome << instance_recorder&.record_logs(rerun)
   end
 
   def record_cost_logs(date=DEFAULT_COSTS_DATE, rerun=false, text=false, verbose=false)

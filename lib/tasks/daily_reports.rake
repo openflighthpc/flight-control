@@ -1,7 +1,6 @@
 require_relative "../../app/models/application_record"
 require_relative "../../app/models/project"
 require_relative "../../app/models/cost_log"
-require_relative "../../app/jobs/daily_report_job"
 
 namespace :daily_reports do
   namespace :generate do
@@ -19,10 +18,10 @@ namespace :daily_reports do
       end
     end
 
-    task :by_project, [:project, :date, :rerun, :slack, :text, :verbose] => :environment do |task, args|
+    multitask :by_project, [:project, :date, :rerun, :slack, :text, :verbose] => :environment do |task, args|
       # When called directly, args use strings keys. But when called from the
       # all task using execute, it uses symbol keys.
-      args = args.stringify_keys
+      args = args.to_h.stringify_keys
       project = Project.find_by(name: args["project"])
       if !project
         puts "No project found with that name"

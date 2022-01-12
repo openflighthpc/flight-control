@@ -5,34 +5,40 @@ require_relative "../../app/models/instance_log"
 namespace :instance_logs do
   namespace :record do
     task :all, [:rerun, :verbose] => :environment do |task, args|
-      Project.active.each do |project|
-        record_instance_logs(project, args["rerun"] == "true", args["verbose"] == "true")
+      arguments = args.to_h
+      Project.active.pluck(:name).each do |project|
+        arguments[:project] = project
+        # In an ideal world these would be background jobs, but to do that
+        # will require an external queuing system such as redis, as otherwise
+        # jobs stored in memory and lost when rake ends.
+        fork do
+          Rake::Task['instance_logs:record:by_project'].execute(arguments)
+        end
       end
     end
 
-    task :by_project, [:project, :rerun, :verbose] => :environment do |task, args|
+    multitask :by_project, [:project, :rerun, :verbose] => :environment do |task, args|
+      # When called directly, args use strings keys. But when called from the
+      # all task using execute, it uses symbol keys.
+      args = args.to_h.stringify_keys
       project = Project.find_by(name: args["project"])
       if !project
-        puts "No project found with that name"
+        puts "No project found with the name #{args["project"]}"
       else
-        record_instance_logs(project, args["rerun"] == "true", args["verbose"] == "true")
+        begin
+          msg = "Project #{project.name}: "
+          msg << project.record_instance_logs(args["rerun"] == "true", args["verbose"] == "true")
+          puts msg
+        rescue AzureApiError, AwsSdkError => e
+          error = <<~MSG
+          Generation of instance logs for project *#{project.name}* stopped due to error:
+          #{e}
+          MSG
+       
+          error << "\n#{"_" * 50}"
+          puts error.gsub("*", "")
+        end
       end
     end
-  end
-end
-
-def record_instance_logs(project, rerun, verbose)
-  begin
-    print "Project #{project.name}: "
-    print  project.record_instance_logs(rerun, verbose)
-    puts
-  rescue AzureApiError, AwsSdkError => e
-    error = <<~MSG
-    Generation of instance logs for project *#{project.name}* stopped due to error:
-    #{e}
-    MSG
-
-    error << "\n#{"_" * 50}"
-    puts error.gsub("*", "")
   end
 end
