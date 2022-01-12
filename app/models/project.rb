@@ -106,8 +106,9 @@ class Project < ApplicationRecord
     send_slack_message(msg) if slack
 
     if text
+      msg << "_" * 50
+      msg << "\n"
       puts msg.gsub(":moneybag:", "").gsub("*", "").gsub("\t", "")
-      print "_" * 50
     end
   end
 
