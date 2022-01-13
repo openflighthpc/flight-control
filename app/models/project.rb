@@ -68,6 +68,16 @@ class Project < ApplicationRecord
     print "Success" if costs_recorder&.record_logs(date, rerun, verbose) && text
   end
 
+  # we want to run all the validations, even if one has already
+  # failed, so we can see all that have issues.
+  def validate_credentials
+    success = true 
+    success = false if !costs_recorder&.validate_credentials
+    success = false if !instance_recorder&.validate_credentials &&
+    success = false if !instance_details_recorder&.validate_credentials
+    success
+  end
+
   def record_instance_details
     instance_details_recorder.record
   end

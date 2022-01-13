@@ -64,6 +64,17 @@ class AwsCostsRecorder
     log
   end
 
+  def validate_credentials
+    valid = true
+    begin
+      @explorer.get_cost_and_usage(total_cost_query(Project::DEFAULT_COSTS_DATE)).results_by_time
+    rescue Aws::CostExplorer::Errors::ServiceError, Seahorse::Client::NetworkingError => error
+      puts "Unable to obtain costs data: #{error}"
+      valid = false
+    end
+    valid
+  end
+
   private
 
   def total_cost_query(start_date, end_date=(start_date + 1))

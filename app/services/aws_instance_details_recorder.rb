@@ -64,6 +64,17 @@ class AwsInstanceDetailsRecorder
     end
   end
 
+  def validate_credentials
+    valid = true
+    begin
+      @pricing_checker.get_products(instances_info_query(@project.regions.first))
+    rescue Aws::Pricing::Errors::ServiceError, Aws::Errors::MissingRegionError, Seahorse::Client::NetworkingError => error
+      puts "Unable to obtain instance pricing and sizes data: #{error}"
+      valid = false
+    end
+    valid
+  end
+
   private
   
   def instances_info_query(region, token=nil)

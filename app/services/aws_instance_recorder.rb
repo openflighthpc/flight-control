@@ -18,7 +18,6 @@ class AwsInstanceRecorder
       @project.regions.each do |region|
         begin
           instances_checker = Aws::EC2::Client.new(access_key_id: @project.access_key_ident, secret_access_key: @project.key, region: region)
-          results = nil
           results = instances_checker.describe_instances(project_instances_query)
         rescue Aws::EC2::Errors::ServiceError, Seahorse::Client::NetworkingError => error
           raise AwsSdkError.new("Unable to determine AWS instances for project #{@project.name} in region #{region}. #{error if @verbose}")
@@ -76,6 +75,22 @@ class AwsInstanceRecorder
     end
     log_recorded ? "Logs recorded" : (any_nodes ? "Logs NOT recorded" : "No logs to record")
   end
+
+  def validate_credentials
+    valid = true
+    begin
+      instances_checker = Aws::EC2::Client.new(access_key_id: @project.access_key_ident,
+                                               secret_access_key: @project.key,
+                                               region: @project.regions.first)
+      instances_checker.describe_instances(project_instances_query)
+    rescue Aws::EC2::Errors::ServiceError, Seahorse::Client::NetworkingError, Aws::Errors::MissingRegionError => error
+      puts "Unable to obtain instance status data: #{error}"
+      valid = false
+    end
+    valid
+  end
+
+  private
 
   def project_instances_query
     query = {
