@@ -1,4 +1,4 @@
-2022-01-12 18:36:48 +0000
+2022-01-13 11:35:32 +0000
 ["US Central", "UK South", "EU West"]
 {"EffectiveDate":"2019-12-01T00:00:00Z","IncludedQuantity":0.0,"MeterCategory":"Virtual Machines","MeterId":"02d108c1-108b-4b7e-82fe-2021a16ae697","MeterName":"E32a v4/E32as v4","MeterRates":{"0":1.812591},"MeterRegion":"EU West","MeterStatus":"Active","MeterSubCategory":"Eav4/Easv4 Series","MeterTags":[],"Unit":"1 Hour"}
 {"EffectiveDate":"2021-02-01T00:00:00Z","IncludedQuantity":0.0,"MeterCategory":"Virtual Machines","MeterId":"503f4887-c142-5b14-af6c-e956b0ba3caf","MeterName":"Msm Type1","MeterRates":{"0":27.574942},"MeterRegion":"UK South","MeterStatus":"Active","MeterSubCategory":"MS Series Dedicated Host","MeterTags":[],"Unit":"1 Hour"}

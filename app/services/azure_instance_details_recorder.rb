@@ -48,12 +48,12 @@ class AzureInstanceDetailsRecorder < AzureService
         elsif response.code == 504
           raise Net::ReadTimeout
         else
-          raise AzureApiError.new("Error obtaining latest Azure price list. Error code #{response.code}.\n#{response if @verbose}")
+          raise AzureApiError.new("Error obtaining latest Azure price list. Error code #{response.code}.\n#{response}")
         end
       rescue Net::ReadTimeout
         msg = "Attempt #{attempt}: Request timed out.\n"
         if response
-          msg << "Error code #{response.code}.\n#{response if @verbose}\n"
+          msg << "Error code #{response.code}.\n#{response}\n"
         end
         error.error_messages.append(msg)
         if attempt < MAX_API_ATTEMPTS

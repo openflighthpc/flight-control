@@ -4,7 +4,7 @@ require_relative "../../app/models/cost_log"
 
 namespace :cost_logs do
   namespace :record do
-    task :all, [:rerun, :text, :verbose, ] => :environment do |task, args|
+    task :all, [:rerun, :text, :verbose] => :environment do |task, args|
       date = Project::DEFAULT_COSTS_DATE
       Project.active.each do |project|
         record_cost_logs(project, date, args["rerun"] == "true",
