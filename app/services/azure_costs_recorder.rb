@@ -158,6 +158,17 @@ class AzureCostsRecorder < AzureService
     end 
   end
 
+  def validate_credentials
+    valid = true
+    begin
+      get_all_costs(Project::DEFAULT_COSTS_DATE, Project::DEFAULT_COSTS_DATE, true)
+    rescue => error
+      puts "Unable to obtain costs data: #{error}"
+      valid = false
+    end
+    valid
+  end
+
   private
 
   # These methods to handle differences in output depending upon subscription version

@@ -68,7 +68,7 @@ class AwsInstanceDetailsRecorder
     valid = true
     begin
       @pricing_checker.get_products(instances_info_query(@project.regions.first))
-    rescue Aws::Pricing::Errors::ServiceError, Aws::Errors::MissingRegionError, Seahorse::Client::NetworkingError => error
+    rescue => error
       puts "Unable to obtain instance pricing and sizes data: #{error}"
       valid = false
     end

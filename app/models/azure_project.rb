@@ -38,6 +38,13 @@ class AzureProject < Project
     @instance_details_recorder ||= AzureInstanceDetailsRecorder.new(self)
   end
 
+  def validate_credentials
+    valid = true
+    valid = false if !authoriser.validate_credentials
+    valid = super && valid
+    valid
+  end
+
   private
 
   def resource_groups_if_group_filter

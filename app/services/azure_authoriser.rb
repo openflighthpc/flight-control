@@ -49,4 +49,15 @@ class AzureAuthoriser < AzureService
       end
     end
   end
+
+  def validate_credentials
+    valid = true
+    begin
+      update_bearer_token
+    rescue error
+      puts "Unable to obtain bearer token: #{error}"
+      valid = false
+    end
+    valid
+  end
 end

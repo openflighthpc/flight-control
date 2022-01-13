@@ -71,6 +71,19 @@ class AzureInstanceRecorder < AzureService
     end
   end
 
+  def validate_credentials
+    valid = true
+    begin
+      determine_current_compute_nodes(true)
+    rescue => error
+      puts "Unable to access virtual machines data: #{error}"
+      valid = false
+    end
+    valid
+  end
+
+  private
+
   def api_query_compute_nodes(status_only, verbose=false)
     uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/providers/Microsoft.Compute/virtualMachines"
     query = {

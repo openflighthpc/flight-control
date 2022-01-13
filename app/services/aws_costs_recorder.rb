@@ -68,7 +68,7 @@ class AwsCostsRecorder
     valid = true
     begin
       @explorer.get_cost_and_usage(total_cost_query(Project::DEFAULT_COSTS_DATE)).results_by_time
-    rescue Aws::CostExplorer::Errors::ServiceError, Seahorse::Client::NetworkingError => error
+    rescue => error
       puts "Unable to obtain costs data: #{error}"
       valid = false
     end

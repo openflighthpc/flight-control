@@ -136,6 +136,10 @@ class AzureInstanceDetailsRecorder < AzureService
     end
   end
 
+  def validate_credentials
+    false
+  end
+
   private
 
   def prices_file

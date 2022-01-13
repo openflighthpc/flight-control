@@ -83,7 +83,7 @@ class AwsInstanceRecorder
                                                secret_access_key: @project.key,
                                                region: @project.regions.first)
       instances_checker.describe_instances(project_instances_query)
-    rescue Aws::EC2::Errors::ServiceError, Seahorse::Client::NetworkingError, Aws::Errors::MissingRegionError => error
+    rescue => error
       puts "Unable to obtain instance status data: #{error}"
       valid = false
     end

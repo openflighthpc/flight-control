@@ -73,7 +73,7 @@ class Project < ApplicationRecord
   def validate_credentials
     success = true 
     success = false if !costs_recorder&.validate_credentials
-    success = false if !instance_recorder&.validate_credentials &&
+    success = false if !instance_recorder&.validate_credentials
     success = false if !instance_details_recorder&.validate_credentials
     success
   end
