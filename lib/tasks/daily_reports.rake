@@ -23,7 +23,6 @@ namespace :daily_reports do
     multitask :by_project, [:project, :date, :rerun, :slack, :text, :verbose] => :environment do |task, args|
       # When called directly, args use strings keys. But when called from the
       # all task using execute, it uses symbol keys.
-      puts "it begins"
       args = args.to_h.stringify_keys
       project = Project.find_by(name: args["project"])
       if !project

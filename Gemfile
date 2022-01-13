@@ -33,6 +33,7 @@ gem 'httparty'
 gem 'aws-sdk-ec2'
 gem 'aws-sdk-costexplorer'
 gem 'aws-sdk-pricing'
+gem 'whenever'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

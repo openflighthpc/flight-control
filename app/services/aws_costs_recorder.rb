@@ -39,7 +39,7 @@ class AwsCostsRecorder
       begin
         response = @explorer.get_cost_and_usage(cost_query).results_by_time
       rescue Aws::CostExplorer::Errors::ServiceError, Seahorse::Client::NetworkingError => error
-        raise AwsSdkError.new("Unable to determine core costs for project #{@project.name}. #{error if @verbose}") 
+        raise AwsSdkError.new("Unable to determine core costs for project #{@project.name}. #{error if verbose}") 
       end
       # for daily report will just be one day, but multiple when run for a range
       response.each do |day|
