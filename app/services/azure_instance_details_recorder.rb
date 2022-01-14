@@ -4,7 +4,6 @@ class AzureInstanceDetailsRecorder < AzureService
   @@region_mappings = {}
 
   def record
-    determine_region_mappings
     record_instance_prices
     record_instance_sizes
   end
@@ -33,7 +32,7 @@ class AzureInstanceDetailsRecorder < AzureService
           headers: { 'Authorization': "Bearer #{@project.bearer_token}" },
           timeout: DEFAULT_TIMEOUT
         )
-
+        puts response
         if response.success?
           File.write(prices_file, "#{Time.now}\n")
           File.write(prices_file, "#{mapped_regions}\n", mode: "a")
@@ -60,6 +59,31 @@ class AzureInstanceDetailsRecorder < AzureService
           retry
         else
           raise error
+        end
+      end
+    end
+  end
+
+  def new_record_instance_prices
+    instance_types = InstanceLog.where(platform: "azure").pluck("DISTINCT instance_type")
+    first_query = true
+    regions.each do |region|
+      instance_types.each do |instance_type|
+        uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and armSkuName eq '#{instance_type}'"
+        response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
+        if response.success?
+          if first_query
+            File.write(prices_file, "#{Time.now}\n")
+            File.write(prices_file, "#{regions}\n", mode: "a")
+            first_query = false
+          end
+          matched = response["Items"].find do |price|
+            price["isPrimaryMeterRegion"] && !price["productName"].end_with?("Windows")
+          end
+          if matched
+            File.write(prices_file, matched.to_json, mode: "a")
+            File.write(prices_file, "\n", mode: "a")
+          end
         end
       end
     end
@@ -151,18 +175,18 @@ class AzureInstanceDetailsRecorder < AzureService
   end
 
   def regions
-    @regions ||= (InstanceLog.where(platform: "azure").select(:region).distinct.pluck(:region) | ["uksouth"]).sort
+    @regions ||= (InstanceLog.where(platform: "azure").pluck("DISTINCT region") | ["uksouth"]).sort
   end
 
   def mapped_regions
     @mapped_regions ||= regions.map do |region|
-      value = @@region_mappings[region]
+      value = region_mappings[region]
       puts "No region mapping for #{region}, please update 'azure_region_names.txt' and rerun" and return if !value
       value
     end
   end
 
-  def determine_region_mappings
+  def region_mappings
     if @@region_mappings == {}
       file = File.open(File.join(Rails.root, 'lib', 'platform_files', 'azure_region_names.txt'))
       file.readlines.each do |line|
@@ -170,5 +194,6 @@ class AzureInstanceDetailsRecorder < AzureService
         @@region_mappings[line[0]] = line[1].strip
       end
     end
+    region_mappings
   end
 end
