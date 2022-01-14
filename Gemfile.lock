@@ -93,6 +93,9 @@ GEM
     chronic (0.10.2)
     concurrent-ruby (1.1.9)
     crass (1.0.6)
+    data_migrate (7.0.2)
+      activerecord (>= 5.0)
+      railties (>= 5.0)
     erubi (1.10.0)
     ffi (1.15.4)
     globalid (1.0.0)
@@ -233,6 +236,7 @@ DEPENDENCIES
   bootsnap (>= 1.4.2)
   byebug
   capybara (>= 2.15)
+  data_migrate
   httparty
   jbuilder (~> 2.7)
   listen (~> 3.2)

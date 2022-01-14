@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_11_122412) do
+ActiveRecord::Schema.define(version: 2022_01_14_164029) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -28,6 +28,9 @@ ActiveRecord::Schema.define(version: 2022_01_11_122412) do
     t.index ["project_id"], name: "index_cost_logs_on_project_id"
   end
 
+  create_table "data_migrations", primary_key: "version", id: :string, force: :cascade do |t|
+  end
+
   create_table "instance_logs", force: :cascade do |t|
     t.bigint "project_id"
     t.string "instance_type"
@@ -42,6 +45,12 @@ ActiveRecord::Schema.define(version: 2022_01_11_122412) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["date"], name: "index_instance_logs_on_date"
     t.index ["project_id"], name: "index_instance_logs_on_project_id"
+  end
+
+  create_table "instance_mappings", force: :cascade do |t|
+    t.string "platform"
+    t.string "instance_type"
+    t.string "customer_facing_type"
   end
 
   create_table "projects", force: :cascade do |t|
