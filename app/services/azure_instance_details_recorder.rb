@@ -10,29 +10,30 @@ class AzureInstanceDetailsRecorder < AzureService
   end
 
   # The new Azure Prices API allows filters, but only includes 100 records per
-  # request. So only efficient if we query for our actually used instance types
-  # in each region. But if we end up having many different types in multiple
-  # regions, will be more efficient to go back to using the old API and just
-  # querying everything.
+  # request. As 2 responses per instance type (linux and windows, which can't
+  # be filtered out in the query), if more than 50 instance types in a region
+  # logic will need updating to make further requests to get subsquent records.
   def record_instance_prices
     first_query = true
     regions_and_types.each do |region, types|
-      types.each do |instance_type|
-        uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and armSkuName eq '#{instance_type}'"
-        response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
-        if response.success?
-          if first_query
-            File.write(prices_file, "#{Time.now}\n")
-            File.write(prices_file, "#{regions}\n", mode: "a")
-            first_query = false
-          end
-          matched = response["Items"].find do |price|
-            price["isPrimaryMeterRegion"] && !price["productName"].end_with?("Windows")
-          end
-          if matched
-            File.write(prices_file, matched.to_json, mode: "a")
-            File.write(prices_file, "\n", mode: "a")
-          end
+      types_filter = ""
+      types.each_with_index do |type, index|
+        types_filter << "#{index == 0 ? "" : "or"} armSkuName eq '#{type}'"
+      end
+
+      uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and (#{types_filter})"
+      response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
+      if response.success?
+        if first_query
+          File.write(prices_file, "#{Time.now}\n")
+          first_query = false
+        end
+        matches = response["Items"].select do |price|
+          price["isPrimaryMeterRegion"] && !price["productName"].end_with?("Windows")
+        end
+        matches.each do |matched|
+          File.write(prices_file, matched.to_json, mode: "a")
+          File.write(prices_file, "\n", mode: "a")
         end
       end
     end
@@ -54,7 +55,6 @@ class AzureInstanceDetailsRecorder < AzureService
     
       if response.success?
         File.write(sizes_file, "#{Time.now}\n")
-        File.write(sizes_file, "#{regions}\n", mode: "a")
         response["value"].each do |instance|
           if instance["resourceType"] == "virtualMachines" && regions.include?(instance["locations"][0]) &&
             instance_types.include?(instance["name"])

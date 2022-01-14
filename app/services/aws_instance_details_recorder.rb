@@ -16,7 +16,6 @@ class AwsInstanceDetailsRecorder
     regions.each.with_index do |region, index|
       if index == 0
         File.write(details_file, "#{Time.now}\n")
-        File.write(details_file, "#{regions}\n", mode: "a")
       end
       first_query = true
       results = nil
