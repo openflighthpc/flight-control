@@ -13,53 +13,39 @@ class AwsInstanceDetailsRecorder
   end
 
   def record
-    regions = AwsProject.all.pluck(:regions).flatten.uniq | ["eu-west-2"]
-    regions.sort!
-
-    timestamp = begin
-      Date.parse(File.open(details_file).first) 
-    rescue ArgumentError, Errno::ENOENT
-      false
-    end
-    existing_regions = begin
-      File.open(details_file).first(2).last.chomp
-    rescue Errno::ENOENT 
-      false
-    end
-
-    if timestamp == false || Date.today - timestamp >= 1 || existing_regions == false || existing_regions != regions.to_s
-      regions.each.with_index do |region, index|
-        if index == 0
-          File.write(details_file, "#{Time.now}\n")
-          File.write(details_file, "#{regions}\n", mode: "a")
+    regions.each.with_index do |region, index|
+      if index == 0
+        File.write(details_file, "#{Time.now}\n")
+        File.write(details_file, "#{regions}\n", mode: "a")
+      end
+      first_query = true
+      results = nil
+      while first_query || results&.next_token
+        begin
+          results = @pricing_checker.get_products(instances_info_query(region, results&.next_token))
+        rescue Aws::Pricing::Errors::ServiceError, Aws::Errors::MissingRegionError, Seahorse::Client::NetworkingError => error
+          raise AwsSdkError.new("Unable to determine AWS instances in region #{region}. #{error}")
         end
-        first_query = true
-        results = nil
-        while first_query || results&.next_token
-          begin
-            results = @pricing_checker.get_products(instances_info_query(region, results&.next_token))
-          rescue Aws::Pricing::Errors::ServiceError, Aws::Errors::MissingRegionError, Seahorse::Client::NetworkingError => error
-            raise AwsSdkError.new("Unable to determine AWS instances in region #{region}. #{error}")
-          end
-          results.price_list.each do |result|
-            details = JSON.parse(result)
-            attributes = details["product"]["attributes"]
-            price = details["terms"]["OnDemand"]
-            price = price[price.keys[0]]["priceDimensions"]
-            price = price[price.keys[0]]["pricePerUnit"]["USD"].to_f
-            mem = attributes["memory"].gsub(" GiB", "")
-            info = {
-              instance_type: attributes["instanceType"],
-              location: region, 
-              price_per_hour: price,
-              cpu: attributes["vcpu"].to_i,
-              mem: mem.to_f,
-              gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0
-            }
-            File.write(details_file, "#{info.to_json}\n", mode: 'a')
-          end
-          first_query = false
+        results.price_list.each do |result|
+          details = JSON.parse(result)
+          attributes = details["product"]["attributes"]
+          next if !instance_types.include?(attributes["instanceType"])
+
+          price = details["terms"]["OnDemand"]
+          price = price[price.keys[0]]["priceDimensions"]
+          price = price[price.keys[0]]["pricePerUnit"]["USD"].to_f
+          mem = attributes["memory"].gsub(" GiB", "")
+          info = {
+            instance_type: attributes["instanceType"],
+            location: region, 
+            price_per_hour: price,
+            cpu: attributes["vcpu"].to_i,
+            mem: mem.to_f,
+            gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0
+          }
+          File.write(details_file, "#{info.to_json}\n", mode: 'a')
         end
+        first_query = false
       end
     end
   end
@@ -76,6 +62,19 @@ class AwsInstanceDetailsRecorder
   end
 
   private
+
+  def regions
+    if !@regions
+      @regions = AwsProject.all.pluck(:regions).flatten.uniq | ["eu-west-2"]
+      @regions.sort!
+    end
+    @regions
+  end
+
+  # once added, this should include those present in instance mappings
+  def instance_types
+    @instance_types ||= instance_types = InstanceLog.where(platform: "aws").pluck(Arel.sql("DISTINCT instance_type"))
+  end
   
   def instances_info_query(region, token=nil)
     details = {
