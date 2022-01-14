@@ -71,7 +71,6 @@ class AwsInstanceDetailsRecorder
     @regions
   end
 
-  # once added, this should include those present in instance mappings
   def instance_types
     @instance_types ||= instance_types = InstanceLog.where(platform: "aws").pluck(Arel.sql("DISTINCT instance_type"))
   end

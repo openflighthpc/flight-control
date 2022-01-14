@@ -1,4 +1,5 @@
 require_relative 'azure_service'
+require_relative '../models/instance_log'
 
 class AzureInstanceDetailsRecorder < AzureService
   @@region_mappings = {}
@@ -8,10 +9,15 @@ class AzureInstanceDetailsRecorder < AzureService
     record_instance_sizes
   end
 
+  # The new Azure Prices API allows filters, but only includes 100 records per
+  # request. So only efficient if we query for our actually used instance types
+  # in each region. But if we end up having many different types in multiple
+  # regions, will be more efficient to go back to using the old API and just
+  # querying everything.
   def record_instance_prices
     first_query = true
-    regions.each do |region|
-      instance_types.each do |instance_type|
+    regions_and_types.each do |region, types|
+      types.each do |instance_type|
         uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and armSkuName eq '#{instance_type}'"
         response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
         if response.success?
@@ -105,13 +111,23 @@ class AzureInstanceDetailsRecorder < AzureService
     @sizes_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_instance_sizes.txt')
   end
 
-  # once added, this should include those present in instance mappings
   def instance_types
-    @instance_types ||= instance_types = InstanceLog.where(platform: "azure").pluck(Arel.sql("DISTINCT instance_type"))
+    @instance_types ||= InstanceLog.where(platform: "azure").pluck(Arel.sql("DISTINCT instance_type"))
   end
 
   def regions
-    @regions ||= (InstanceLog.where(platform: "azure").pluck(Arel.sql("DISTINCT region")) | ["uksouth"]).sort
+    @regions ||= (InstanceLog.where(platform: "azure").pluck(Arel.sql("DISTINCT region")) | ["uksouth"])
+  end
+
+  def regions_and_types
+    if !@regions_and_types
+      @regions_and_types = {}
+      regions.each do |region|
+        types = InstanceLog.where(platform: "azure", region: region).pluck(Arel.sql("DISTINCT instance_type"))
+        regions_and_types[region] = types
+      end
+    end
+    @regions_and_types
   end
 
   def mapped_regions

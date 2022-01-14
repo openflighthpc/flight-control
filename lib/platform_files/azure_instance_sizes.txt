@@ -1,4 +1,4 @@
-2022-01-14 15:57:56 +0000
+2022-01-14 18:02:29 +0000
 ["centralus", "uksouth", "westeurope"]
 {"instance_type":"Standard_B1ls","instance_family":"standardBSFamily","location":"centralus","cpu":1,"gpu":0,"mem":0.5}
 {"instance_type":"Standard_B1ls","instance_family":"standardBSFamily","location":"uksouth","cpu":1,"gpu":0,"mem":0.5}
