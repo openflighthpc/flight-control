@@ -5,14 +5,16 @@ class AzureCostsRecorder < AzureService
 
   # Azure doesn't allow filtering in the query, so we make
   # once request for all costs and filter them within our application.
-  def record_logs(date, rerun, verbose)
-    existing_logs = @project.cost_logs.where(date: date).any?
-    if !existing_logs || rerun
-      all_costs = get_all_costs(date, date, verbose)
-      subscription_version = all_costs[0]["kind"] if all_costs.any?
-      currency = get_currency(all_costs[0], subscription_version)
-      scope_costs = determine_scope_costs(all_costs, subscription_version)
-      create_logs(scope_costs, date, currency)
+  def record_logs(start_date, end_date=start_date, rerun, verbose)
+    (start_date..end_date).to_a.each do |date|
+      existing_logs = @project.cost_logs.where(date: date).any?
+      if !existing_logs || rerun
+        all_costs = get_all_costs(date, date, verbose)
+        subscription_version = all_costs[0]["kind"] if all_costs.any?
+        currency = get_currency(all_costs[0], subscription_version)
+        scope_costs = determine_scope_costs(all_costs, subscription_version)
+        create_logs(scope_costs, date, currency)
+      end
     end
     true
   end

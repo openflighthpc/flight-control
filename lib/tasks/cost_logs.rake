@@ -28,6 +28,21 @@ namespace :cost_logs do
                          args["verbose"] == "true", args["text"] == "true")
       end
     end
+
+    desc 'Record logs for a date range, for one project'
+    task :range, [:project, :start, :end, :rerun, :text, :verbose] => :environment do |task, args|
+      project = Project.find_by(name: args["project"])
+      if !project
+        puts "No project found with that name"
+      else
+        start_date = Date.parse(args["start"])
+        end_date = Date.parse(args["end"]) 
+      end
+      record_cost_logs_for_range(project, start_date, end_date,
+                                 args["rerun"] == "true",
+                                 args["verbose"] == "true",
+                                 args["text"] == "true")
+    end
   end
 end
 
@@ -35,6 +50,22 @@ def record_cost_logs(project, date, rerun, verbose, text)
   begin
     print "Project #{project.name}: " if text
     print project.record_cost_logs(date, rerun, text, verbose)
+    puts if text
+  rescue AzureApiError, AwsSdkError => e
+    error = <<~MSG
+    Generation of cost logs for project *#{project.name}* stopped due to error:
+    #{e}
+    MSG
+
+    error << "\n#{"_" * 50}"
+    puts error.gsub("*", "")
+  end
+end
+
+def record_cost_logs_for_range(project, start_date, end_date, rerun, verbose, text)
+  begin
+    print "Project #{project.name}: " if text
+    print project.record_cost_logs_for_range(start_date, end_date, rerun, text, verbose)
     puts if text
   rescue AzureApiError, AwsSdkError => e
     error = <<~MSG

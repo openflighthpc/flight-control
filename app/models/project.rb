@@ -64,8 +64,11 @@ class Project < ApplicationRecord
     else
       print "Writing new logs for today. " if text
     end
-    result = costs_recorder&.record_logs(date, rerun, verbose)
-    print "Success" if costs_recorder&.record_logs(date, rerun, verbose) && text
+    print "Success" if costs_recorder&.record_logs(date, date + 1.day, rerun, verbose) && text
+  end
+
+  def record_cost_logs_for_range(start_date, end_date, rerun=false, text=false, verbose=false)
+    puts "Success" if costs_recorder&.record_logs(start_date, end_date, rerun, verbose) && text
   end
 
   # we want to run all the validations, even if one has already

@@ -38,6 +38,11 @@ class AzureProject < Project
     @instance_details_recorder ||= AzureInstanceDetailsRecorder.new(self)
   end
 
+  def record_cost_logs_for_range(start_date, end_date, rerun=false, text=false, verbose=false)
+    puts "May take some time (5+ mins per month of data)" if text
+    super(start_date, end_date, rerun, verbose, text)
+  end
+
   private
 
   def additional_validations

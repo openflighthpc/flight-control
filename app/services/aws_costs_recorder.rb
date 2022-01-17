@@ -13,15 +13,14 @@ class AwsCostsRecorder
 
   # AWS allows/requires specific filters in the query, so we make one query for each
   # cost type.
-  def record_logs(date, rerun, verbose)
-    end_date = date + 1.day
-    Project::SCOPES.each { |scope| record_costs(date, end_date, rerun, verbose, scope) }
+  def record_logs(start_date, end_date=(start_date + 1.day), rerun=false, verbose=false)
+    Project::SCOPES.each { |scope| record_costs(start_date, end_date, rerun, verbose, scope) }
     # if compute groups change and we are often rerunning for past dates, 
     # we will need to change this logic to determine compute groups at 
     # the given date(s), not assume the current ones are valid
     @project.compute_groups.each do |group|
-      record_costs(date, end_date, rerun, verbose, group, group)
-      record_costs(date, end_date, rerun, verbose, "#{group}_storage", group)
+      record_costs(start_date, end_date, rerun, verbose, group, group)
+      record_costs(start_date, end_date, rerun, verbose, "#{group}_storage", group)
     end
     true
   end
