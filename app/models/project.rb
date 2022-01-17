@@ -71,11 +71,14 @@ class Project < ApplicationRecord
   # we want to run all the validations, even if one has already
   # failed, so we can see all that have issues.
   def validate_credentials
-    success = true 
+    puts "Validating credentials"
+    success = true
+    success = false if !additional_validations
     success = false if !costs_recorder&.validate_credentials
     success = false if !instance_recorder&.validate_credentials
     success = false if !instance_details_recorder&.validate_credentials
-    success
+    puts success ? "Credentials valid" : "Validation failed."
+    return success
   end
 
   def record_instance_details
@@ -138,6 +141,11 @@ class Project < ApplicationRecord
   end
 
   private
+
+  def additional_validations
+    true
+  end
+
 
   def set_type
     type = "#{platform.capitalize}Project"

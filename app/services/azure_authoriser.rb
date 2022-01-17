@@ -54,7 +54,7 @@ class AzureAuthoriser < AzureService
     valid = true
     begin
       update_bearer_token
-    rescue error
+    rescue => error
       puts "Unable to obtain bearer token: #{error}"
       valid = false
     end

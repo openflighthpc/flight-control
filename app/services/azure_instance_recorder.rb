@@ -110,7 +110,7 @@ class AzureInstanceRecorder < AzureService
       elsif response.code == 504
         raise Net::ReadTimeout
       else
-        raise AzureApiError.new("Error querying compute nodes for project #{name}."\
+        raise AzureApiError.new("Error querying compute nodes for project #{@project.name}."\
                                 "\nError code #{response.code}.\n#{response if @verbose}")
       end
     rescue Net::ReadTimeout

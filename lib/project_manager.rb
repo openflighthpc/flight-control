@@ -6,7 +6,7 @@ class ProjectManager
   def add_or_update_project(action=nil)
     if action == nil
       # will need to add validate back in once functionality added
-      print "List, add or update project(s) (list/add/update)? "
+      print "List, add or update project(s) (list/add/update/validate)? "
       action = STDIN.gets.chomp.downcase.strip
     end
     if action == "update" || action == "validate"
@@ -17,10 +17,10 @@ class ProjectManager
         puts "Project not found. Please try again."
         return add_or_update_project(action)
       end
-    # if action == "validate"
-    #   validate_credentials(project)
-    #   return add_or_update_project
-    # end
+      if action == "validate"
+        validate_credentials(project.id)
+        return add_or_update_project
+      end
       show_attributes(project)
       update_attributes(project)
     elsif action == "add"
@@ -88,26 +88,26 @@ class ProjectManager
       project.save!
       puts "#{attribute} updated successfully"
     end
-    # stop = false
-    # while !stop
-    #   valid = false
-    #   while !valid
-    #     print "Would you like to validate the project's credentials (y/n)? "
-    #     response = STDIN.gets.chomp.downcase.strip
-    #     if response == "n"
-    #       stop = true
-    #       valid = true
-    #     elsif response == "y"
-    #       valid = true
-    #     else
-    #       puts "Invalid response. Please try again"
-    #     end
-    #   end
-    #   if !stop
-    #     validate_credentials(project)
-    #     stop = true
-    #   end
-    # end
+    stop = false
+    while !stop
+      valid = false
+      while !valid
+        print "Would you like to validate the project's credentials (y/n)? "
+        response = STDIN.gets.chomp.downcase.strip
+        if response == "n"
+          stop = true
+          valid = true
+        elsif response == "y"
+          valid = true
+        else
+          puts "Invalid response. Please try again"
+        end
+      end
+      if !stop
+        validate_credentials(project.id)
+        stop = true
+      end
+    end
     puts "Would you like to update another field (y/n)?"
     action = STDIN.gets.chomp.downcase.strip
     if action == "y"
@@ -399,20 +399,20 @@ class ProjectManager
     #Budget.create(project_id: project.id, amount: budget, effective_at: project.start_date, timestamp: Time.now)
     puts "Project #{project.name} created"
   
-    # credentials = nil
-    # valid = false
-    # while !valid
-    #   print "Validate credentials (y/n)? "
-    #   response = STDIN.gets.chomp.downcase.strip
-    #   if response == "n"
-    #     valid = true
-    #   elsif response == "y"
-    #     valid = true
-    #     credentials = validate_credentials(project)
-    #   else
-    #     puts "Invalid response. Please try again"
-    #   end
-    # end
+    credentials = nil
+    valid = false
+    while !valid
+      print "Validate credentials (y/n)? "
+      response = STDIN.gets.chomp.downcase.strip
+      if response == "n"
+        valid = true
+      elsif response == "y"
+        valid = true
+        credentials = validate_credentials(project.id)
+      else
+        puts "Invalid response. Please try again"
+      end
+    end
 
     # if credentials != false && Date.parse(project.start_date) < Project::DEFAULT_DATE
     #   valid = false
@@ -442,10 +442,12 @@ class ProjectManager
     # end
   end
 
-# def validate_credentials(project)
-#   project = @factory.as_type(project)
-#   project.validate_credentials
-# end
+# Use project id to ensure project is retrieved as correct
+# subclass.
+def validate_credentials(project_id)
+  project = Project.find(project_id)
+  project.validate_credentials
+end
 
 # def add_budget(project)
 #   valid = false

@@ -39,6 +39,8 @@ class AzureInstanceDetailsRecorder < AzureService
     end
   end
 
+  # The skus API does have a filter option, but only for location and only for one
+  # location at a time. Currently more efficient to get for all locations and filter locally.
   def record_instance_sizes
     uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/providers/Microsoft.Compute/skus?api-version=2019-04-01"
     attempt = 0
@@ -97,8 +99,22 @@ class AzureInstanceDetailsRecorder < AzureService
     true
   end
 
+  # only recording instance sizes requires authorisation
   def validate_credentials
-    false
+    valid = true
+    begin
+      uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/providers/Microsoft.Compute/skus?api-version=2019-04-01"
+      @project.authoriser.refresh_auth_token
+      response = HTTParty.get(
+        uri,
+        headers: { 'Authorization': "Bearer #{@project.bearer_token}" },
+        timeout: DEFAULT_TIMEOUT
+      )
+    rescue => error
+      puts "Unable to access instance sizes data: #{error}"
+      valid = false
+    end
+    valid
   end
 
   private

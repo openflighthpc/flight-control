@@ -38,14 +38,11 @@ class AzureProject < Project
     @instance_details_recorder ||= AzureInstanceDetailsRecorder.new(self)
   end
 
-  def validate_credentials
-    valid = true
-    valid = false if !authoriser.validate_credentials
-    valid = super && valid
-    valid
-  end
-
   private
+
+  def additional_validations
+    authoriser.validate_credentials
+  end
 
   def resource_groups_if_group_filter
     errors.add(:resource_groups, "Must contain at least one value") if filter_level == "resource group" && resource_groups.empty?
