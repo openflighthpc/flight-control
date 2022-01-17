@@ -4,6 +4,7 @@ require_relative "../../app/models/cost_log"
 
 namespace :cost_logs do
   namespace :record do
+    desc "Record cost logs for all active projects"
     task :all, [:rerun, :text, :verbose] => :environment do |task, args|
       date = Project::DEFAULT_COSTS_DATE
       Project.active.each do |project|
@@ -12,6 +13,7 @@ namespace :cost_logs do
       end
     end
 
+    desc "Record cost logs for one project"
     task :by_project, [:project, :date, :rerun, :text, :verbose] => :environment do |task, args|
       project = Project.find_by(name: args["project"])
       if !project

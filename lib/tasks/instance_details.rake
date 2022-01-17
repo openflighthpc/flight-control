@@ -4,6 +4,7 @@ require_relative "../../app/models/azure_project"
 require_relative "../../app/models/cost_log"
 
 namespace :instance_details do
+  desc "Record instance prices and sizes for all platforms"
   task :record => :environment do |task, args|
     azure = AzureProject.active.first
     if azure

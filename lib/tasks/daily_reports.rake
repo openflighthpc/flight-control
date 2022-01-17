@@ -4,6 +4,7 @@ require_relative "../../app/models/cost_log"
 
 namespace :daily_reports do
   namespace :generate do
+    desc "Generate daily reports for all active projects"
     task :all, [:rerun, :slack, :text, :verbose] => :environment do |task, args|
       arguments = args.to_h
       arguments[:date] = Project::DEFAULT_COSTS_DATE.to_s
@@ -20,6 +21,7 @@ namespace :daily_reports do
       Process.waitall
     end
 
+    desc "Generate daily report for one project"
     multitask :by_project, [:project, :date, :rerun, :slack, :text, :verbose] => :environment do |task, args|
       # When called directly, args use strings keys. But when called from the
       # all task using execute, it uses symbol keys.

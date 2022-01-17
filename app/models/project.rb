@@ -105,7 +105,7 @@ class Project < ApplicationRecord
     cached = true
     if !any_logs || rerun
       cached = false
-      record_cost_logs(date, rerun, text, verbose)
+      record_cost_logs(date, rerun, false, verbose)
     end
     compute = date_logs.where(compute: true).sum(:cost)
     data_out = date_logs.find_by(scope: "data_out").cost

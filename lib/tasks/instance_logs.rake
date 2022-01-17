@@ -4,6 +4,7 @@ require_relative "../../app/models/instance_log"
 
 namespace :instance_logs do
   namespace :record do
+    desc "Record instance logs for all active projects"
     task :all, [:rerun, :verbose] => :environment do |task, args|
       arguments = args.to_h
       Project.active.pluck(:name).each do |project|
@@ -19,6 +20,7 @@ namespace :instance_logs do
       Process.waitall
     end
 
+    desc "Record instance logs for an individual project"
     multitask :by_project, [:project, :rerun, :verbose] => :environment do |task, args|
       # When called directly, args use strings keys. But when called from the
       # all task using execute, it uses symbol keys.
