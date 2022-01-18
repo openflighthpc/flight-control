@@ -36,7 +36,7 @@ namespace :cost_logs do
         puts "No project found with that name"
       else
         start_date = Date.parse(args["start"])
-        end_date = Date.parse(args["end"]) 
+        end_date = Date.parse(args["end"])
       end
       record_cost_logs_for_range(project, start_date, end_date,
                                  args["rerun"] == "true",
