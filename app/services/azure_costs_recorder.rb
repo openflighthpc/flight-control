@@ -137,7 +137,7 @@ class AzureCostsRecorder < AzureService
         end
         details = filtered_details ? filtered_details : details
         # if modern subscription and have resource groups, we need to filter them here
-        if details.length > 0 && subscription_version == "modern" && @project.resource_groups
+        if details.length > 0 && subscription_version == "modern" && @project.filter_level == "resource group"
           details = details.select { |cost| @project.resource_groups.include?(cost['properties']["resourceGroup"].downcase) }
         end
         details

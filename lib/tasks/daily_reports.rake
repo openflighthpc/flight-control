@@ -5,7 +5,7 @@ require_relative "../../app/models/cost_log"
 namespace :daily_reports do
   namespace :generate do
     desc "Generate daily reports for all active projects"
-    task :all, [:rerun, :slack, :text, :verbose] => :environment do |task, args|
+    task :all, [:slack, :text, :rerun, :verbose] => :environment do |task, args|
       arguments = args.to_h
       arguments[:date] = Project::DEFAULT_COSTS_DATE.to_s
       Project.active.pluck(:name).each do |project|

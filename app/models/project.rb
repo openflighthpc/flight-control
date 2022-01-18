@@ -64,7 +64,7 @@ class Project < ApplicationRecord
     else
       print "Writing new logs for today. " if text
     end
-    print "Success" if costs_recorder&.record_logs(date, date + 1.day, rerun, verbose) && text
+    print "Success" if costs_recorder&.record_logs(date, date, rerun, verbose) && text
   end
 
   def record_cost_logs_for_range(start_date, end_date, rerun=false, text=false, verbose=false)
