@@ -14,12 +14,10 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
 - Update `config/database.yaml`, replacing `username` with the name of the user you just created
 - Set the environment variable `CCV_DATABASE_PASSWORD` with the user's password
 - If running in production:
-  - Set the `SECRET_KEY_BASE` environment variable
-    - The value for this should be retrieved from `rake secret`
   - Set the `RAILS_ENV` environment variable to `production`
 - Run `bundle install`
 - Run `rails db:create`
-- Run `rails db:migrate`
+- Run `rails db:migrate:with_data`
 
 ## Configuration
 
@@ -34,7 +32,7 @@ In addition to setting the database username and password in `config/database.ya
 
 ### AWS
 
-On AWS, projects can be tracked on an account or project tag level. For tracking by project tag, ensure that all desired resources are given a tag with the key `project` and the same value as `project_tag` saved for the project. Account level will include any subaccounts.
+On AWS, projects can be tracked on an account or project tag level. For tracking by project tag, ensure that all desired resources are given a tag with the key `project` and the same value as `project_tag` saved for the project. A project tracked at account level will include any subaccounts.
 
 ##### Type and compute group tags
 
@@ -153,3 +151,31 @@ A high level summary of a project's costs can be generated using the tasks:
 This will include generating cost logs if none are present, or updating them if `rerun` is set to `true`.
 
 If `slack` is set to `true`, the daily report will be sent to the project's `slack_channel`.
+
+### Instance Mappings
+
+Instance mappings can be used to translate platform names (e.g. t2.micro or Standard_B1ls) into more customer friendly names, such as Compute (Medium).
+
+Instance mappings can be managed using the rake tasks:
+- `rake instance_mappings:list`
+- `rake instance_mappings:create[platform,instance_type,customer_facing]`
+- `rake instance_mappings:update[platform,instance_type,new_customer_facing]
+- `rake instance_mappings:delete[platform,instance_type]`
+
+A default set of instance mappings are created during project setup.
+
+### Instance Prices and Sizes
+
+Instance prices and sizes (GPUS, CPUs and RAM) are saved in text files in `lib/platform_files`. These should be updated regularly, by running `rake instance_details:record`.
+
+This may take a few minutes to complete, especially for Azure data due to limitations in the Azure APIs.
+
+As there are thousands of instance type and region combinations, these are only recorded for those matching existing instance logs (for all projects, for all dates). If a new instance is created with a new region and/or instance type, this task should be rerun.
+
+This uses the credentials of the first active project for each platform. If there are no such projects an alert highting this will be shown on the command line and it will not run for that platform.
+
+#### Region name mappings
+
+Both AWS and Azure use non standard region names in their pricing/size APIs/SDKs. To ensure the correct region names are used for these queries, these are mapped against instance region names in `aws_region_names.txt` and `azure_region_names.txt`. When adding resources in a new region, the related file should be checked to ensure a mapping is present.
+
+For AWS projects, a missing mapping will be highlighted when adding regions using `rake:projects:manage`. At the time of writing, AWS mappings can be found at https://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region but unfortunately Azure do not publicly provide such a list.

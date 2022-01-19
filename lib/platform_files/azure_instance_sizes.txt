@@ -1,7 +1,16 @@
-2022-01-17 11:42:09 +0000
+2022-01-19 15:09:58 +0000
 {"instance_type":"Standard_B1ls","instance_family":"standardBSFamily","location":"centralus","cpu":1,"gpu":0,"mem":0.5}
 {"instance_type":"Standard_B1ls","instance_family":"standardBSFamily","location":"uksouth","cpu":1,"gpu":0,"mem":0.5}
 {"instance_type":"Standard_B1ls","instance_family":"standardBSFamily","location":"westeurope","cpu":1,"gpu":0,"mem":0.5}
 {"instance_type":"Standard_B1s","instance_family":"standardBSFamily","location":"centralus","cpu":1,"gpu":0,"mem":1.0}
 {"instance_type":"Standard_B1s","instance_family":"standardBSFamily","location":"uksouth","cpu":1,"gpu":0,"mem":1.0}
 {"instance_type":"Standard_B1s","instance_family":"standardBSFamily","location":"westeurope","cpu":1,"gpu":0,"mem":1.0}
+{"instance_type":"Standard_B2s","instance_family":"standardBSFamily","location":"centralus","cpu":2,"gpu":0,"mem":4.0}
+{"instance_type":"Standard_B2s","instance_family":"standardBSFamily","location":"uksouth","cpu":2,"gpu":0,"mem":4.0}
+{"instance_type":"Standard_B2s","instance_family":"standardBSFamily","location":"westeurope","cpu":2,"gpu":0,"mem":4.0}
+{"instance_type":"Standard_DS1_v2","instance_family":"standardDSv2Family","location":"centralus","cpu":1,"gpu":0,"mem":3.5}
+{"instance_type":"Standard_DS1_v2","instance_family":"standardDSv2Family","location":"uksouth","cpu":1,"gpu":0,"mem":3.5}
+{"instance_type":"Standard_DS1_v2","instance_family":"standardDSv2Family","location":"westeurope","cpu":1,"gpu":0,"mem":3.5}
+{"instance_type":"Standard_F2s_v2","instance_family":"standardFSv2Family","location":"centralus","cpu":2,"gpu":0,"mem":4.0}
+{"instance_type":"Standard_F2s_v2","instance_family":"standardFSv2Family","location":"uksouth","cpu":2,"gpu":0,"mem":4.0}
+{"instance_type":"Standard_F2s_v2","instance_family":"standardFSv2Family","location":"westeurope","cpu":2,"gpu":0,"mem":4.0}
