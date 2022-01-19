@@ -21,11 +21,11 @@
 job_type :rake, "cd :path && bundle exec rake :task :output"
 
 every :day, at: '12:00pm' do
-  rake "daily_reports:generate:all[false,true]"
+  rake "daily_reports:generate:all[latest,true]"
 end
 
 every :day, at: '12:00am' do
-  rake "instance_details:generate"
+  rake "instance_details:record"
 end
 
 every 5.minutes do

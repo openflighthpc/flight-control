@@ -179,3 +179,8 @@ This uses the credentials of the first active project for each platform. If ther
 Both AWS and Azure use non standard region names in their pricing/size APIs/SDKs. To ensure the correct region names are used for these queries, these are mapped against instance region names in `aws_region_names.txt` and `azure_region_names.txt`. When adding resources in a new region, the related file should be checked to ensure a mapping is present.
 
 For AWS projects, a missing mapping will be highlighted when adding regions using `rake:projects:manage`. At the time of writing, AWS mappings can be found at https://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region but unfortunately Azure do not publicly provide such a list.
+
+
+### Schedule tasks
+
+Rake tasks such as generating daily reports, recording instance logs and recording instance details can be scheduled by defining their timings in `config/schedule.rb`. Once updated in this file, corresponding cron syntax can be determined by running `whenever` in the command line, or your crontab updated automatically with these lines by running `whenever --w`.

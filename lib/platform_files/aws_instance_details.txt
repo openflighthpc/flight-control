@@ -1,4 +1,4 @@
-2022-01-19 15:09:59 +0000
+2022-01-19 16:36:15 +0000
 {"instance_type":"t2.nano","location":"eu-central-1","price_per_hour":0.0067,"cpu":1,"mem":0.5,"gpu":0}
 {"instance_type":"t2.micro","location":"eu-central-1","price_per_hour":0.0134,"cpu":1,"mem":1.0,"gpu":0}
 {"instance_type":"t2.micro","location":"eu-west-2","price_per_hour":0.0132,"cpu":1,"mem":1.0,"gpu":0}
