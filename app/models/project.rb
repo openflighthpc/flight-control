@@ -25,6 +25,7 @@ class Project < ApplicationRecord
       in: %w(aws azure),
       message: "%{value} is not a valid platform"
     }
+  after_save :update_end_balance
   scope :active, -> { where(archived: false) }
 
   def self.slack_token
@@ -33,6 +34,10 @@ class Project < ApplicationRecord
 
   def latest_instance_logs
     instance_logs.where(date: instance_logs.maximum(:date))
+  end
+
+  def current_balance
+    balances.where("effective_at <= ?", Date.today).last
   end
 
   def current_compute_groups
@@ -174,7 +179,6 @@ class Project < ApplicationRecord
     true
   end
 
-
   def set_type
     type = "#{platform.capitalize}Project"
   end
@@ -202,5 +206,23 @@ class Project < ApplicationRecord
       return false
     end
     return true
+  end
+
+  # If an end date, ensure we have a corresponding balance
+  # with an amount of 0.
+  def update_end_balance
+    end_balance = balances.where(amount: 0).last
+    return if !end_date && !end_balance
+
+    if !end_date && end_balance
+      end_balance.delete
+    else
+      if !end_balance
+        Balance.create(project: self, amount: 0, effective_at: end_date)
+      elsif end_balance && end_balance.effective_at != end_date
+        end_balance.effective_at = end_date
+        end_balance.save!
+      end
+    end
   end
 end

@@ -46,7 +46,7 @@ class ProjectManager
     while !valid
       puts "What would you like to update? "
       attribute = STDIN.gets.chomp.strip
-      if project.respond_to?(attribute.downcase) #|| attribute == "budget"
+      if project.respond_to?(attribute.downcase) || attribute == "balance"
         valid = true
       else
         puts "That is not a valid attribute for this project. Please try again."
@@ -57,8 +57,8 @@ class ProjectManager
       update_regions(project)
     elsif attribute == "resource_groups" || attribute == "resource groups"
       update_resource_groups(project)
-    # elsif attribute == "budget"
-    #   add_budget(project)
+    elsif attribute == "balance"
+      add_balance(project)
     else
       options = nil
       if attribute == "filter_level"
@@ -285,102 +285,17 @@ class ProjectManager
         false
       end
       if valid_date
-        attributes[:start_date] = valid_date
+        attributes[:end_date] = valid_date
       else
         puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
       end
     end
-  
-  # budget = nil
-  # valid = false
-  # while !valid
-  #   budget = get_non_blank("Budget amount (c.u./month)", "Budget")
-  #   valid = begin
-  #     Integer(budget, 10)
-  #   rescue ArgumentError, TypeError
-  #     false
-  #   end
-  #   puts "Please enter a number" if !valid
-  # end
     attributes[:slack_channel] = get_non_blank("Slack Channel", "Slack Channel")
 
     if attributes[:platform].downcase == "aws"
-      attributes[:regions] = []
-      attributes[:regions] << get_non_blank("Add region (e.g. eu-west-2)", "Region").downcase
-      stop = false
-      while !stop
-        valid = false
-        while !valid
-          print "Additional regions (y/n)? "
-          response = STDIN.gets.chomp.downcase.strip
-          if response == "n"
-            stop = true
-            valid = true
-          elsif response == "y"
-            valid = true
-          else
-            puts "Invalid response. Please try again"
-          end
-        end
-        if !stop
-          attributes[:regions] << get_non_blank("Additional region (e.g. eu-central-1)", "Region")
-        end
-      end
-      attributes[:security_id] = get_non_blank("Access Key Id")
-      attributes[:security_key] = get_non_blank("Secret Access Key")
-      valid = false
-      while !valid
-        print "Filtering level (tag/account): "
-        response = STDIN.gets.strip.downcase
-        if ["tag", "account"].include?(response)
-          valid = true
-          attributes[:filter_level] = response
-        else
-          puts "Invalid selection. Please enter tag or account"
-         end
-      end
-      if attributes[:filter_level] == "tag"
-        attributes[:project_tag] = get_non_blank("Project tag", "Project tag")
-      end
-    else
-      attributes[:subscription_id] = get_non_blank("Subscription Id")
-      attributes[:tenant_id] = get_non_blank("Tenant Id")
-      attributes[:security_id] = get_non_blank("Azure Client Id")
-      attributes[:security_key] = get_non_blank("Client Secret")
-      valid = false
-      while !valid
-        print "Filtering level (resource group/subscription): "
-        response = STDIN.gets.strip.downcase
-        if ["resource group", "subscription"].include?(response)
-          valid = true
-          attributes[:filter_level] = response
-        else
-          puts "Invalid selection. Please enter resource group or subscription"
-        end
-      end
-      attributes[:resource_groups] = []
-      if attributes[:filter_level] == "resource group"
-        attributes[:resource_groups] << get_non_blank("First resource group name", "Resource group").downcase
-        stop = false
-        while !stop
-          valid = false
-          while !valid
-            print "Additional resource groups (y/n)? "
-            response = STDIN.gets.chomp.downcase.strip
-            if response == "n"
-              stop = true
-              valid = true
-            elsif response == "y"
-              valid = true
-            else
-             puts "Invalid response. Please try again"
-            end
-          end
-          if !stop
-            attributes[:resource_groups] << get_non_blank("Additional resource group name", "Resource group").downcase
-          end
-        end
-      end
+      attributes = add_aws_attributes(attributes)
+    elsif attributes[:platform.downcase] == "azure"
+      attributes = add_azure_attributes(attributes)
     end
   
     project = Project.new(attributes)
@@ -394,10 +309,10 @@ class ProjectManager
       end
       valid = project.valid?
     end
-    project.save
-
-    #Budget.create(project_id: project.id, amount: budget, effective_at: project.start_date, timestamp: Time.now)
+    project.save!
     puts "Project #{project.name} created"
+    puts "A new project requires a balance."
+    add_balance(project,true)
   
     credentials = nil
     valid = false
@@ -414,67 +329,155 @@ class ProjectManager
       end
     end
 
-    # if credentials != false && Date.parse(project.start_date) < Project::DEFAULT_DATE
-    #   valid = false
-    #   while !valid
-    #     print "Project start date is in the past. Would you like to retrieve and record historic costs (y/n)? "
-    #     print "This may take a long time (5+ mins per month of data). " if project.azure?
-    #     response = STDIN.gets.chomp.downcase.strip
-    #     if response == "n"
-    #       stop = true
-    #       valid = true
-    #     elsif response == "y"
-    #       "Recording logs"
-    #       valid = true
-    #       project = ProjectFactory.new().as_type(project)
-    #       begin
-    #         project.record_logs_for_range(Date.parse(project.start_date), Project::DEFAULT_DATE - 1.day)
-    #       rescue AzureApiError, AwsSdkError => e
-    #         puts "Generation of logs for project #{project.name} stopped due to error: "
-    #         puts e
-    #         return
-    #       end
-    #       puts "Logs recorded."
-    #     else
-    #       puts "Invalid response. Please try again"
-    #     end
-    #   end
-    # end
+    if credentials == true && project.start_date < Project::DEFAULT_COSTS_DATE
+      valid = false
+      while !valid
+        print "Project start date is in the past. Would you like to retrieve and record historic costs (y/n)? "
+        print "This may take a long time (5+ mins per month of data). " if project.platform == "azure"
+        response = STDIN.gets.chomp.downcase.strip
+        if response == "n"
+          stop = true
+          valid = true
+        elsif response == "y"
+          "Recording logs"
+          valid = true
+          # get as subtype
+          project = Project.find(project.id)
+          begin
+            project.record_instance_logs
+            project.record_cost_logs(project.start_date, Project::DEFAULT_COSTS_DATE - 1.day)
+          rescue AzureApiError, AwsSdkError => e
+            puts "Generation of logs for project #{project.name} stopped due to error: "
+            puts e
+            return
+          end
+          puts "Logs recorded."
+        else
+          puts "Invalid response. Please try again"
+        end
+      end
+    end
   end
 
-# Use project id to ensure project is retrieved as correct
-# subclass.
-def validate_credentials(project_id)
-  project = Project.find(project_id)
-  project.validate_credentials
-end
+  def add_aws_attributes(attributes)
+    attributes[:regions] = []
+    attributes[:regions] << get_non_blank("Add region (e.g. eu-west-2)", "Region").downcase
+    stop = false
+    while !stop
+      valid = false
+      while !valid
+        print "Additional regions (y/n)? "
+        response = STDIN.gets.chomp.downcase.strip
+        if response == "n"
+          stop = true
+          valid = true
+        elsif response == "y"
+          valid = true
+        else
+          puts "Invalid response. Please try again"
+        end
+      end
+      if !stop
+        attributes[:regions] << get_non_blank("Additional region (e.g. eu-central-1)", "Region")
+      end
+    end
+    attributes[:security_id] = get_non_blank("Access Key Id")
+    attributes[:security_key] = get_non_blank("Secret Access Key")
+    valid = false
+    while !valid
+      print "Filtering level (tag/account): "
+      response = STDIN.gets.strip.downcase
+      if ["tag", "account"].include?(response)
+        valid = true
+        attributes[:filter_level] = response
+      else
+        puts "Invalid selection. Please enter tag or account"
+       end
+    end
+    if attributes[:filter_level] == "tag"
+      attributes[:project_tag] = get_non_blank("Project tag", "Project tag")
+    end
+    attributes
+  end
 
-# def add_budget(project)
-#   valid = false
-#   while !valid
-#     amount = get_non_blank("Budget amount (c.u./month)", "Budget")
-#     valid = begin
-#       Integer(amount, 10)
-#     rescue ArgumentError, TypeError
-#       false
-#     end
-#     puts "Please enter a number" if !valid
-#   end
+  def add_azure_attributes(attributes)
+    attributes[:subscription_id] = get_non_blank("Subscription Id")
+    attributes[:tenant_id] = get_non_blank("Tenant Id")
+    attributes[:security_id] = get_non_blank("Azure Client Id")
+    attributes[:security_key] = get_non_blank("Client Secret")
+    valid = false
+    while !valid
+      print "Filtering level (resource group/subscription): "
+      response = STDIN.gets.strip.downcase
+      if ["resource group", "subscription"].include?(response)
+        valid = true
+        attributes[:filter_level] = response
+      else
+        puts "Invalid selection. Please enter resource group or subscription"
+      end
+    end
+    attributes[:resource_groups] = []
+    if attributes[:filter_level] == "resource group"
+      attributes[:resource_groups] << get_non_blank("First resource group name", "Resource group").downcase
+      stop = false
+      while !stop
+        valid = false
+        while !valid
+          print "Additional resource groups (y/n)? "
+          response = STDIN.gets.chomp.downcase.strip
+          if response == "n"
+            stop = true
+            valid = true
+          elsif response == "y"
+            valid = true
+          else
+           puts "Invalid response. Please try again"
+          end
+        end
+        if !stop
+          attributes[:resource_groups] << get_non_blank("Additional resource group name", "Resource group").downcase
+        end
+      end
+    end
+    attributes
+  end
 
-#   valid_date = false
-#   while !valid_date
-#     print "Effective at (YYYY-MM-DD): "
-#     valid_date = begin
-#       Date.parse(STDIN.gets.chomp.strip)
-#     rescue ArgumentError
-#       false
-#     end
-#     puts "Invalid date. Please ensure it is in the format YYYY-MM-DD" if !valid_date
-#   end
-#   budget = Budget.new(project_id: project.id, amount: amount, effective_at: valid_date, timestamp: Time.now)
-#   budget.save!
-#   puts "Budget created"
-# end
+  # Use project id to ensure project is retrieved as correct
+  # subclass.
+  def validate_credentials(project_id)
+    project = Project.find(project_id)
+    project.validate_credentials
+  end
+
+  def add_balance(project, first=false)
+    valid = false
+    while !valid
+      amount = get_non_blank("Balance amount", "Balance")
+      valid = begin
+        Integer(amount, 10)
+      rescue ArgumentError, TypeError
+        false
+      end
+      puts "Please enter a number" if !valid
+    end
+    valid_date = false
+    if first
+      valid_date = project.start_date
+    else
+      while !valid_date
+        print "Effective at (YYYY-MM-DD): "
+        valid_date = begin
+          Date.parse(STDIN.gets.chomp.strip)
+        rescue ArgumentError
+          false
+        end
+        puts "Invalid date. Please ensure it is in the format YYYY-MM-DD" if !valid_date
+      end
+    end
+    budget = Balance.new(project_id: project.id, amount: amount, effective_at: valid_date)
+    budget.save!
+    puts "Balance created"
+  end
 
   def get_non_blank(text, attribute=text, options=nil)
     valid = false
@@ -499,7 +502,7 @@ end
     puts "end_date: #{project.end_date}"
     puts "archived: #{project.archived}"
     puts "visualiser: #{project.visualiser}"
-    #puts "budget: #{project.current_budget}c.u./month"
+    puts "balance: #{project.current_balance.amount}c.u."
     puts "filter_level: #{project.filter_level}"
     puts "slack_channel: #{project.slack_channel}"
     show_class_specific_fields(project)
