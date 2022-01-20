@@ -40,10 +40,11 @@ namespace :daily_reports do
                                 args["verbose"] == "true")
         rescue AzureApiError, AwsSdkError => e
           error = <<~MSG
-          Generation of cost logs for project *#{project.name}* stopped due to error:
+          Generation of daily report for project *#{project.name}* stopped due to error:
           #{e}
           MSG
 
+          project.send_slack_message(error) if args["slack"] == "true"
           error << "\n#{"_" * 50}"
           puts error.gsub("*", "")
         end
