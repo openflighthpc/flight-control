@@ -9,6 +9,8 @@ class Project < ApplicationRecord
   has_many :cost_logs
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
   validates :name, presence: true, uniqueness: true
+  validates :name, :format => { with: /\A[a-zA-Z]+[0-9a-zA-Z_-]*[0-9a-zA-Z]+\z/,
+            message: 'Must start with letters and only include letters, numbers, dashes or underscores.' }
   validates :slack_channel, :start_date, :filter_level, :security_id, :security_key,
             :type, presence: true
   validate :end_date_after_start, on: [:update, :create], if: -> { end_date != nil }

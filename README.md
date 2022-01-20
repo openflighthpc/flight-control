@@ -99,6 +99,8 @@ This bot must be invited to each project's chosen slack channel.
 
 A `Project` must be created for each project you wish to track. These can be created by running `rake projects:manage` and following the prompts in the command line. This task can also be used to update existing projects. Projects should not be deleted, but instead `archived` set to `true` to mark them as inactive.
 
+Project names must start with a letter, only include lower or uppercase letters, numbers, dashes or underscores, and must end in a letter or number.
+
 ### Recording instance logs
 
 To record the latest instance logs, run:
