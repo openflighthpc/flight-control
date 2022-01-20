@@ -6,14 +6,14 @@ class BudgetPolicy < ApplicationRecord
     presence: true,
     inclusion: {
       in: %w[monthly weekly custom],
-      message: "%{value} is not a cycle interval"
+      message: "%{value} is not a valid cycle interval"
     }
   validate :has_days_if_custom
   validates :spend_profile,
     presence: true,
     inclusion: {
       in: %w[fixed rolling continuous dynamic],
-      message: "%{value} is not a cycle interval"
+      message: "%{value} is not a valid spend profile"
     }
   validate :cycle_limit_if_fixed_or_rolling
   validates :effective_at, presence: true
