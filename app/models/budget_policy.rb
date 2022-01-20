@@ -5,14 +5,14 @@ class BudgetPolicy < ApplicationRecord
   validates :cycle_interval,
     presence: true,
     inclusion: {
-      in: %w(monthly weekly custom),
+      in: %w[monthly weekly custom],
       message: "%{value} is not a cycle interval"
     }
   validate :has_days_if_custom
   validates :spend_profile,
     presence: true,
     inclusion: {
-      in: %w(fixed rolling continuous dynamic),
+      in: %w[fixed rolling continuous dynamic],
       message: "%{value} is not a cycle interval"
     }
   validate :cycle_limit_if_fixed_or_rolling
@@ -21,7 +21,7 @@ class BudgetPolicy < ApplicationRecord
   private
 
   def has_days_if_custom
-    if cycle_interval == "custom" && !days || days < 1
+    if cycle_interval == "custom" && (!days || days < 1)
       errors.add(:days, "Must set positive number of days if custom cycle interval")
     end
   end

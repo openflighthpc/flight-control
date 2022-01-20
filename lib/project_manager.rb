@@ -44,9 +44,9 @@ class ProjectManager
     valid = false
     attribute = nil
     while !valid
-      puts "What would you like to update? "
+      puts "What would you like to update?"
       attribute = STDIN.gets.chomp.strip
-      if project.respond_to?(attribute.downcase) || attribute == "balance"
+      if project.respond_to?(attribute.downcase) || attribute == "balance" || attribute == "budget_policy"
         valid = true
       else
         puts "That is not a valid attribute for this project. Please try again."
@@ -59,10 +59,12 @@ class ProjectManager
       update_resource_groups(project)
     elsif attribute == "balance"
       add_balance(project)
+    elsif attribute == "budget_policy"
+      add_budget_policy(project)
     else
       options = nil
       if attribute == "filter_level"
-        options = project.platform == "aws" ? "tag/account" : "resource group/subscription"
+        options = project.platform == "aws" ? %w[tag account] : %w[resource group subscription]
       end
       value = get_non_blank(attribute, attribute, options)
       project.write_attribute(attribute.to_sym, value)
@@ -312,7 +314,9 @@ class ProjectManager
     project.save!
     puts "Project #{project.name} created"
     puts "A new project requires a balance."
-    add_balance(project,true)
+    add_balance(project, true)
+    puts "A new project requies a budget policy"
+    add_budget_policy(project, true)
   
     credentials = nil
     valid = false
@@ -383,17 +387,7 @@ class ProjectManager
     end
     attributes[:security_id] = get_non_blank("Access Key Id")
     attributes[:security_key] = get_non_blank("Secret Access Key")
-    valid = false
-    while !valid
-      print "Filtering level (tag/account): "
-      response = STDIN.gets.strip.downcase
-      if ["tag", "account"].include?(response)
-        valid = true
-        attributes[:filter_level] = response
-      else
-        puts "Invalid selection. Please enter tag or account"
-       end
-    end
+    attributes[:filter_level] = get_non_blank("Filter level", "Filter level", %w[tag account])
     if attributes[:filter_level] == "tag"
       attributes[:project_tag] = get_non_blank("Project tag", "Project tag")
     end
@@ -405,17 +399,7 @@ class ProjectManager
     attributes[:tenant_id] = get_non_blank("Tenant Id")
     attributes[:security_id] = get_non_blank("Azure Client Id")
     attributes[:security_key] = get_non_blank("Client Secret")
-    valid = false
-    while !valid
-      print "Filtering level (resource group/subscription): "
-      response = STDIN.gets.strip.downcase
-      if ["resource group", "subscription"].include?(response)
-        valid = true
-        attributes[:filter_level] = response
-      else
-        puts "Invalid selection. Please enter resource group or subscription"
-      end
-    end
+    attributes[:filter_level] = get_non_blank("Filter level", "Filter level", ["resource group", "subscription"])
     attributes[:resource_groups] = []
     if attributes[:filter_level] == "resource group"
       attributes[:resource_groups] << get_non_blank("First resource group name", "Resource group").downcase
@@ -479,17 +463,69 @@ class ProjectManager
     puts "Balance created"
   end
 
+  def add_budget_policy(project, first=false)
+    cycle_interval = get_non_blank("Cycle interval", "Cycle interval", %w[monthly weekly custom])
+    if cycle_interval == "custom"
+      valid = false
+      while !valid
+        days = get_non_blank("Cycle days")
+        valid = begin
+          Integer(days, 10)
+        rescue ArgumentError, TypeError
+          false
+        end
+        puts "Please enter a number" if !valid
+      end
+    end
+    spend_profile = get_non_blank("Spend profile", "Spend profile", %w[fixed rolling continuous dynamic])
+    if %w[fixed rolling].include?(spend_profile)
+      valid = false
+      while !valid
+        cycle_limit = get_non_blank("Cycle limit")
+        valid = begin
+          Integer(cycle_limit, 10)
+        rescue ArgumentError, TypeError
+          false
+        end
+        puts "Please enter a number" if !valid
+      end
+    end
+    valid_date = false
+    if first
+      valid_date = project.start_date
+    else
+      while !valid_date
+        print "Effective at (YYYY-MM-DD): "
+        valid_date = begin
+          Date.parse(STDIN.gets.chomp.strip)
+        rescue ArgumentError
+          false
+        end
+        puts "Invalid date. Please ensure it is in the format YYYY-MM-DD" if !valid_date
+      end
+    end
+    policy = BudgetPolicy.new(project_id: project.id, cycle_interval: cycle_interval,
+                              effective_at: valid_date, spend_profile: spend_profile,
+                              cycle_limit: cycle_limit, days: days)
+    policy.save!
+    puts "Budget policy created"
+  end
+
   def get_non_blank(text, attribute=text, options=nil)
     valid = false
     while !valid
       print "#{text}"
-      print "(#{options})" if options
+      print "(#{options.join("/")})" if options
       print ": "
       response = STDIN.gets.strip
       if response.empty?
         puts "#{attribute} must not be blank"
       else
-        valid = true
+        if options && !options.include?(response)
+          puts "Must be one of: #{options.join(", ")}"
+        else
+          valid = true
+        end
       end
     end
     response
@@ -506,6 +542,7 @@ class ProjectManager
     puts "filter_level: #{project.filter_level}"
     puts "slack_channel: #{project.slack_channel}"
     show_class_specific_fields(project)
+    show_budget_policy_attributes(project)
   end
 
   def show_class_specific_fields(project)
@@ -520,6 +557,20 @@ class ProjectManager
       puts "tenant_id: #{project.tenant_id}"
       puts "azure_client_id: hidden"
       puts "client_secret: hidden"
+    end
+  end
+
+  def show_budget_policy_attributes(project)
+    policy = project.current_budget_policy
+    if !policy
+      puts "budget_policy: none"
+    else
+      print "budget_policy: "
+      print "#{policy.cycle_interval} cycle interval"
+      print ", #{policy.days} days" if policy.days
+      print ", #{policy.spend_profile} spend profile"
+      print ", cycle limit of #{policy.cycle_limit}c.u." if policy.cycle_limit
+      puts
     end
   end
 

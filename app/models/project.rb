@@ -40,6 +40,10 @@ class Project < ApplicationRecord
     balances.where("effective_at <= ?", Date.today).last
   end
 
+  def current_budget_policy
+    budget_policies.where("effective_at <= ?", Date.today).last
+  end
+
   def current_compute_groups
     latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
   end
