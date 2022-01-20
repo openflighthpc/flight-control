@@ -7,9 +7,11 @@ class ProjectConfigCreator
     @project = project
   end
 
-  def create_config(overwrite=false)
-    if overwrite && File.exists?(File.join(File.dirname(__FILE__), "../../config/projects/#{@project.name}.yaml"))
-      config = YAML.load_file(File.join(File.dirname(__FILE__), "../../config/projects/#{@project.name}.yaml"))
+  def create_config_file(overwrite=false)
+    if !overwrite && File.exists?(File.join(File.dirname(__FILE__), "../../config/projects/#{@project.name}.yaml"))
+      puts "Config file already exists for project #{@project.name}."
+      puts "Please run again with 'overwrite' set to 'true' if you wish to update this file."
+      return
     else
       config = YAML.load_file(File.join(File.dirname(__FILE__), "../../config/projects/default.yaml"))
     end
@@ -49,7 +51,7 @@ class ProjectConfigCreator
       File.open(File.join(File.dirname(__FILE__), "../../config/projects/#{@project.name}.yaml"), "w") { |file| file.write(config.to_yaml) }
       puts "Config file created for project #{@project.name} in folder /config/projects."
       print "Please review and update the file as required, "
-      print "including setting priorities and compute group colours.\n\n"
+      print "including setting priorities and compute group colours.\n"
     end
   end
 end

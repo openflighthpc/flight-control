@@ -1,5 +1,6 @@
 require_relative 'instance_log'
 require_relative 'cost_log'
+require_relative "../services/project_config_creator"
 require 'httparty'
 
 class Project < ApplicationRecord
@@ -46,6 +47,10 @@ class Project < ApplicationRecord
       end
     end
     logs.pluck(Arel.sql("DISTINCT compute_group")).compact.compact
+  end
+
+  def create_config_file(overwrite=false)
+    ProjectConfigCreator.new(self).create_config_file(overwrite)
   end
 
   def record_instance_logs(rerun=false, verbose=false)

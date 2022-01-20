@@ -101,6 +101,14 @@ A `Project` must be created for each project you wish to track. These can be cre
 
 Project names must start with a letter, only include lower or uppercase letters, numbers, dashes or underscores, and must end in a letter or number.
 
+#### Generate project config file
+
+If using the visualiser part of the application (future), once instance logs have been created for a project (see below), a config file must be created using `rake projects:create_config:by_project[project,overwrite]` or `rake projects:create_config:all[overwrite]`.
+
+If overwrite is set to true, any existing file will be replaced using the latest instance logs.
+
+The resulting config file will be generated in `/config/projects`. Compute group colours (as used in charts) should be updated, as should compute group and instance type priorities (not currently used - for over budget switch offs).
+
 ### Recording instance logs
 
 To record the latest instance logs, run:
@@ -120,8 +128,10 @@ Logs will only be recorded/updated if the project is active.
 
 To record the latest instance logs, run:
 
-`rake cost_logs:record:all[date,rerun,text,verbose]` or 
-`rake cost_logs:record:by_project[project_name,date,rerun,text,verbose]` or
+`rake cost_logs:record:all[date,rerun,text,verbose]`
+or
+`rake cost_logs:record:by_project[project_name,date,rerun,text,verbose]`
+or
 `rake cost_logs:record:range[project_name,start_date,end_date,rerun,text,verbose]`
 
 `date` can be specified in the format yyyy-mm-dd, or if `latest` is entered, the date for 3 days ago will be used, as this is the most recent date when cost data is (reliably) made available by Azure and AWS.
@@ -148,7 +158,8 @@ Compute groups are determined based on the project's latest instance logs.
 
 A high level summary of a project's costs can be generated using the tasks:
 
-`rake daily_reports:generate:all[date,slack,text,rerun,verbose]` or 
+`rake daily_reports:generate:all[date,slack,text,rerun,verbose]`
+or
 `rake daily_reports:generate:by_project[project,date,slack,text,rerun,verbose]`
 
 `date` can be set in the format yyyy-mm-dd or with `latest`, which will use the most recent date with cost data available.
@@ -164,7 +175,7 @@ Instance mappings can be used to translate platform names (e.g. t2.micro or Stan
 Instance mappings can be managed using the rake tasks:
 - `rake instance_mappings:list`
 - `rake instance_mappings:create[platform,instance_type,customer_facing]`
-- `rake instance_mappings:update[platform,instance_type,new_customer_facing]
+- `rake instance_mappings:update[platform,instance_type,new_customer_facing]`
 - `rake instance_mappings:delete[platform,instance_type]`
 
 A default set of instance mappings are created during project setup.
