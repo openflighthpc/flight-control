@@ -509,6 +509,22 @@ class ProjectManager
                               cycle_limit: cycle_limit, days: days)
     policy.save!
     puts "Budget policy created"
+    if policy.spend_profile == "dynamic" && !project.end_date
+      puts "Warning: dynamic spend profile requires the project to have an end date."
+      print "Please specify an end date for the project:"
+      valid_date = false
+      while !valid_date
+        valid_date = begin
+          Date.parse(STDIN.gets.chomp.strip)
+        rescue ArgumentError
+          false
+        end
+        puts "Invalid date. Please ensure it is in the format YYYY-MM-DD" if !valid_date
+      end
+      project.end_date = valid_date
+      project.save!
+      puts "End date added"
+    end
   end
 
   def get_non_blank(text, attribute=text, options=nil)
