@@ -46,7 +46,7 @@ class AzureCostsRecorder < AzureService
   def determine_scope_costs(all_costs, subscription_version)
     costs = {}
     Project::SCOPES.each { |scope| costs[scope] = {total: 0.0, compute: false}}
-    @project.compute_groups.each do |group|
+    @project.current_compute_groups.each do |group|
       costs[group] = {total: 0.0, compute: true}
       costs["#{group}_storage"] = {total: 0.0, compute: true}
     end

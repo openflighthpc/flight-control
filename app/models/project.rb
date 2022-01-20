@@ -30,8 +30,22 @@ class Project < ApplicationRecord
     instance_logs.where(date: instance_logs.maximum(:date))
   end
 
-  def compute_groups
-    latest_instance_logs.distinct.pluck(:compute_group).compact
+  def current_compute_groups
+    latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
+  end
+
+  def compute_groups_on_date(date)
+    logs = instance_logs.where(date: date)
+    # If no logs on that, get most recent earlier logs
+    if !logs.any?
+      latest_date = instance_logs.where("date < ?", date).maximum(:date)
+      if latest_date
+        logs = instance_logs.where(date: latest_date)
+      else
+        return []
+      end
+    end
+    logs.pluck(Arel.sql("DISTINCT compute_group")).compact.compact
   end
 
   def record_instance_logs(rerun=false, verbose=false)

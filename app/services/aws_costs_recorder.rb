@@ -20,7 +20,7 @@ class AwsCostsRecorder
     # if compute groups change and we are often rerunning for past dates, 
     # we will need to change this logic to determine compute groups at 
     # the given date(s), not assume the current ones are valid
-    @project.compute_groups.each do |group|
+    @project.current_compute_groups.each do |group|
       record_costs(start_date, end_date, rerun, verbose, group, group)
       record_costs(start_date, end_date, rerun, verbose, "#{group}_storage", group)
     end
