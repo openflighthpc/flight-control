@@ -36,7 +36,7 @@ namespace :daily_reports do
         end
         begin
           project.daily_report(date, args["rerun"] == "true",
-                                args["slack"], args["text"] == "true",
+                                args["slack"] == "true", args["text"] == "true",
                                 args["verbose"] == "true")
         rescue AzureApiError, AwsSdkError => e
           error = <<~MSG
