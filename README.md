@@ -110,18 +110,21 @@ If `rerun` is set to `true`, any existing instance logs will be updated. For exa
 
 `verbose` should be set to `true` to see full error messages, if running the task is failing.
 
-Instance logs will only be recorded/updated if the project is active.
+Instance logs should be recorded as soon as a project is created (and instances are created on the platform) to ensure accuracy of other functions, such as recording cost logs and recording instance sizes and prices.
+
+Logs will only be recorded/updated if the project is active.
 
 ### Recording cost logs
 
 To record the latest instance logs, run:
 
-`rake cost_logs:record:all[rerun,text,verbose]` or 
+`rake cost_logs:record:all[date,rerun,text,verbose]` or 
 `rake cost_logs:record:by_project[project_name,date,rerun,text,verbose]` or
 `rake cost_logs:record:range[project_name,start_date,end_date,rerun,text,verbose]`
 
+`date` can be specified in the format yyyy-mm-dd, or if `latest` is entered, the date for 3 days ago will be used, as this is the most recent date when cost data is (reliably) made available by Azure and AWS.
 
-When running the `all` task, cost logs will be recorded for the latest date costs are available (3 days ago). When running `by_project` you can specify a date, in the format yyyy-mm-dd. And when running `range` you can specify a start and and end date (inclusive). For Azure projects, due to limitations of the Azure APIs, generating logs for a range may take some time (5+ mins per month of data).
+When running `range` you can specify a start and and end date (inclusive). For Azure projects, due to limitations of the Azure APIs, generating logs for a range may take some time (5+ mins per month of data).
 
 If `rerun` is set to `true`, any existing cost logs will be updated (if any changes). If `text` is set to `true`, the result of the task will be printed to the command line.
 

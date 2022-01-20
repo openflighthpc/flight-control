@@ -69,6 +69,12 @@ class AzureCostsRecorder < AzureService
       elsif compute_cost?(cost)
         compute_group = cost["tags"]["compute_group"] if cost["tags"]
         if compute_group # in an if clause in case not tagged correctly
+          # In case the compute group doesn't currently exist, for example
+          # if no instances with that tag.
+          if !costs[compute_group]
+            costs[compute_group] = {total: 0.0, compute: true}
+            costs["#{compute_group}_storage"] = {total: 0.0, compute: true}
+          end
           if storage_cost?(meter_name)
             costs["#{compute_group}_storage"][:total] += value
           elsif virtual_machine_cost?(cost, subscription_version)
