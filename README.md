@@ -127,10 +127,10 @@ The resulting config file will be generated in `/config/projects`. Compute group
 
 ### Recording instance logs
 
-To record the latest instance logs, run:
+To record the latest instance logs, run one of:
 
-`rake instance_logs:record:all[rerun,verbose]` or 
-`rake instance_logs:record:by_project[project_name,rerun,verbose]`
+- `rake instance_logs:record:all[rerun,verbose]`
+- `rake instance_logs:record:by_project[project_name,rerun,verbose]`
 
 If `rerun` is set to `true`, any existing instance logs will be updated. For example `rake instance_logs:record:by_project[project1,true]` would record instance logs for the project named project1, updating any existing logs already recorded for today (if any changes).
 
@@ -142,13 +142,11 @@ Logs will only be recorded/updated if the project is active.
 
 ### Recording cost logs
 
-To record the latest instance logs, run:
+To record the latest cost logs, run one of:
 
-`rake cost_logs:record:all[date,rerun,text,verbose]`
-or
-`rake cost_logs:record:by_project[project_name,date,rerun,text,verbose]`
-or
-`rake cost_logs:record:range[project_name,start_date,end_date,rerun,text,verbose]`
+- `rake cost_logs:record:all[date,rerun,text,verbose]`
+- `rake cost_logs:record:by_project[project_name,date,rerun,text,verbose]`
+- `rake cost_logs:record:range[project_name,start_date,end_date,rerun,text,verbose]`
 
 `date` can be specified in the format yyyy-mm-dd, or if `latest` is entered, the date for 3 days ago will be used, as this is the most recent date when cost data is (reliably) made available by Azure and AWS.
 
@@ -174,9 +172,8 @@ Compute groups are determined based on the project's latest instance logs.
 
 A high level summary of a project's costs can be generated using the tasks:
 
-`rake daily_reports:generate:all[date,slack,text,rerun,verbose]`
-or
-`rake daily_reports:generate:by_project[project,date,slack,text,rerun,verbose]`
+- `rake daily_reports:generate:all[date,slack,text,rerun,verbose]`
+- `rake daily_reports:generate:by_project[project,date,slack,text,rerun,verbose]`
 
 `date` can be set in the format yyyy-mm-dd or with `latest`, which will use the most recent date with cost data available.
 
@@ -189,6 +186,7 @@ If `slack` is set to `true`, the daily report will be sent to the project's `sla
 Instance mappings can be used to translate platform names (e.g. t2.micro or Standard_B1ls) into more customer friendly names, such as Compute (Medium).
 
 Instance mappings can be managed using the rake tasks:
+
 - `rake instance_mappings:list`
 - `rake instance_mappings:create[platform,instance_type,customer_facing]`
 - `rake instance_mappings:update[platform,instance_type,new_customer_facing]`
