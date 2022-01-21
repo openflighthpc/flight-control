@@ -41,11 +41,19 @@ class Project < ApplicationRecord
   end
 
   def current_budget_policy
-    budget_policies.where("effective_at <= ?", Date.today).last
+    @budget_policy ||= budget_policies.where("effective_at <= ?", Date.today).last
+  end
+
+  def cycle_days
+    current_budget_policy.days
+  end
+
+  def cycle_interval
+    current_budget_policy.cycle_interval
   end
 
   def current_compute_groups
-    latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
+    @current_groups ||= latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
   end
 
   def compute_groups_on_date(date)

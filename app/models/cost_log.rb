@@ -17,10 +17,11 @@ class CostLog < ApplicationRecord
 
   def compute_cost
     gbp_cost = currency == "USD" ? (cost.to_f * CostLog.usd_gbp_conversion) : cost.to_f
-    (gbp_cost * CostLog.gbp_compute_conversion).ceil
+    (gbp_cost * CostLog.gbp_compute_conversion)
   end
 
   def risk_cost
-    (compute_cost.to_f * CostLog.at_risk_conversion).ceil
+    cost = (compute_cost.to_f * CostLog.at_risk_conversion)
+    scope == "total" ? cost.ceil : cost.round
   end
 end
