@@ -17,6 +17,7 @@ class BudgetPolicy < ApplicationRecord
     }
   validate :cycle_limit_if_fixed_or_rolling
   validates :effective_at, presence: true
+  default_scope { order(:effective_at, :created_at) }
 
   private
 
