@@ -101,6 +101,22 @@ A `Project` must be created for each project you wish to track. These can be cre
 
 Project names must start with a letter, only include lower or uppercase letters, numbers, dashes or underscores, and must end in a letter or number.
 
+#### Balances and budgets
+
+As part of creating and updating a project, a balance and budget policy must be set. Balances represent the total amount of compute units assigned to the project and budget policies describe how those compute units will be allocated over time.
+
+Budget policies include a number of attributes:
+- Cycle interval: length of a billing cycle. Can be monthly, weekly or custom
+- Days: Describes how many days a custom cycle interval lasts
+- Spend profile: how cycle budgets are calculated
+  - Fixed: budget resets start of each cycle to the value of cycle limit (see below)
+  - Rolling: (budget cycles so far * cycle limit ) - total spend so far
+  - Continuous: balance - total spend so far
+  - Dynamic: (balance - total spend so far) / remaining cycles
+- Cycle limit: compute units assigned to the cycle, for fixed and rolling spend profiles.
+
+Both balances and budget policies have an `effective_at` date. When a project reaches its end date, the balance will become zero.
+
 #### Generate project config file
 
 If using the visualiser part of the application (future), once instance logs have been created for a project (see below), a config file must be created using `rake projects:create_config:by_project[project,overwrite]` or `rake projects:create_config:all[overwrite]`.
