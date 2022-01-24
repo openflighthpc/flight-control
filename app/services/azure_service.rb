@@ -1,5 +1,5 @@
 require 'httparty'
-require_relative '../models/azure_project'
+require_relative '../models/project'
 
 class AzureService
   MAX_API_ATTEMPTS = 3

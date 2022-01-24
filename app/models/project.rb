@@ -3,6 +3,7 @@ require_relative 'budget_policy'
 require_relative 'instance_log'
 require_relative 'cost_log'
 require_relative "../services/project_config_creator"
+require_relative "../services/costs_charter"
 require 'httparty'
 
 class Project < ApplicationRecord
