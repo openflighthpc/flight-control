@@ -110,7 +110,7 @@ Budget policies include a number of attributes:
 - Days: Describes how many days a custom cycle interval lasts
 - Spend profile: how cycle budgets are calculated
   - Fixed: budget resets start of each cycle to the value of cycle limit (see below)
-  - Rolling: (budget cycles so far * cycle limit ) - total spend so far
+  - Rolling: (budget cycles so far * cycle limit) - total spend so far
   - Continuous: balance - total spend so far
   - Dynamic: (balance - total spend so far) / remaining cycles
 - Cycle limit: compute units assigned to the cycle, for fixed and rolling spend profiles.

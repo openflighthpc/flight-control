@@ -59,33 +59,94 @@ class CostsCharter
     results
   end
 
-  # To Do
+  # need to consider budget policies (and balances), project end date
+  # and when a cycle end/starts (unless continuous).
   def budget_changes(start_date, end_date)
-    # need to consider budget policies (and balances), end date
-    # and when a cycle end/starts (unless continuous).
+    # Assume policies only change at the start of a billing cycle
+    policy_dates = (start_date..end_date).to_a & active_billing_cycles
+    policy_dates = [start_date] | policy_dates
+    changes = {}
+    policy_dates.each do |date|
+      changes[date.to_s] = budget_on_date(date)
+    end
+    changes[@project.end_date] = 0.0 if @project.end_date && @project.end_date <= end_date
+    changes
+  end
+
+  def budget_on_date(date)
+    amount = 0.0
+    policy = @project.budget_policies.where("effective_at <= ?", date).last
+    return amount if !policy
+
+    case policy.spend_profile
+    when "fixed"
+      amount = policy.cycle_limit
+    when "rolling"
+      (cycle_number(date) * policy.cycle_limit) - costs_so_far(date)
+    when "continuous"
+      balance_amount(date) - costs_so_far(date)
+    when "dynamic"
+      (balance_amount(date) - costs_so_far(date)) / remaining_cycles(date)
+    end
+    amount
+  end
+
+  # The total amount, not including any spend so far
+  def balance_amount(date)
+    return 0.0 if date >= @project.end_date
+
+    balance = @project.balances.where("effective_at <= ?", date).last
+    balance ? balance.amount : 0.0
+  end
+
+  def costs_so_far(date)
+    logs = @project.cost_logs.where(scope: "total").where("date < ?", date)
+    logs.reduce(0.0) { |log| log.risk_cost }
+  end
+
+  def cycle_number(date)
+    number = 0
+    active_billing_cycles.each do |cycle|
+      if cycle <= date
+        number += 1
+      else
+        break
+      end
+    end
+    number
+  end
+
+  # Includes the current cycle
+  def remaining_cycles(date)
+    active_billing_cycles.count - cycle_number(date)
   end
 
   def active_billing_cycles
-    cycle = start_of_billing_interval(@project.start_date)
-    return [cycle] if cycle > start_of_billing_interval(Date.today)
+    if !@cycles
+      cycle = start_of_billing_interval(@project.start_date)
+      if cycle > start_of_billing_interval(Date.today)
+        @cycles = [cycle] 
+        return @cycles
+      end
 
-    active_cycles = []
-    end_cycle = end_of_billing_interval(Date.today) + 1.day
+      active_cycles = []
+      if @project.end_date
+        end_cycle = start_of_billing_interval(@project.end_date - 1.day)
+      else
+        end_cycle = end_of_billing_interval(Date.today) + 1.day
+      end
 
-    if @project.end_date && (@project.end_date - 1.day) < end_cycle
-      end_cycle = start_of_billing_interval(@project.end_date - 1.day)
+      while (cycle <= end_cycle)
+        active_cycles << cycle
+        cycle = end_of_billing_interval(cycle) + 1.day
+      end
+      @cycles = active_cycles
     end
-
-    while (cycle <= end_cycle)
-      active_cycles << cycle
-      cycle = end_of_billing_interval(cycle) + 1.day
-    end
-    active_cycles
+    @cycles
   end
 
   def start_of_billing_interval(date)
     if @project.cycle_interval == "monthly"
-      date =  date - 1.month if date.day < billing_start_day_of_month
       start = date.beginning_of_month
       [start + (billing_start_day_of_month - 1).days, date.end_of_month].min # in case short month and billing day at end
     elsif @project.cycle_interval == "weekly"
