@@ -56,6 +56,17 @@ class Project < ApplicationRecord
     @current_groups ||= latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
   end
 
+  def settings
+    if !@settings
+      @settings = YAML.load(File.read(File.join(File.dirname(__FILE__), "../etc/projects/#{self.name}.yaml")))
+    end
+    @settings
+  end
+
+  def front_end_compute_groups
+    @settings["compute_groups"]
+  end
+
   def compute_groups_on_date(date)
     logs = instance_logs.where(date: date)
     # If no logs on that, get most recent earlier logs
