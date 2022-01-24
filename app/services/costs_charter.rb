@@ -8,11 +8,15 @@ class CostsCharter
   def cost_breakdown(start_date, end_date)
     results = {}
     latest_cost_log_date = @project.cost_logs.last&.date
-    (start_date..end_date).to_a.each do |date|
+    compute_groups = @project.current_compute_groups
+    # start one day earlier, so we can use previous costs
+    # for forecasts, if needed
+    ((start_date - 1.day)..end_date).to_a.each do |date|
       if latest_cost_log_date && date <= latest_cost_log_date
-        results[date.to_s] = {data_out: 0.0, core: 0.0, core_storage: 0.0, 
-                              total: 0.0, other: 0.0, budget: 0.0}
-        @project.current_compute_groups.each do |group|
+        results[date.to_s] = { data_out: 0.0, core: 0.0, core_storage: 0.0, 
+                              total: 0.0, other: 0.0, budget: 0.0,
+                              compute: 0.0 }
+        compute_groups.each do |group|
           results[date.to_s][group.to_sym] = 0.0
           results[date.to_s]["#{group}_storage".to_sym] = 0.0
         end
@@ -21,24 +25,31 @@ class CostsCharter
 
     cost_logs = @project.cost_logs.where("date <= ? AND date >= ?", end_date, start_date)
     cost_logs.each do |log|
-      results[log.date.to_s][log.scope.to_sym] = log.risk_cost
+      cost = log.risk_cost
+      results[log.date.to_s][log.scope.to_sym] = cost
+      if log.compute
+        results[log.date.to_s][:compute] += cost
+      end
     end
    
-    # budget_changes = continuous_budget? ? cumulative_cycle_budget_changes(start_date) : cycle_budget_changes(start_date)
-    # budget = nil
-    # total = 0.0
-    # previous_costs = latest_previous_costs(start_date)
-    # results.keys.each do |k|
-    #   break if @parsed_end_date && Date.parse(k) >= @parsed_end_date
+    budget_changes = budget_changes(start_date, end_date)
+    budget = nil
+    total = 0.0
+    previous_costs = results.delete((start_date - 1.day).to_s)
+    results.keys.each do |k|
+      break if @project.end_date && Date.parse(k) >= @project.end_date
 
-    #   budget = budget_changes[k] if budget_changes.has_key?(k)
-    #   if @latest_cost_log_date && Date.parse(k) <= @latest_cost_log_date
-    #     compute_costs = compute_groups.keys.reduce(0.0) {|sum, group| sum + results[k][group.to_sym]}
-    #     results[k][:other] = results[k][:total] - (compute_costs + results[k][:data_out] + results[k][:core] + results[k][:storage])
-    #     results[k][:other] = 0.0 if results[k][:other] < 0 # due to rounding if very small numbers
-    #     total += results[k][:total]
-    #     results[k][:budget] = budget - total
-    #     previous_costs = results[k]
+      if budget_changes.has_key?(k)
+        budget = budget_changes[k]
+        total = 0.0
+      end
+      if latest_cost_log_date && Date.parse(k) <= latest_cost_log_date
+        results[k][:other] = results[k][:total] - (results[k][:compute] + results[k][:data_out] + results[k][:core] + results[k][:core_storage])
+        results[k][:other] = 0.0 if results[k][:other] < 0 # due to rounding if very small numbers
+        total += results[k][:total]
+        results[k][:budget] = budget - total
+        previous_costs = results[k]
+      else
     #   elsif Date.parse(k) >= @parsed_start_date
     #     compute = 0.0
     #     compute_groups.keys.each do |group|
@@ -54,8 +65,8 @@ class CostsCharter
     #     results[k][:forecast_other] = 0 if results[k][:forecast_other] < 0 # due to rounding if very small numbers
     #     total += results[k][:forecast_total]
     #     results[k][:forecast_budget] = budget - total
-    #   end
-    # end
+      end
+    end
     results
   end
 
@@ -69,7 +80,7 @@ class CostsCharter
     policy_dates.each do |date|
       changes[date.to_s] = budget_on_date(date)
     end
-    changes[@project.end_date] = 0.0 if @project.end_date && @project.end_date <= end_date
+    changes[@project.end_date.to_s] = 0.0 if @project.end_date && @project.end_date <= end_date
     changes
   end
 
@@ -81,6 +92,10 @@ class CostsCharter
     case policy.spend_profile
     when "fixed"
       amount = policy.cycle_limit
+      # if not the start of a cycle, need to include spend this cycle so far
+      if !active_billing_cycles.include?(date)
+        amount -= costs_between_dates(start_of_billing_interval(date), date)
+      end
     when "rolling"
       (cycle_number(date) * policy.cycle_limit) - costs_so_far(date)
     when "continuous"
@@ -100,8 +115,12 @@ class CostsCharter
   end
 
   def costs_so_far(date)
-    logs = @project.cost_logs.where(scope: "total").where("date < ?", date)
-    logs.reduce(0.0) { |log| log.risk_cost }
+    costs_between_dates(@project.start_date, date)
+  end
+
+  def costs_between_dates(start_date, end_date)
+    logs = @project.cost_logs.where(scope: "total").where("date < ? AND date >= ?", end_date, start_date)
+    logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
   end
 
   def cycle_number(date)

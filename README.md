@@ -15,6 +15,8 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
 - Set the environment variable `CCV_DATABASE_PASSWORD` with the user's password
 - If running in production:
   - Set the `RAILS_ENV` environment variable to `production`
+  - Generate a new value for `secret_key_base` using `rake secret` and add it using `vim rails credentials:edit`
+  - Ensure you save a backup copy of the file `config/master.key` (used for encryption)
 - Run `bundle install`
 - Run `rails db:create`
 - Run `rails db:migrate:with_data`
