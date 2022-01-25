@@ -24,4 +24,8 @@ class InstanceMapping < ApplicationRecord
     end
     @@mappings
   end
+
+  def self.customer_facing_type(platform, instance_type)
+    instance_mappings[platform][instance_type]
+  end
 end

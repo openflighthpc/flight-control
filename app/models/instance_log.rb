@@ -8,4 +8,8 @@ class InstanceLog < ApplicationRecord
       in: %w(aws azure),
       message: "%{value} is not a valid platform"
     }
+
+  def has_mapping?
+    !InstanceMapping.instance_mappings[platform][instance_type].nil?
+  end
 end

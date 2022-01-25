@@ -209,7 +209,7 @@ class Instance
 
   def customer_facing_type
     if !@customer_facing
-      @customer_facing = InstanceMapping.customer_facing_name(instance_type)
+      @customer_facing = InstanceMapping.customer_facing_type(@platform, instance_type)
     end
     @customer_facing
   end
@@ -222,18 +222,6 @@ class Instance
   end
 
   def node_limit
-    @project.compute_groups.dig(@group, 'nodes', truncated_name, 'limit') || 0
-  end
-
-  def priority
-    @project.compute_groups.dig(@group, 'nodes', truncated_name, 'priority') || 0
-  end
-
-  def group_priority
-    @project.compute_groups[@group]["priority"]
-  end
-
-  def weighted_priority
-    priority * group_priority
+    @project.front_end_compute_groups.dig(@group, 'nodes', truncated_name, 'limit') || 0
   end
 end

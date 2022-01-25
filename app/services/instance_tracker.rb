@@ -1,4 +1,5 @@
 class InstanceTracker
+  ON_STATUSES = ["VM running", "running"]
 
   def initialize(project)
     @project = project
@@ -17,10 +18,10 @@ class InstanceTracker
         region = values["region"]
         group_logs = logs.where(compute_group: node_group)
         instance_mappings.each do |mapping|
-          instance = Instance.new(mapping.instance_type, region, node_group, @project.host.downcase, @project)
+          instance = Instance.new(mapping.instance_type, region, node_group, @project.platform, @project)
           if instance.node_limit > 0 && instance.present_in_region?
             group_logs.where(instance_type: mapping.instance_type).each do |log|
-              instance.increase_count(%w(Available running).include?(log.status) ? :on : :off)
+              instance.increase_count(ON_STATUSES.include?(log.status) ? :on : :off)
             end
             instances << instance
           end
@@ -32,12 +33,12 @@ class InstanceTracker
         last = nil
         grouped.each do |group|
           if !last || last && group[0][0] != last.instance_type
-            instance = Instance.new(group[0][0], region, node_group, self.host.downcase, self)
-            instance.increase_count(%w(Available running).include?(group[0][1]) ? :on : :off, group[1])
+            instance = Instance.new(group[0][0], region, node_group, @project.platform, @project)
+            instance.increase_count(ON_STATUSES.include?(group[0][1]) ? :on : :off, group[1])
             instances << last if last && last.present_in_region?
             last = instance
           elsif last
-            last.increase_count(%w(Available running).include?(group[0][1]) ? :on : :off, group[1])
+            last.increase_count(ON_STATUSES.include?(group[0][1]) ? :on : :off, group[1])
           end
         end
         instances << last if last && last.present_in_region?

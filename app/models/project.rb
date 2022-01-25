@@ -4,6 +4,7 @@ require_relative 'instance_log'
 require_relative 'cost_log'
 require_relative "../services/project_config_creator"
 require_relative "../services/costs_charter"
+require_relative "../services/instance_tracker"
 require 'httparty'
 
 class Project < ApplicationRecord
@@ -37,6 +38,14 @@ class Project < ApplicationRecord
     instance_logs.where(date: instance_logs.maximum(:date))
   end
 
+  # For front end use and in cost forecast calculations
+  def latest_instances
+    if !@instances
+      @instances = InstanceTracker.new(self).latest_instances
+    end
+    @instances
+  end
+
   def current_balance
     balances.where("effective_at <= ?", Date.today).last
   end
@@ -59,13 +68,13 @@ class Project < ApplicationRecord
 
   def settings
     if !@settings
-      @settings = YAML.load(File.read(File.join(File.dirname(__FILE__), "../etc/projects/#{self.name}.yaml")))
+      @settings = YAML.load(File.read(File.join(Rails.root, 'config', 'projects', "#{name}.yaml")))
     end
     @settings
   end
 
   def front_end_compute_groups
-    @settings["compute_groups"]
+    settings["compute_groups"]
   end
 
   def compute_groups_on_date(date)
