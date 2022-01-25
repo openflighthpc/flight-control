@@ -25,7 +25,6 @@ class Instance
   def self.set_azure_prices
     if File.exists?(AzureInstanceDetailsRecorder.prices_file)
       File.foreach(AzureInstanceDetailsRecorder.prices_file).with_index do |entry, index|
-        puts entry
         if index > 0
           entry = JSON.parse(entry)
 
@@ -142,14 +141,6 @@ class Instance
     @count[:on] + @count[:off]
   end
 
-  def pending_on
-    @count[:pending_on] || @count[:on]
-  end
-
-  def pending_change?
-    @pending_change
-  end
-
   def price_per_hour
     base_price = price || 0
     @platform == "aws" ? base_price * CostLog.usd_gbp_conversion : base_price
@@ -163,8 +154,9 @@ class Instance
     price_per_hour * 24
   end
 
+  # Includes at risk margin
   def daily_compute_cost
-    (daily_cost * CostLog.gbp_compute_conversion).ceil
+    (daily_cost * CostLog.gbp_compute_conversion * CostLog.at_risk_conversion).ceil
   end
 
   def total_daily_compute_cost

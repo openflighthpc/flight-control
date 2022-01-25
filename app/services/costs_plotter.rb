@@ -1,4 +1,4 @@
-class CostsCharter
+class CostsPlotter
 
   def initialize(project)
     @project = project
@@ -8,7 +8,7 @@ class CostsCharter
   def cost_breakdown(start_date, end_date)
     results = {}
     latest_cost_log_date = @project.cost_logs.last&.date
-    compute_groups = @project.current_compute_groups
+    compute_groups = @project.front_end_compute_groups
     # start one day earlier, so we can use previous costs
     # for forecasts, if needed
     ((start_date - 1.day)..end_date).to_a.each do |date|
@@ -16,9 +16,25 @@ class CostsCharter
         results[date.to_s] = { data_out: 0.0, core: 0.0, core_storage: 0.0, 
                               total: 0.0, other: 0.0, budget: 0.0,
                               compute: 0.0 }
-        compute_groups.each do |group|
+        compute_groups.keys.each do |group|
           results[date.to_s][group.to_sym] = 0.0
           results[date.to_s]["#{group}_storage".to_sym] = 0.0
+        end
+      elsif @project.end_date && date >= @project.end_date || date < @project.start_date
+        results[date.to_s] = {forecast_compute: nil, forecast_core: nil, forecast_data_out: nil,
+                              forecast_core_storage: nil, forecast_total: nil,
+                              forecast_other: nil, forecast_budget: nil}
+        compute_groups.keys.each do |group|
+          results[date.to_s]["forecast_#{group}".to_sym] = nil
+          results[date.to_s]["forecast_#{group}_storage".to_sym] = nil
+        end
+      else
+        results[date.to_s] = {forecast_compute: 0.0, forecast_data_out: 0.0, forecast_core: 0.0,
+                              forecast_core_storage: 0.0, forecast_total: 0.0,
+                              forecast_other: 0.0, forecast_budget: 0.0}
+        compute_groups.keys.each do |group|
+          results[date.to_s]["forecast_#{group}".to_sym] = 0.0
+          results[date.to_s]["forecast_#{group}_storage".to_sym] = 0.0
         end
       end
     end
@@ -36,6 +52,8 @@ class CostsCharter
     budget = nil
     total = 0.0
     previous_costs = results.delete((start_date - 1.day).to_s)
+    puts results
+    puts previous_costs
     results.keys.each do |k|
       break if @project.end_date && Date.parse(k) >= @project.end_date
 
@@ -49,25 +67,64 @@ class CostsCharter
         total += results[k][:total]
         results[k][:budget] = budget - total
         previous_costs = results[k]
-      else
-    #   elsif Date.parse(k) >= @parsed_start_date
-    #     compute = 0.0
-    #     compute_groups.keys.each do |group|
-    #       results[k]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(k), group.to_sym, change_request, scheduled_request)
-    #       compute += results[k]["forecast_#{group}".to_sym]
-    #     end
-    #     results[k][:forecast_compute] = compute
-    #     results[k][:forecast_data_out] = previous_costs[:data_out]
-    #     results[k][:forecast_core] = previous_costs[:core]
-    #     results[k][:forecast_storage] = previous_costs[:storage]
-    #     results[k][:forecast_total] = previous_costs[:total] - previous_costs[:compute] + compute
-    #     results[k][:forecast_other] = results[k][:forecast_total] - (compute + previous_costs[:data_out] + previous_costs[:core] + previous_costs[:storage])
-    #     results[k][:forecast_other] = 0 if results[k][:forecast_other] < 0 # due to rounding if very small numbers
-    #     total += results[k][:forecast_total]
-    #     results[k][:forecast_budget] = budget - total
+      elsif Date.parse(k) >= @project.start_date
+        compute = 0.0
+        compute_groups.keys.each do |group|
+          results[k]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(k), group.to_sym)
+          compute += results[k]["forecast_#{group}".to_sym]
+          results[k]["forecast_#{group}_storage".to_sym] = previous_costs["#{group}_storage".to_sym]
+          compute += results[k]["forecast_#{group}_storage".to_sym]
+        end
+        results[k][:forecast_compute] = compute
+        results[k][:forecast_data_out] = previous_costs[:data_out]
+        results[k][:forecast_core] = previous_costs[:core]
+        results[k][:forecast_core_storage] = previous_costs[:core_storage]
+        results[k][:forecast_total] = previous_costs[:total] - previous_costs[:compute] + compute
+        results[k][:forecast_other] = results[k][:forecast_total] - (compute + previous_costs[:data_out] + previous_costs[:core] + previous_costs[:core_storage])
+        results[k][:forecast_other] = 0 if results[k][:forecast_other] < 0 # due to rounding if very small numbers
+        total += results[k][:forecast_total]
+        results[k][:forecast_budget] = budget - total
       end
     end
     results
+  end
+
+  def forecast_compute_cost(date, group=nil)
+    total = 0.0
+    if date > Date.today
+      group ||= :total
+      return current_compute_costs[group]
+    else
+      instance_logs = @project.instance_logs.where(date: date.to_s)
+      instance_logs = instance_logs.where(compute_group: group) if group
+      # In case no logs recored on that day, use previous
+      instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
+      total = instance_logs.reduce(0.0) { |sum, log| sum + log.daily_compute_cost }
+    end
+    total
+  end
+
+  def most_recent_instance_logs(date, group=nil)
+    latest_date = @project.instance_logs.where("date < ?", date).maximum(:date)
+    logs = @project.instance_logs.where(date: latest_date)
+    logs = @project.latest_instance_logs if !logs.any?
+    logs = logs.where(compute_group: group) if group
+    logs
+  end
+
+  def current_compute_costs
+    if !@current_compute_costs
+      @current_compute_costs = {total: 0.0}
+      @project.latest_instances.each do |group, instances|
+        @current_compute_costs[group.to_sym] = 0.0
+        instances.each do |instance|
+          cost = instance.total_daily_compute_cost
+          @current_compute_costs[group.to_sym] += cost
+          @current_compute_costs[:total] += cost
+        end
+      end
+    end
+    @current_compute_costs
   end
 
   # need to consider budget policies (and balances), project end date
@@ -172,7 +229,7 @@ class CostsCharter
       date =  date - 1.week if date.wday < billing_start_day_of_week
       start = date.beginning_of_week
       start + (billing_start_day_of_week - 1).days
-    elsif cycle_interval == "custom"
+    elsif @project.cycle_interval == "custom"
       last = @project.start_date
       current = @project.start_date
       while(current <= date)
