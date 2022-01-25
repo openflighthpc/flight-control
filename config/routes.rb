@@ -5,4 +5,5 @@ Rails.application.routes.draw do
 
   # Projects
   get '/costs_breakdown', to: 'projects#costs_breakdown'
+  get '/json/cost-data', to: 'projects#cost_data'
 end

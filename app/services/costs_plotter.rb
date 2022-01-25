@@ -4,7 +4,6 @@ class CostsPlotter
     @project = project
   end
 
-  # starting with actual costs only
   def cost_breakdown(start_date, end_date)
     results = {}
     latest_cost_log_date = @project.cost_logs.last&.date
@@ -52,8 +51,6 @@ class CostsPlotter
     budget = nil
     total = 0.0
     previous_costs = results.delete((start_date - 1.day).to_s)
-    puts results
-    puts previous_costs
     results.keys.each do |k|
       break if @project.end_date && Date.parse(k) >= @project.end_date
 
