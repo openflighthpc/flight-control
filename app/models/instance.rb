@@ -21,35 +21,25 @@ class Instance
     set_aws_instance_details
   end
 
+  # Azure prices are in GBP
   def self.set_azure_prices
-    region_mappings = {}
-
-    if File.exists?(AzureInstanceDetailsRecorder.regions_file)
-      File.foreach(AzureInstanceDetailsRecorder.regions_file) do |line|
-        line = line.split(",")
-        region_mappings[line[1].strip] = line[0]
-      end
-    end
-
     if File.exists?(AzureInstanceDetailsRecorder.prices_file)
       File.foreach(AzureInstanceDetailsRecorder.prices_file).with_index do |entry, index|
         puts entry
-        if index > 1
+        if index > 0
           entry = JSON.parse(entry)
 
-          entry['MeterName'].split("/").each do |type| 
-            instance_type = type.gsub(" ", "_")
-            instance_type = "Standard_#{instance_type}"
-            region = region_mappings[entry['MeterRegion']]
-            if !@@instance_details.has_key?(region)
-              @@instance_details[region] = {}
-            end
+          instance_type = entry["armSkuName"] 
+          region = entry["armRegionName"]
+          if !@@instance_details.has_key?(region)
+            @@instance_details[region] = {}
+          end
 
-            if !@@instance_details[region].has_key?(instance_type) ||
-              (@@instance_details[region].has_key?(instance_type) &&
-              Date.parse(entry['EffectiveDate']) > @@instance_details[region][instance_type][:price][1])
-              @@instance_details[region][instance_type] = {price: [entry['MeterRates']["0"].to_f, Date.parse(entry['EffectiveDate'])]}
-            end
+          # Setting sizes shouldn't overwrite prices, and vice versa
+          if @@instance_details[region][instance_type]
+            @@instance_details[region][instance_type][:price] = entry["unitPrice"].to_f
+          else
+            @@instance_details[region][instance_type] = { price: entry["unitPrice"] }
           end
         end
       end
@@ -61,7 +51,7 @@ class Instance
   def self.set_azure_instance_sizes
     if File.exists?(AzureInstanceDetailsRecorder.sizes_file)
       File.foreach(AzureInstanceDetailsRecorder.sizes_file).with_index do |entry, index|
-        if index > 1
+        if index > 0
           entry = JSON.parse(entry)
           instance_type = entry['instance_type']
           region = entry['location']
@@ -69,13 +59,18 @@ class Instance
             @@instance_details[region] = {}
           end
 
-          if !@@instance_details[region].has_key?(instance_type)
-            @@instance_details[region][instance_type] = {}
+          # Setting sizes shouldn't overwrite prices, and vice versa
+          if @@instance_details[region][instance_type]
+            @@instance_details[region][instance_type][:cpu] = entry["cpu"]
+            @@instance_details[region][instance_type][:gpu] = entry["gpu"]
+            @@instance_details[region][instance_type][:mem] = entry["mem"]
+          else
+            @@instance_details[region][instance_type] = {
+              cpu: entry["cpu"],
+              gpu: entry["gpu"],
+              mem: entry["mem"]
+            }
           end
-
-          @@instance_details[region][instance_type][:cpu] = entry["cpu"]
-          @@instance_details[region][instance_type][:gpu] = entry["gpu"]
-          @@instance_details[region][instance_type][:mem] = entry["mem"]
         end
       end
     else
@@ -86,7 +81,7 @@ class Instance
   def self.set_aws_instance_details
     if File.exists?(AwsInstanceDetailsRecorder.details_file)
       File.foreach(AwsInstanceDetailsRecorder.details_file).with_index do |entry, index|
-        if index > 1
+        if index > 0
           entry = JSON.parse(entry)
           instance_type = entry['instance_type']
           region = entry['location']
@@ -96,7 +91,7 @@ class Instance
 
           if !@@instance_details[region].has_key?(instance_type)
             @@instance_details[region][instance_type] = {
-              price: [entry['price_per_hour'].to_f, nil],
+              price: entry['price_per_hour'].to_f,
               cpu: entry["cpu"],
               gpu: entry["gpu"],
               mem: entry["mem"]
@@ -161,7 +156,7 @@ class Instance
   end
 
   def price
-    @details[:price][0] if @details[:price]
+    @details[:price] if @details[:price]
   end
 
   def daily_cost
