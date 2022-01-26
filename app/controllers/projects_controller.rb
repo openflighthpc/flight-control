@@ -22,6 +22,6 @@ class ProjectsController < ApplicationController
     else
       end_date = cost_plotter.end_of_billing_interval(start_date)
     end
-    @cost_breakdown = plotter.costs_breakdown(start_date, end_date)
+    @cost_breakdown = cost_plotter.chart_cost_breakdown(start_date, end_date)
   end
 end

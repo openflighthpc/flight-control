@@ -1,10 +1,7 @@
 <div class="chart">
-  <div class="d-flex justify-content-between">
-    <h3 class="chart-title"> Costs Breakdown </h3>
-  </div>
   <canvas id="costBreakdownChart"></canvas>
   <script type="text/javascript">
-    let costs = <%= @cost_breakdown.to_json %>;
+    let costs = <%= raw(@cost_breakdown.to_json) %>;
     let actual_breakdown_data = [
       {
         label: 'remaining budget',
@@ -19,7 +16,7 @@
           {
             label: "<%= group %>",
             data: costs['actual']['compute_groups']['<%= group.to_s %>'],
-            backgroundColor: '#<%= @project.compute_groups[group.to_s]["colour"] %>',
+            backgroundColor: '#<%= @project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["colour"] %>',
             stack: 'bars',
           },
         <% end %>
@@ -67,7 +64,7 @@
           {
             label: '<%= "forecast #{group}" %>',
             data: costs['forecast']['compute_groups']['<%= group %>'],
-            backgroundColor: '<%= Project.lighten_colour("##{@project.compute_groups[group.to_s]["colour"]}") %>',
+            backgroundColor: '<%= lighten_colour("#{@project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["colour"]}") %>',
             stack: 'bars',
           },
         <% end %>
@@ -136,14 +133,6 @@
           filter: function(tooltipItem, data) {
               return !(data.datasets[tooltipItem.datasetIndex].label.includes('forecast') && tooltipItem.index === overlapDateIndex()) && tooltipItem.value != "NaN"
           },
-          callbacks: {
-            footer: function(tooltipItem, data) {
-              let text = nodes[tooltipItem[0].index];
-              if (text != null) {
-                return `Nodes: ${text}`;
-              }
-            }
-          }
         },
         scales: {
           xAxes: [{
@@ -161,6 +150,6 @@
         }
       }
     });
-    let currentCycleCosts = jQuery.extend(true, {}, costs_chart.data);
+    costs_chart.update();
   </script>
 </div>
