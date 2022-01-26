@@ -151,11 +151,11 @@ class CostsPlotter
         amount -= costs_between_dates(start_of_billing_interval(date), date)
       end
     when "rolling"
-      (cycle_number(date) * policy.cycle_limit) - costs_so_far(date)
+      amount = (cycle_number(date) * policy.cycle_limit) - costs_so_far(date)
     when "continuous"
-      balance_amount(date) - costs_so_far(date)
+      amount = balance_amount(date) - costs_so_far(date)
     when "dynamic"
-      (balance_amount(date) - costs_so_far(date)) / remaining_cycles(date)
+      amount = (balance_amount(date) - costs_so_far(date)) / remaining_cycles(date)
     end
     amount
   end
@@ -238,9 +238,9 @@ class CostsPlotter
   end
 
   def end_of_billing_interval(date)
-    if  @project.cycle_interval == "monthly"
+    if @project.cycle_interval == "monthly"
       start_of_billing_interval(date + 1.month + 4.days) - 1.day
-    elsif  @project.cycle_interval == "weekly"
+    elsif @project.cycle_interval == "weekly"
       start_of_billing_interval(date + 1.week) - 1.day
     else
       start_of_billing_interval(date + @project.cycle_days.days) - 1.day
@@ -252,6 +252,6 @@ class CostsPlotter
   end
 
   def billing_start_day_of_week
-    start_date.wday
+    @project.start_date.wday
   end
 end
