@@ -4,6 +4,75 @@ class CostsPlotter
     @project = project
   end
 
+  def chart_cost_breakdown(start_date, end_date)
+    core_cost_entries = cost_breakdown(start_date, end_date)
+    dates = core_cost_entries.keys
+    compute = []
+    nodes = []
+    data_out = []
+    core = []
+    core_storage = []
+    other = []
+    remaining_budget = []
+    forecast_compute = []
+    forecast_data_out = []
+    forecast_core = []
+    forecast_core_storage = []
+    forecast_other = []
+    forecast_remaining_budget = []
+    compute_group_details = {actual: {}, forecast: {}}
+    @project.front_end_compute_groups.keys.each do |group| 
+      compute_group_details[:actual][group.to_sym] = []
+      compute_group_details[:actual]["#{group}_storage".to_sym] = []
+      compute_group_details[:forecast][group.to_sym] = []
+      compute_group_details[:forecast]["#{group}_storage".to_sym] = []
+    end
+    first_forecast = true
+    core_cost_entries.each do |k, v|
+      break if @project.end_date && Date.parse(k) >= @project.end_date
+
+      if v.has_key?(:compute)
+        compute << v[:compute]
+        data_out << v[:data_out]
+        core << v[:core]
+        core_storage << v[:core_storage]
+        other << v[:other]
+        remaining_budget << (Date.parse(k) < @project.start_date ? nil : v[:budget])
+        forecast_compute << nil
+        forecast_data_out << nil
+        forecast_core_storage << nil
+        forecast_core << nil
+        forecast_other << nil
+        forecast_remaining_budget << nil
+        compute_group_details[:actual].keys.each {|group| compute_group_details[:actual][group] << v[group.to_sym]}
+        compute_group_details[:forecast].keys.each {|group| compute_group_details[:forecast][group] << nil}
+      else
+        # to connect actual and forecast budget lines
+        if first_forecast && forecast_remaining_budget.length > 0 && compute.any? &&
+          v[:forecast_budget] && Date.parse(k) > @project.start_date
+          first_forecast = false
+          forecast_remaining_budget[-1] = v[:forecast_budget] + v[:forecast_total]
+        end
+        forecast_compute << v[:forecast_compute]
+        forecast_data_out << v[:forecast_data_out]
+        forecast_core << v[:forecast_core]
+        forecast_core_storage << v[:forecast_core_storage]
+        forecast_other << v[:forecast_other]
+        forecast_remaining_budget << v[:forecast_budget]
+        compute_group_details[:forecast].keys.each {|group| compute_group_details[:forecast][group] << v["forecast_#{group}".to_sym]}
+      end
+      nodes << v[:compute_nodes]
+    end
+    results = {'dates': dates, 'actual': {'any': remaining_budget.compact.length > 0, 'compute': compute, 
+              'compute_groups': compute_group_details[:actual], 'data out': data_out, 'core': core, 'core_storage': core_storage,
+              'other': other, 'remaining budget': remaining_budget}}
+    results['forecast'] = {'any': forecast_remaining_budget.compact.length > 0, 'compute': forecast_compute,
+                           'compute_groups': compute_group_details[:forecast], 'data out': forecast_data_out, 
+                           'core': forecast_core, 'core_storage': forecast_core_storage, 'other': forecast_other,
+                           'remaining budget': forecast_remaining_budget}
+    results
+  end
+
   def cost_breakdown(start_date, end_date)
     results = {}
     latest_cost_log_date = @project.cost_logs.last&.date
