@@ -75,7 +75,6 @@ class CostsPlotter
 
   def cost_breakdown(start_date, end_date)
     results = {}
-    latest_cost_log_date = @project.cost_logs.last&.date
     compute_groups = @project.front_end_compute_groups
     # start one day earlier, so we can use previous costs
     # for forecasts, if needed
@@ -155,6 +154,7 @@ class CostsPlotter
     results
   end
 
+  # Just instance costs
   def forecast_compute_cost(date, group=nil)
     total = 0.0
     if date > Date.today
@@ -165,7 +165,7 @@ class CostsPlotter
       instance_logs = instance_logs.where(compute_group: group) if group
       # In case no logs recored on that day, use previous
       instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
-      total = instance_logs.reduce(0.0) { |sum, log| sum + log.daily_compute_cost }
+      total = instance_logs.reduce(0.0) { |sum, log| sum + log.actual_cost }
     end
     total
   end
@@ -178,6 +178,7 @@ class CostsPlotter
     logs
   end
 
+  # Just instance costs
   def current_compute_costs
     if !@current_compute_costs
       @current_compute_costs = {total: 0.0}
@@ -191,6 +192,29 @@ class CostsPlotter
       end
     end
     @current_compute_costs
+  end
+
+  def latest_compute_storage_costs
+    if !@current_compute_storage_costs
+      logs = @project.cost_logs.where(compute: true, date: latest_cost_log_date).where(
+                                              "scope LIKE '%storage%'")
+      @current_compute_storage_costs = logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
+    end
+    @current_compute_storage_costs
+  end
+
+  def latest_non_compute_costs
+    if !@latest_non_compute_costs
+      @latest_non_compute_costs = 0
+      if latest_cost_log_date
+        total_log = @project.cost_logs.find_by(scope: "total", date: latest_cost_log_date)
+        total_amount = total_log ? total_log.risk_cost : 0.0
+        compute_logs = @project.cost_logs.where(compute: true, date: latest_cost_log_date)
+        compute_amount = compute_logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
+        @latest_non_compute_costs = total_amount - compute_amount
+      end 
+    end
+    @latest_non_compute_costs
   end
 
   # need to consider budget policies (and balances), project end date
@@ -231,7 +255,7 @@ class CostsPlotter
 
   # The total amount, not including any spend so far
   def balance_amount(date)
-    return 0.0 if date >= @project.end_date
+    return 0.0 if @project.end_date && date >= @project.end_date
 
     balance = @project.balances.where("effective_at <= ?", date).last
     balance ? balance.amount : 0.0
@@ -243,7 +267,20 @@ class CostsPlotter
 
   def costs_between_dates(start_date, end_date)
     logs = @project.cost_logs.where(scope: "total").where("date < ? AND date >= ?", end_date, start_date)
-    logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
+    costs = logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
+    latest_actual = latest_cost_log_date ? latest_cost_log_date + 1.day : @project.start_date
+    if end_date > latest_actual
+      (latest_actual...end_date).to_a.each do |date|
+        costs += forecast_compute_cost(date)
+        costs += latest_compute_storage_costs
+        costs += latest_non_compute_costs
+      end
+    end
+    costs
+  end
+
+  def latest_cost_log_date
+    @latest_cost_log_date ||= @project.cost_logs.last&.date
   end
 
   def cycle_number(date)

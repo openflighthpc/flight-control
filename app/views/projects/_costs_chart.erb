@@ -16,7 +16,7 @@
           {
             label: "<%= group %>",
             data: costs['actual']['compute_groups']['<%= group.to_s %>'],
-            backgroundColor: '#<%= @project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["colour"] %>',
+            backgroundColor: '#<%= @project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>',
             stack: 'bars',
           },
         <% end %>
@@ -30,8 +30,8 @@
         {
           label: 'core storage',
           data: costs['actual']['core_storage'],
-          backgroundColor: 'rgb(255, 172, 0)',
-          borderColor: 'rgb(255, 180, 29)',
+          backgroundColor: 'rgb(34, 239, 2)',
+          borderColor: 'rgb(34, 250, 29)',
           stack: 'bars',
         },
         {
@@ -44,8 +44,8 @@
         {
           label: 'other',
           data: costs['actual']['other'],
-          backgroundColor: 'rgb(61, 205, 200)',
-          borderColor: 'rgb(12, 192, 186)',
+          backgroundColor: 'rgb(96, 96, 96)',
+          borderColor: 'rgb(96, 96, 96)',
           stack: 'bars',
         },
       ]
@@ -64,7 +64,7 @@
           {
             label: '<%= "forecast #{group}" %>',
             data: costs['forecast']['compute_groups']['<%= group %>'],
-            backgroundColor: '<%= lighten_colour("#{@project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["colour"]}") %>',
+            backgroundColor: '<%= lighten_colour("#{@project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["#{'storage_' if group.to_s.end_with?("storage")}colour"]}") %>',
             stack: 'bars',
           },
         <% end %>
@@ -78,8 +78,8 @@
         {
           label: 'forecast core storage',
           data: costs['forecast']['core_storage'],
-          backgroundColor: 'rgb(255, 200, 84)',
-          borderColor: 'rgb(255, 200, 84)',
+          backgroundColor: 'rgb(124, 237, 106)',
+          borderColor: 'rgb(124, 237, 106)',
           stack: 'bars',
         },
         {
@@ -92,8 +92,8 @@
         {
           label: 'forecast other',
           data: costs['forecast']['other'],
-          backgroundColor: 'rgb(158, 230, 227)',
-          borderColor: 'rgb(158, 230, 227)',
+          backgroundColor: 'rgb(178, 178, 178)',
+          borderColor: 'rgb(178, 178, 178)',
           stack: 'bars',
         }
       ]

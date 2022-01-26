@@ -111,7 +111,7 @@ class Instance
     @project = project
     @count = {on: 0, off: 0}
     self.class.set_instance_details if @@instance_details == nil
-    region_details = @@instance_details[self.region]
+    region_details = @@instance_details[region]
     @details = region_details[instance_type] if region_details
     @details ||= {}
   end

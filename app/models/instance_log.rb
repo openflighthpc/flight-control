@@ -24,6 +24,10 @@ class InstanceLog < ApplicationRecord
     (hourly_compute_cost * 24).ceil
   end
 
+  def actual_cost
+    InstanceTracker::ON_STATUSES.include?(status) ? daily_compute_cost : 0.0
+  end
+
   def has_mapping?
     !InstanceMapping.instance_mappings[platform][instance_type].nil?
   end

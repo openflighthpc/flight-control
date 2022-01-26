@@ -30,12 +30,12 @@ class AzureInstanceDetailsRecorder < AzureService
   # logic will need updating to make further requests to get subsquent records.
   def record_instance_prices
     first_query = true
-    regions_and_types.each do |region, types|
-      types_filter = ""
-      types.each_with_index do |type, index|
-        types_filter << "#{index == 0 ? "" : "or"} armSkuName eq '#{type}'"
-      end
-
+    types_filter = ""
+    instance_types.each_with_index do |type, index|
+      types_filter << "#{index == 0 ? "" : " or"} armSkuName eq '#{type}'"
+    end
+    regions.each do |region|
+      
       uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and (#{types_filter})"
       response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
       if response.success?
@@ -141,17 +141,6 @@ class AzureInstanceDetailsRecorder < AzureService
 
   def regions
     @regions ||= (InstanceLog.where(platform: "azure").pluck(Arel.sql("DISTINCT region")) | ["uksouth"])
-  end
-
-  def regions_and_types
-    if !@regions_and_types
-      @regions_and_types = {}
-      regions.each do |region|
-        types = InstanceLog.where(platform: "azure", region: region).pluck(Arel.sql("DISTINCT instance_type"))
-        regions_and_types[region] = types
-      end
-    end
-    @regions_and_types
   end
 
   def mapped_regions
