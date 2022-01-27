@@ -24,5 +24,6 @@ class ProjectsController < ApplicationController
     end
     @cost_breakdown = cost_plotter.chart_cost_breakdown(start_date, end_date)
     @cumulative_costs = cost_plotter.chart_cumulative_costs(start_date, end_date)
+    @datasets = params['datasets']
   end
 end

@@ -46,3 +46,13 @@ window.overlapDateIndex = function() {
   }
   return date_index
 }
+
+window.filterDatasets = function() {
+  console.log("here")
+  costs_chart.data.datasets.forEach(function(dataset, index) {
+    if(dataset.show === false) {
+      console.log("hello")
+      dataset._meta[1] === undefined ? dataset._meta[0].hidden = true : dataset._meta[1].hidden = true;
+    }
+  });
+}

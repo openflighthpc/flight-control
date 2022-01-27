@@ -26,6 +26,7 @@
           backgroundColor: 'rgb(14, 163, 27)',
           borderColor: 'rgb(8, 109, 17)',
           stack: 'bars',
+          show: <%= !@datasets || @datasets.include?('core') %>
         },
         {
           label: 'core storage',
@@ -47,6 +48,7 @@
           backgroundColor: 'rgb(96, 96, 96)',
           borderColor: 'rgb(96, 96, 96)',
           stack: 'bars',
+          show: false
         },
       ]
     let forecast_breakdown_data = [
@@ -95,6 +97,7 @@
           backgroundColor: 'rgb(178, 178, 178)',
           borderColor: 'rgb(178, 178, 178)',
           stack: 'bars',
+          show: false
         }
       ]
     let ctx = document.getElementById('costBreakdownChart').getContext('2d');
@@ -150,6 +153,7 @@
         }
       }
     });
+    filterDatasets();
     costs_chart.update();
   </script>
 </div>
