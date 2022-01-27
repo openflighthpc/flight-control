@@ -110,6 +110,7 @@ class CostsPlotter
     overall_total = 0.0
     budget_changes = budget_changes(start_date, end_date, true)
     budget = nil
+    first_forecast = true
     cost_entries.each do |k, v|
       break if @project.end_date && Date.parse(k) >= @project.end_date
 
@@ -119,7 +120,16 @@ class CostsPlotter
         compute_group_details[:forecast].keys.each { |group| compute_group_details[:forecast][group] << nil }
         next
       end
-      first_forecast = true
+      # Reset totals to zero at start of each cycle
+      if active_billing_cycles.include?(Date.parse(k))
+        compute_total = 0.0
+        core_total = 0.0
+        data_out_total = 0.0
+        core_storage_total = 0.0
+        other_total = 0.0
+        overall_total = 0.0
+        compute_group_totals.keys.each { |key| compute_group_totals[key] = 0.0 }
+      end
       if v.has_key?(:compute)
         compute_total += v[:compute]
         compute_group_totals.keys.each { |group| compute_group_totals[group] += v[group.to_sym] }
