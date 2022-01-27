@@ -1,0 +1,195 @@
+<div class="chart">
+  <canvas id="cumulativeChart"></canvas>
+  <script type="text/javascript">
+    let cumulative =<%= raw(@cumulative_costs.to_json) %>;
+    let actual_cumulative_data = [
+      {
+        label: 'total',
+        data: cumulative['actual']['total'],
+        backgroundColor: 'rgb(230, 138, 25)',
+        borderColor: 'rgb(202,121,23)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+      },
+      <%  @cumulative_costs[:actual][:compute_groups].keys.each do |group| %>
+        {
+          <% colour = @project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>
+          label: "<%= group %>",
+          data: cumulative['actual']['compute_groups']['<%= group %>'],
+          backgroundColor: '#<%= colour %>',
+          borderColor: '#<%= colour %>',
+          fill: false,
+          cubicInterpolationMode: 'monotone',
+          type: 'line',
+        },
+      <% end %>
+      {
+        label: 'core',
+        data: cumulative['actual']['core'], 
+        backgroundColor: 'rgb(14, 163, 27)',
+        borderColor: 'rgb(8, 109, 17)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+      },
+      {
+        label: 'data out',
+        data: cumulative['actual']['data out'],
+        backgroundColor: 'rgb(244, 215, 87)',
+        borderColor: 'rgb(241, 204, 39)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+      },
+      {
+        label: 'storage',
+        data: cumulative['actual']['storage'],
+        backgroundColor: 'rgb(255, 172, 0, 1)',
+        borderColor: 'rgb(255, 172, 0, 1)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+      },
+      {
+        label: 'other',
+        data: cumulative['actual']['other'],
+        backgroundColor: 'rgb(61, 205, 200)',
+        borderColor: 'rgb(12, 192, 186)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+      }
+    ]
+    let forecast_cumulative_data = [
+      {
+        label: 'forecast total',
+        data: cumulative['forecast']['total'],
+        backgroundColor: 'rgb(250, 198, 135)',
+        borderColor: 'rgb(250, 198, 135)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        borderDash: [1, 1],
+        type: 'line',
+      },
+      <%  @cumulative_costs['forecast'][:compute_groups].keys.each do |group| %>
+        {
+          <% colour = @project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>
+          <% colour = lighten_colour(colour) %>
+          label: '<%= "forecast #{group}" %>',
+          data: cumulative['forecast']['compute_groups']['<%= group %>'],
+          backgroundColor: '<%= colour %>',
+          borderColor: '<%= colour %>',
+          fill: false,
+          cubicInterpolationMode: 'monotone',
+          type: 'line',
+          borderDash: [1, 1],
+        },
+      <% end %>
+      {
+        label: 'forecast core storage',
+        data: cumulative['forecast']['core_storage'], 
+        backgroundColor: 'rgb(148, 206, 153)',
+        borderColor: 'rgb(148, 206, 153)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+        borderDash: [1, 1],
+      },
+      {
+        label: 'forecast data out',
+        data: cumulative['forecast']['data out'],
+        backgroundColor: 'rgb(249, 235, 169)',
+        borderColor: 'rgb(249, 235, 169)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+        borderDash: [1, 1],
+      },
+      {
+        label: 'forecast core storage',
+        data: cumulative['forecast']['core_storage'],
+        backgroundColor: 'rgb(255, 200, 84)',
+        borderColor: 'rgb(255, 200, 84)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+        borderDash: [1, 1],
+      },
+      {
+        label: 'forecast other',
+        data: cumulative['forecast']['other'],
+        backgroundColor: 'rgb(158, 230, 227)',
+        borderColor: 'rgb(158, 230, 227)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+        borderDash: [1, 1],
+      },
+    ]
+    ctx = document.getElementById('cumulativeChart').getContext('2d');
+    let cumulative_chart = null;
+    cumulative_chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: cumulative.dates,
+        datasets: [
+          {
+            label: 'budget',
+            data: cumulative['budget'],
+            borderColor: 'rgba(120, 63, 191, 0.8)',
+            backgroundColor: 'rgba(120, 63, 191, 0.8)',
+            fill: false,
+            cubicInterpolationMode: 'monotone',
+            type: 'line',
+          },
+        <% if @cost_breakdown[:actual][:any] %>
+          actual_cumulative_data,
+        <% end %>
+        <% if @cost_breakdown['forecast'][:any] %>
+          forecast_cumulative_data,
+        <% end %>
+        ].flat()
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        title: {
+          display: true,
+          text: 'Select a dataset in the legend to toggle visibility',
+          padding: 0
+        },
+        legend: {
+          labels: {
+            filter: function(item, data) {
+              return !(item.text.includes('forecast') && forecastAndActual());
+            }
+          },
+          onClick: hideRelatedDatasetOnClick
+        },
+        tooltips: {
+          mode: 'index',
+          position: 'nearest',
+          filter: function(tooltipItem, data) {
+              return !(data.datasets[tooltipItem.datasetIndex].label.includes('forecast') && tooltipItem.index === overlapDateIndex())
+          },
+        },
+        scales: {
+          xAxes: [{
+            scaleLabel: {
+              display: true,
+              labelString: 'Date'
+            },
+          }],
+          yAxes: [{
+            scaleLabel: {
+              display: true,
+              labelString: 'Compute Units'
+            },
+          }],
+        },
+      }
+    });
+    let currentCycleCumulative = jQuery.extend(true, {}, cumulative_chart.data);
+  </script>
+</div>

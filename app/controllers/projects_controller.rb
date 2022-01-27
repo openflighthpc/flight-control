@@ -5,7 +5,7 @@ class ProjectsController < ApplicationController
 
   def cost_data
     get_costs_data
-    render json: {breakdown: @cost_breakdown, cumulative: @cumulative_costs}
+    render json: { breakdown: @cost_breakdown, cumulative: @cumulative_costs }
   end
 
   def get_costs_data
