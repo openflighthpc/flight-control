@@ -34,6 +34,15 @@
         type: 'line',
       },
       {
+        label: 'core_storage',
+        data: cumulative['actual']['core_storage'],
+        backgroundColor: 'rgb(34, 239, 2)',
+        borderColor: 'rgb(34, 250, 29)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+      },
+      {
         label: 'data out',
         data: cumulative['actual']['data out'],
         backgroundColor: 'rgb(244, 215, 87)',
@@ -43,19 +52,10 @@
         type: 'line',
       },
       {
-        label: 'storage',
-        data: cumulative['actual']['storage'],
-        backgroundColor: 'rgb(255, 172, 0, 1)',
-        borderColor: 'rgb(255, 172, 0, 1)',
-        fill: false,
-        cubicInterpolationMode: 'monotone',
-        type: 'line',
-      },
-      {
         label: 'other',
         data: cumulative['actual']['other'],
-        backgroundColor: 'rgb(61, 205, 200)',
-        borderColor: 'rgb(12, 192, 186)',
+        backgroundColor: 'rgb(96, 96, 96)',
+        borderColor: 'rgb(96, 96, 96)',
         fill: false,
         cubicInterpolationMode: 'monotone',
         type: 'line',
@@ -97,6 +97,16 @@
         borderDash: [1, 1],
       },
       {
+        label: 'forecast core storage',
+        data: cumulative['forecast']['core_storage'],
+        backgroundColor: 'rgb(124, 237, 106)',
+        borderColor: 'rgb(124, 237, 106)',
+        fill: false,
+        cubicInterpolationMode: 'monotone',
+        type: 'line',
+        borderDash: [1, 1],
+      },
+      {
         label: 'forecast data out',
         data: cumulative['forecast']['data out'],
         backgroundColor: 'rgb(249, 235, 169)',
@@ -107,20 +117,10 @@
         borderDash: [1, 1],
       },
       {
-        label: 'forecast core storage',
-        data: cumulative['forecast']['core_storage'],
-        backgroundColor: 'rgb(255, 200, 84)',
-        borderColor: 'rgb(255, 200, 84)',
-        fill: false,
-        cubicInterpolationMode: 'monotone',
-        type: 'line',
-        borderDash: [1, 1],
-      },
-      {
         label: 'forecast other',
         data: cumulative['forecast']['other'],
-        backgroundColor: 'rgb(158, 230, 227)',
-        borderColor: 'rgb(158, 230, 227)',
+        backgroundColor: 'rgb(178, 178, 178)',
+        borderColor: 'rgb(178, 178, 178)',
         fill: false,
         cubicInterpolationMode: 'monotone',
         type: 'line',
@@ -190,6 +190,6 @@
         },
       }
     });
-    let currentCycleCumulative = jQuery.extend(true, {}, cumulative_chart.data);
+    costs_chart.update();
   </script>
 </div>

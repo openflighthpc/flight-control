@@ -108,7 +108,7 @@ class CostsPlotter
     core_storage_total = 0.0
     other_total = 0.0
     overall_total = 0.0
-    budget_changes = budget_changes(start_date, end_date)
+    budget_changes = budget_changes(start_date, end_date, true)
     budget = nil
     cost_entries.each do |k, v|
       break if @project.end_date && Date.parse(k) >= @project.end_date
@@ -333,19 +333,19 @@ class CostsPlotter
 
   # need to consider budget policies (and balances), project end date
   # and when a cycle end/starts (unless continuous).
-  def budget_changes(start_date, end_date)
+  def budget_changes(start_date, end_date, for_cumulative_chart=false)
     # Assume policies only change at the start of a billing cycle
     policy_dates = (start_date..end_date).to_a & active_billing_cycles
     policy_dates = [start_date] | policy_dates
     changes = {}
     policy_dates.each do |date|
-      changes[date.to_s] = budget_on_date(date)
+      changes[date.to_s] = budget_on_date(date, for_cumulative_chart)
     end
     changes[@project.end_date.to_s] = 0.0 if @project.end_date && @project.end_date <= end_date
     changes
   end
 
-  def budget_on_date(date)
+  def budget_on_date(date, for_cumulative_chart=false)
     amount = 0.0
     policy = @project.budget_policies.where("effective_at <= ?", date).last
     return amount if !policy
@@ -354,7 +354,7 @@ class CostsPlotter
     when "fixed"
       amount = policy.cycle_limit
       # if not the start of a cycle, need to include spend this cycle so far
-      if !active_billing_cycles.include?(date)
+      if !active_billing_cycles.include?(date) && !for_cumulative_chart
         amount -= costs_between_dates(start_of_billing_interval(date), date)
       end
     when "rolling"
