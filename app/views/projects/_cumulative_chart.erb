@@ -4,7 +4,7 @@
     let cumulative =<%= raw(@cumulative_costs.to_json) %>;
     let actual_cumulative_data = [
       {
-        label: 'total',
+        label: 'cycle total',
         data: cumulative['actual']['total'],
         backgroundColor: 'rgb(230, 138, 25)',
         borderColor: 'rgb(202,121,23)',
@@ -63,7 +63,7 @@
     ]
     let forecast_cumulative_data = [
       {
-        label: 'forecast total',
+        label: 'forecast cycle total',
         data: cumulative['forecast']['total'],
         backgroundColor: 'rgb(250, 198, 135)',
         borderColor: 'rgb(250, 198, 135)',

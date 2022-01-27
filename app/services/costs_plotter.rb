@@ -74,8 +74,8 @@ class CostsPlotter
   end
 
   def chart_cumulative_costs(start_date, end_date)
-    cost_entries = cost_breakdown(start_date, end_date)
-    dates = cost_entries.keys
+    cost_entries = cost_breakdown(start_of_billing_interval(start_date), end_date)
+    dates = (start_date..end_date).map { |date| date.to_s }
     compute = []
     data_out = []
     core = []
@@ -112,16 +112,17 @@ class CostsPlotter
     budget = nil
     first_forecast = true
     cost_entries.each do |k, v|
-      break if @project.end_date && Date.parse(k) >= @project.end_date
+      k = Date.parse(k)
+      break if @project.end_date && k >= @project.end_date
 
-      if Date.parse(k) < @project.start_date
+      if k < @project.start_date
         main_datasets.each { |dataset| dataset << nil }
         compute_group_details[:actual].keys.each { |group| compute_group_details[:actual][group] << nil }
         compute_group_details[:forecast].keys.each { |group| compute_group_details[:forecast][group] << nil }
         next
       end
       # Reset totals to zero at start of each cycle
-      if active_billing_cycles.include?(Date.parse(k))
+      if active_billing_cycles.include?(k)
         compute_total = 0.0
         core_total = 0.0
         data_out_total = 0.0
@@ -138,22 +139,25 @@ class CostsPlotter
         core_storage_total += v[:core_storage]
         other_total += v[:other]
         overall_total += v[:total]
-        compute << compute_total
-        compute_group_details[:actual].keys.each { |group| compute_group_details[:actual][group] << compute_group_totals[group] }
-        data_out << data_out_total
-        core << core_total
-        core_storage << core_storage_total
-        other << other_total
-        overall << overall_total
-        forecast_compute << nil
-        compute_group_details[:forecast].keys.each { |group| compute_group_details[:forecast][group] << nil }
-        forecast_core << nil
-        forecast_data_out << nil
-        forecast_core_storage << nil
-        forecast_other << nil
-        forecast_overall << nil
+
+        if k >= start_date
+          compute << compute_total
+          compute_group_details[:actual].keys.each { |group| compute_group_details[:actual][group] << compute_group_totals[group] }
+          data_out << data_out_total
+          core << core_total
+          core_storage << core_storage_total
+          other << other_total
+          overall << overall_total
+          forecast_compute << nil
+          compute_group_details[:forecast].keys.each { |group| compute_group_details[:forecast][group] << nil }
+          forecast_core << nil
+          forecast_data_out << nil
+          forecast_core_storage << nil
+          forecast_other << nil
+          forecast_overall << nil
+        end
       else
-        if first_forecast == true && forecast_overall.length > 0 && Date.parse(k) > @project.start_date
+        if first_forecast == true && forecast_overall.length > 0 && k > @project.start_date
           first_forecast = false
           forecast_overall[-1] = overall_total
           forecast_other[-1] = other_total
@@ -169,20 +173,23 @@ class CostsPlotter
         core_storage_total += v[:forecast_core_storage]
         other_total += v[:forecast_other]
         overall_total += v[:forecast_total]
-        forecast_compute << compute_total
-        compute_group_details[:forecast].keys.each {|group| compute_group_details[:forecast][group] << compute_group_totals[group]}
-        forecast_core << core_total
-        forecast_data_out << data_out_total
-        forecast_core_storage << core_storage_total
-        forecast_other << other_total
-        forecast_overall << overall_total
-        compute << nil
-        compute_group_details[:actual].keys.each { |group| compute_group_details[:actual][group] << nil }
-        core << nil
-        data_out << nil
-        core_storage << nil
-        other << nil
-        overall << nil
+
+        if k >= start_date
+          forecast_compute << compute_total
+          compute_group_details[:forecast].keys.each {|group| compute_group_details[:forecast][group] << compute_group_totals[group]}
+          forecast_core << core_total
+          forecast_data_out << data_out_total
+          forecast_core_storage << core_storage_total
+          forecast_other << other_total
+          forecast_overall << overall_total
+          compute << nil
+          compute_group_details[:actual].keys.each { |group| compute_group_details[:actual][group] << nil }
+          core << nil
+          data_out << nil
+          core_storage << nil
+          other << nil
+          overall << nil
+        end
       end
       budget = budget_changes[k] if budget_changes.has_key?(k)
       budgets << budget
