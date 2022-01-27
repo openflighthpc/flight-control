@@ -5,8 +5,8 @@ class CostsPlotter
   end
 
   def chart_cost_breakdown(start_date, end_date)
-    core_cost_entries = cost_breakdown(start_date, end_date)
-    dates = core_cost_entries.keys
+    cost_entries = cost_breakdown(start_date, end_date)
+    dates = cost_entries.keys
     compute = []
     nodes = []
     data_out = []
@@ -28,7 +28,7 @@ class CostsPlotter
       compute_group_details[:forecast]["#{group}_storage".to_sym] = []
     end
     first_forecast = true
-    core_cost_entries.each do |k, v|
+    cost_entries.each do |k, v|
       break if @project.end_date && Date.parse(k) >= @project.end_date
 
       if v.has_key?(:compute)
@@ -70,6 +70,120 @@ class CostsPlotter
                            'compute_groups': compute_group_details[:forecast], 'data out': forecast_data_out, 
                            'core': forecast_core, 'core_storage': forecast_core_storage, 'other': forecast_other,
                            'remaining budget': forecast_remaining_budget}
+    results
+  end
+
+  def chart_cumulative_costs(start_date, end_date)
+    cost_entries = cost_breakdown(start_date, end_date)
+    dates = cost_entries.keys
+    compute = []
+    data_out = []
+    core = []
+    core_storage = []
+    other = []
+    overall = []
+    budgets = []
+    forecast_compute = []
+    forecast_core = []
+    forecast_data_out = []
+    forecast_core_storage = []
+    forecast_other = []
+    forecast_overall = []
+    main_datasets = [compute, core, core_storage, data_out, other, overall, budgets, forecast_compute, forecast_core,
+                     forecast_core_storage, forecast_data_out, forecast_other, forecast_overall
+                    ]
+    compute_group_details = {actual: {}, forecast: {}}
+    compute_group_totals = {}
+    @project.front_end_compute_groups.keys.each do |group|
+      compute_group_details[:actual][group.to_sym] = []
+      compute_group_details[:actual]["#{group}_storage".to_sym] = []
+      compute_group_details[:forecast][group.to_sym] = []
+      compute_group_details[:forecast]["#{group}_storage".to_sym] = []
+      compute_group_totals[group.to_sym] = 0.0
+      compute_group_totals["#{group}_storage".to_sym] = 0.0
+    end
+    compute_total = 0.0
+    core_total = 0.0
+    data_out_total = 0.0
+    core_storage_total = 0.0
+    other_total = 0.0
+    overall_total = 0.0
+    budget_changes = budget_changes(start_date, end_date)
+    budget = nil
+    cost_entries.each do |k, v|
+      break if @project.end_date && Date.parse(k) >= @project.end_date
+
+      if Date.parse(k) < @project.start_date
+        main_datasets.each { |dataset| dataset << nil }
+        compute_group_details[:actual].keys.each { |group| compute_group_details[:actual][group] << nil }
+        compute_group_details[:forecast].keys.each { |group| compute_group_details[:forecast][group] << nil }
+        next
+      end
+      first_forecast = true
+      if v.has_key?(:compute)
+        compute_total += v[:compute]
+        compute_group_totals.keys.each { |group| compute_group_totals[group] += v[group.to_sym] }
+        core_total += v[:core]
+        data_out_total += v[:data_out]
+        core_storage_total += v[:core_storage]
+        other_total += v[:other]
+        overall_total += v[:total]
+        compute << compute_total
+        compute_group_details[:actual].keys.each { |group| compute_group_details[:actual][group] << compute_group_totals[group] }
+        data_out << data_out_total
+        core << core_total
+        core_storage << core_storage_total
+        other << other_total
+        overall << overall_total
+        forecast_compute << nil
+        compute_group_details[:forecast].keys.each { |group| compute_group_details[:forecast][group] << nil }
+        forecast_core << nil
+        forecast_data_out << nil
+        forecast_core_storage << nil
+        forecast_other << nil
+        forecast_overall << nil
+      else
+        if first_forecast == true && forecast_overall.length > 0 && Date.parse(k) > @project.start_date
+          first_forecast = false
+          forecast_overall[-1] = overall_total
+          forecast_other[-1] = other_total
+          forecast_core_storage[-1] = core_storage_total
+          forecast_data_out[-1] = data_out_total
+          forecast_core[-1] = core_total
+          compute_group_details[:forecast].keys.each {|group| compute_group_details[:forecast][group][-1] = compute_group_totals[group]}
+        end
+        compute_total += v[:forecast_compute]
+        compute_group_totals.keys.each {|group| compute_group_totals[group] += v["forecast_#{group}".to_sym]}
+        core_total += v[:forecast_core]
+        data_out_total += v[:forecast_data_out]
+        core_storage_total += v[:forecast_core_storage]
+        other_total += v[:forecast_other]
+        overall_total += v[:forecast_total]
+        forecast_compute << compute_total
+        compute_group_details[:forecast].keys.each {|group| compute_group_details[:forecast][group] << compute_group_totals[group]}
+        forecast_core << core_total
+        forecast_data_out << data_out_total
+        forecast_core_storage << core_storage_total
+        forecast_other << other_total
+        forecast_overall << overall_total
+        compute << nil
+        compute_group_details[:actual].keys.each { |group| compute_group_details[:actual][group] << nil }
+        core << nil
+        data_out << nil
+        core_storage << nil
+        other << nil
+        overall << nil
+      end
+      budget = budget_changes[k] if budget_changes.has_key?(k)
+      budgets << budget
+    end
+
+    results = {'dates': dates, 'actual': {'any': overall.compact.length > 0,'compute': compute, 'compute_groups': compute_group_details[:actual],
+               'core': core, 'data out': data_out, 'core_storage': core_storage, 'other': other, 'total': overall}}
+    results['forecast'] = {'any': forecast_overall.compact.length > 0, 'compute': forecast_compute, 'compute_groups': compute_group_details[:forecast],
+                           'core': forecast_core,'data out': forecast_data_out, 'core_storage': forecast_core_storage, 'other': forecast_other, 
+                           'total': forecast_overall}
+    results['budget'] = budgets
     results
   end
 

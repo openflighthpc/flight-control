@@ -1,14 +1,14 @@
 class ProjectsController < ApplicationController
   def costs_breakdown
-    get_project_data
+    get_costs_data
   end
 
   def cost_data
-    get_project_data
-    render json: @cost_breakdown
+    get_costs_data
+    render json: {breakdown: @cost_breakdown, cumulative: @cumulative_costs}
   end
 
-  def get_project_data
+  def get_costs_data
     @project = Project.find_by_name(params['project'])
     @project ||= Project.first
     cost_plotter = CostsPlotter.new(@project)
@@ -23,5 +23,6 @@ class ProjectsController < ApplicationController
       end_date = cost_plotter.end_of_billing_interval(start_date)
     end
     @cost_breakdown = cost_plotter.chart_cost_breakdown(start_date, end_date)
+    @cumulative_costs = cost_plotter.chart_cumulative_costs(start_date, end_date)
   end
 end
