@@ -1,5 +1,5 @@
 body {
-  font-family: 'Raleway', sans-serif !important;
+  font-family: 'Work Sans', sans-serif;
 }
 
 .chart {
@@ -8,4 +8,12 @@ body {
   margin-bottom: 5rem;
   margin-right: 5rem;
   height: 50vh;
+}
+
+#costs-chart-form {
+  margin-bottom: 2rem;
+}
+
+.charts-form-label {
+  margin-left: 0.85rem; 
 }

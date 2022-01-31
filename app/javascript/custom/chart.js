@@ -47,13 +47,8 @@ window.overlapDateIndex = function() {
   return date_index
 }
 
-window.filterDatasets = function() {
-  costs_chart.data.datasets.forEach(function(dataset, index) {
-    if(dataset.show === false) {
-      dataset._meta[1] === undefined ? dataset._meta[0].hidden = true : dataset._meta[1].hidden = true;
-    }
-  });
-  cumulative_chart.data.datasets.forEach(function(dataset, index) {
+window.filterDatasets = function(chart) {
+  chart.data.datasets.forEach(function(dataset, index) {
     if(dataset.show === false) {
       dataset._meta[1] === undefined ? dataset._meta[0].hidden = true : dataset._meta[1].hidden = true;
     }

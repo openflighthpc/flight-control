@@ -13,17 +13,18 @@ class ProjectsController < ApplicationController
     @project ||= Project.first
     cost_plotter = CostsPlotter.new(@project)
     if params['start_date']
-      start_date = Date.parse(params['start_date'])
+      @start_date = Date.parse(params['start_date'])
     else
-      start_date = cost_plotter.start_of_billing_interval(Date.today)
+      @start_date = cost_plotter.start_of_billing_interval(Date.today)
     end
     if params['end_date']
-      end_date = Date.parse(params['end_date'])
+      @end_date = Date.parse(params['end_date'])
     else
-      end_date = cost_plotter.end_of_billing_interval(start_date)
+      @end_date = cost_plotter.end_of_billing_interval(@start_date)
     end
-    @cost_breakdown = cost_plotter.chart_cost_breakdown(start_date, end_date)
-    @cumulative_costs = cost_plotter.chart_cumulative_costs(start_date, end_date)
+    @cost_breakdown = cost_plotter.chart_cost_breakdown(@start_date, @end_date)
+    @cumulative_costs = cost_plotter.chart_cumulative_costs(@start_date, @end_date)
+    @possible_datasets = cost_plotter.possible_datasets
     @datasets = params['datasets']
   end
 end

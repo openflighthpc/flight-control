@@ -507,4 +507,11 @@ class CostsPlotter
   def billing_start_day_of_week
     @project.start_date.wday
   end
+
+  def possible_datasets
+    datasets = @project.front_end_compute_groups.keys
+    datasets ||= []
+    datasets += ["core", "cycle total", "data out", "budget"]
+    datasets
+  end
 end
