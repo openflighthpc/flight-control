@@ -54,3 +54,24 @@ window.filterDatasets = function(chart) {
     }
   });
 }
+
+window.addEventListener('DOMContentLoaded', (event) => {
+  if($('#cost-chart-filter').length > 0) {
+    $('.cost-chart-date').on('input', validateCostChartDates);
+  }
+});
+
+window.validateCostChartDates = function() {
+  let endDate = $('#end-date').val();
+  let startDate = $('#start-date').val();
+  let submitButton = $('#submit-chart-filter');
+  if (endDate != undefined && startDate != undefined && new Date(endDate) < new Date(startDate)) {
+    submitButton.addClass('disabled');
+    submitButton.prop('disabled', true);
+    submitButton.prop('title', 'End date must be after start date');
+  } else {
+    submitButton.removeClass('disabled');
+    submitButton.prop('disabled', false);
+    submitButton.prop('title', '');
+  }
+}
