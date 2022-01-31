@@ -1,4 +1,4 @@
-<div class="chart">
+<div class="chart tab-pane active costs-pane" role="tabpanel" id="daily-costs">
   <canvas id="costBreakdownChart"></canvas>
   <script type="text/javascript">
     let costs = <%= raw(@cost_breakdown.to_json) %>;

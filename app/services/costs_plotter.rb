@@ -511,7 +511,7 @@ class CostsPlotter
   def possible_datasets
     datasets = @project.front_end_compute_groups.keys
     datasets ||= []
-    datasets += ["core", "cycle total", "data out", "budget"]
+    datasets += [ "budget", "core", "cycle total", "data out", "other"]
     datasets
   end
 end

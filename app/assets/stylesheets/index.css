@@ -4,10 +4,10 @@ body {
 
 .chart {
   margin-left: 4rem;
-  margin-top: 0.5rem;
-  margin-bottom: 5rem;
+  margin-top: 2rem;
+  margin-bottom: 8rem;
   margin-right: 5rem;
-  height: 50vh;
+  height: 60vh;
 }
 
 #costs-chart-form {
@@ -16,4 +16,21 @@ body {
 
 .charts-form-label {
   margin-left: 0.85rem; 
+}
+
+#cost-chart-nav {
+  margin-left: 4rem;
+  margin-right: 5rem;
+}
+
+.costs-pane {
+  border: 1px;
+  border-color: #dee2e6;
+  border-style: solid;
+  border-top: none;
+  margin-top: 0;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 3rem;
 }
