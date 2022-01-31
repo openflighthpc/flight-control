@@ -207,9 +207,7 @@ class CostsPlotter
   def cost_breakdown(start_date, end_date)
     results = {}
     compute_groups = @project.front_end_compute_groups
-    # start one day earlier, so we can use previous costs
-    # for forecasts, if needed
-    ((start_date - 1.day)..end_date).to_a.each do |date|
+    (start_date..end_date).to_a.each do |date|
       if latest_cost_log_date && date <= latest_cost_log_date
         results[date.to_s] = { data_out: 0.0, core: 0.0, core_storage: 0.0, 
                               total: 0.0, other: 0.0, budget: 0.0,
@@ -249,7 +247,7 @@ class CostsPlotter
     budget_changes = budget_changes(start_date, end_date)
     budget = nil
     total = 0.0
-    previous_costs = results.delete((start_date - 1.day).to_s)
+    previous_costs = latest_previous_costs(start_date)
     results.keys.each do |k|
       break if @project.end_date && Date.parse(k) >= @project.end_date
 
@@ -283,6 +281,24 @@ class CostsPlotter
       end
     end
     results
+  end
+
+  # For forecasts we use the latest amount (except for compute group instance costs)
+  def latest_previous_costs(date)
+    costs = {compute: 0.0, data_out: 0.0, core: 0.0, core_storage: 0.0, total: 0.0, other: 0.0}
+    @project.front_end_compute_groups.keys.each do |group|
+      costs[group.to_sym] = 0.0
+      costs["#{group}_storage".to_sym] = 0.0
+    end
+
+    date =  latest_cost_log_date && date > latest_cost_log_date ? latest_cost_log_date : date - 1.day
+    return costs if !date
+
+    logs = @project.cost_logs.where(date: date.to_s)
+    logs.each do |log|
+      costs[log.scope.to_sym] = log.risk_cost
+    end
+    costs
   end
 
   # Just instance costs
