@@ -191,7 +191,7 @@ class CostsPlotter
           overall << nil
         end
       end
-      budget = budget_changes[k] if budget_changes.has_key?(k)
+      budget = budget_changes[k.to_s] if budget_changes.has_key?(k.to_s)
       budgets << budget
     end
 

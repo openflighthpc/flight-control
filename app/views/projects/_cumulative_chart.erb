@@ -11,10 +11,12 @@
         fill: false,
         cubicInterpolationMode: 'monotone',
         type: 'line',
+        show: <%= !@datasets || @datasets.include?('cycle total') %>
       },
       <%  @cumulative_costs[:actual][:compute_groups].keys.each do |group| %>
         {
-          <% colour = @project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>
+          <% base_group = group.to_s.gsub('_storage', '') %>
+          <% colour = @project.front_end_compute_groups[base_group]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>
           label: "<%= group %>",
           data: cumulative['actual']['compute_groups']['<%= group %>'],
           backgroundColor: '#<%= colour %>',
@@ -22,6 +24,7 @@
           fill: false,
           cubicInterpolationMode: 'monotone',
           type: 'line',
+          show: <%= !@datasets || @datasets.include?(base_group) %>
         },
       <% end %>
       {
@@ -32,6 +35,7 @@
         fill: false,
         cubicInterpolationMode: 'monotone',
         type: 'line',
+        show: <%= !@datasets || @datasets.include?('core') %>
       },
       {
         label: 'core_storage',
@@ -41,6 +45,7 @@
         fill: false,
         cubicInterpolationMode: 'monotone',
         type: 'line',
+        show: <%= !@datasets || @datasets.include?('core') %>
       },
       {
         label: 'data out',
@@ -50,6 +55,7 @@
         fill: false,
         cubicInterpolationMode: 'monotone',
         type: 'line',
+        show: <%= !@datasets || @datasets.include?('data out') %>
       },
       {
         label: 'other',
@@ -59,6 +65,7 @@
         fill: false,
         cubicInterpolationMode: 'monotone',
         type: 'line',
+        show: <%= !@datasets || @datasets.include?('other') %>
       }
     ]
     let forecast_cumulative_data = [
@@ -71,10 +78,12 @@
         cubicInterpolationMode: 'monotone',
         borderDash: [1, 1],
         type: 'line',
+        show: <%= !@datasets || @datasets.include?('cycle total') %>
       },
       <%  @cumulative_costs['forecast'][:compute_groups].keys.each do |group| %>
         {
-          <% colour = @project.front_end_compute_groups[group.to_s.gsub("_storage", "")]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>
+          <% base_group = group.to_s.gsub('_storage', '') %>
+          <% colour = @project.front_end_compute_groups[base_group]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>
           <% colour = lighten_colour(colour) %>
           label: '<%= "forecast #{group}" %>',
           data: cumulative['forecast']['compute_groups']['<%= group %>'],
@@ -84,6 +93,7 @@
           cubicInterpolationMode: 'monotone',
           type: 'line',
           borderDash: [1, 1],
+          show: <%= !@datasets || @datasets.include?(base_group) %>
         },
       <% end %>
       {
@@ -95,6 +105,7 @@
         cubicInterpolationMode: 'monotone',
         type: 'line',
         borderDash: [1, 1],
+        show: <%= !@datasets || @datasets.include?('core') %>
       },
       {
         label: 'forecast core storage',
@@ -105,6 +116,7 @@
         cubicInterpolationMode: 'monotone',
         type: 'line',
         borderDash: [1, 1],
+        show: <%= !@datasets || @datasets.include?('core') %>
       },
       {
         label: 'forecast data out',
@@ -115,6 +127,7 @@
         cubicInterpolationMode: 'monotone',
         type: 'line',
         borderDash: [1, 1],
+        show: <%= !@datasets || @datasets.include?('data out') %>
       },
       {
         label: 'forecast other',
@@ -125,6 +138,7 @@
         cubicInterpolationMode: 'monotone',
         type: 'line',
         borderDash: [1, 1],
+        show: <%= !@datasets || @datasets.include?('other') %>
       },
     ]
     ctx = document.getElementById('cumulativeChart').getContext('2d');
@@ -142,6 +156,7 @@
             fill: false,
             cubicInterpolationMode: 'monotone',
             type: 'line',
+            show: <%= !@datasets || @datasets.include?('budget') %>
           },
         <% if @cost_breakdown[:actual][:any] %>
           actual_cumulative_data,
@@ -190,6 +205,7 @@
         },
       }
     });
-    costs_chart.update();
+    filterDatasets();
+    cumulative_chart.update();
   </script>
 </div>
