@@ -26,6 +26,14 @@ class ProjectsController < ApplicationController
     @cumulative_costs = cost_plotter.chart_cumulative_costs(@start_date, @end_date)
     @possible_datasets = cost_plotter.possible_datasets
     @datasets = params['datasets']
-    @current_nodes = @project.latest_instances
+    @current_instances = @project.latest_instances
+    filter_current_instances if @datasets
+  end
+
+  # Only include filtered groups, or all if none selected
+  def filter_current_instances
+    original = @current_instances.clone
+    @current_instances.select! { |group, instances| @datasets.include?(group) }
+    @current_instances = original if @current_instances.empty?
   end
 end

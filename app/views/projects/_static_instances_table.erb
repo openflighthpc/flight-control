@@ -15,7 +15,7 @@
       <tbody class="border">
         <% total_compute_cost = 0 %>
         <% first_group = true %>
-        <% @current_nodes.each do |group, instances| %>
+        <% @current_instances.each do |group, instances| %>
           <tr <%= "class='border-top'" if !first_group %>>
             <% first_group = false %>
             <td><%= group %></td>

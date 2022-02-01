@@ -47,3 +47,7 @@ body {
 th {
   border-color: #dee2e6 !important;
 }
+
+td {
+  border-top: none !important;
+}
