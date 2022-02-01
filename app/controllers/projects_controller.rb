@@ -26,5 +26,6 @@ class ProjectsController < ApplicationController
     @cumulative_costs = cost_plotter.chart_cumulative_costs(@start_date, @end_date)
     @possible_datasets = cost_plotter.possible_datasets
     @datasets = params['datasets']
+    @current_nodes = @project.latest_instances
   end
 end

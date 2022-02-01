@@ -186,7 +186,7 @@ class Instance
 
   def details_description
     if @details[:cpu]
-      "Mem: #{mem}GiB, CPUs: #{cpus}, GPUs: #{gpus}, Weighted Priority: #{weighted_priority}"
+      "Mem: #{mem}GiB, CPUs: #{cpus}, GPUs: #{gpus}"
     else
       "Unknown - please generate new instance details files"
     end

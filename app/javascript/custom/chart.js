@@ -59,6 +59,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
   if($('#cost-chart-filter').length > 0) {
     $('.cost-chart-date').on('input', validateCostChartDates);
   }
+  $('.instance-tooltip').tooltip();
 });
 
 window.validateCostChartDates = function() {
