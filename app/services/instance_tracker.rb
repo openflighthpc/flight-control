@@ -19,9 +19,9 @@ class InstanceTracker
         group_logs = logs.where(compute_group: node_group)
         instance_mappings.each do |mapping|
           instance = Instance.new(mapping.instance_type, region, node_group, @project.platform, @project)
+          puts instance
           if instance.node_limit > 0 && instance.present_in_region?
             group_logs.where(instance_type: mapping.instance_type).each do |log|
-              puts "here"
               instance.increase_count(ON_STATUSES.include?(log.status) ? :on : :off)
             end
             instances << instance

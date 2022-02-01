@@ -31,5 +31,9 @@
       <%= render '/projects/cumulative_chart' %>
     </div>
     <%= render '/projects/static_instances_table' %>
+    <div id="latest-change"
+         data-value="<%= @project.time_of_latest_change.to_s %>"
+         data-project="<%= @project.name %>">
+    </div>
   </main>
 </div>

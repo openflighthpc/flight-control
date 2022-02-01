@@ -3,21 +3,23 @@ class ProjectsController < ApplicationController
     get_costs_data
   end
 
-  def cost_data
-    get_costs_data
-    render json: { breakdown: @cost_breakdown, cumulative: @cumulative_costs }
+  def data_check
+    @project = Project.find_by_name(params['project'])
+    @project ||= Project.first
+    timestamp = Time.parse(params['timestamp'])
+    render json: {changed: @project.data_changed?(timestamp)}
   end
 
   def get_costs_data
     @project = Project.find_by_name(params['project'])
     @project ||= Project.first
     cost_plotter = CostsPlotter.new(@project)
-    if params['start_date']
+    if params['start_date'] && params['start_date'] != ""
       @start_date = Date.parse(params['start_date'])
     else
       @start_date = cost_plotter.start_of_billing_interval(Date.today)
     end
-    if params['end_date']
+    if params['end_date'] && params['end_date'] != ""
       @end_date = Date.parse(params['end_date'])
     else
       @end_date = cost_plotter.end_of_billing_interval(@start_date)

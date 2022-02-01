@@ -95,6 +95,24 @@ class Project < ApplicationRecord
     ProjectConfigCreator.new(self).create_config_file(overwrite)
   end
 
+  def time_of_latest_change
+    latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.any?
+    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.any?
+    if latest_cost_data || latest_instance_data
+      latest = [latest_cost_data, latest_instance_data].compact.max
+    else
+      latest = Date.today.to_time
+    end
+    latest
+  end
+
+  # Timestamps are stored in db with more precision than can be easily represented,
+  # so a parsed string will not necessarily equal the same time (as we see it) in the db.
+  # To get around this we case the Times to ints to remove some of the precision.
+  def data_changed?(timestamp)
+    time_of_latest_change.to_i > timestamp.to_i
+  end
+
   def record_instance_logs(rerun=false, verbose=false)
     # can't record instance logs if resource group deleted
     if archived

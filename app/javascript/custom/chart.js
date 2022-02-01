@@ -1,3 +1,11 @@
+window.addEventListener('DOMContentLoaded', (event) => {
+  if($('#cost-chart-filter').length > 0) {
+    $('.cost-chart-date').on('input', validateCostChartDates);
+  }
+  $('.instance-tooltip').tooltip();
+  setTimeout(checkForNewData, 30000);
+});
+
 // to give the illusion that actual & forecast datasets are one and the same
 window.hideRelatedDatasetOnClick = function(e, legendItem, legend) {
   let charts = {"cumulativeChart": "cumulative_chart", "simpleChart": "simple_chart", "costBreakdownChart": "costs_chart"};
@@ -55,13 +63,6 @@ window.filterDatasets = function(chart) {
   });
 }
 
-window.addEventListener('DOMContentLoaded', (event) => {
-  if($('#cost-chart-filter').length > 0) {
-    $('.cost-chart-date').on('input', validateCostChartDates);
-  }
-  $('.instance-tooltip').tooltip();
-});
-
 window.validateCostChartDates = function() {
   let endDate = $('#end-date').val();
   let startDate = $('#start-date').val();
@@ -75,4 +76,33 @@ window.validateCostChartDates = function() {
     submitButton.prop('disabled', false);
     submitButton.prop('title', '');
   }
+}
+
+window.checkForNewData = function() {
+  let xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      let response = JSON.parse(this.responseText);
+      if (response.changed === true) {
+        requestRefresh();
+      } else {
+        setTimeout(checkForNewData, 30000);
+      }
+    }
+  };
+  xhttp.onerror = function() {
+    alert("Unable to connect to server. Please check your connection and that the application is still running.");
+  };
+
+  let changeEl = $('#latest-change');
+  let projectName = changeEl.data('project');
+  let projectParam = `?project=${projectName}&`;
+  let latestChange = changeEl.data('value');
+  xhttp.open("GET", `/json/data-check${projectParam}timestamp=${latestChange}`, true);
+  xhttp.send();
+}
+
+window.requestRefresh = function() {
+  alert("Project data has been updated. The page will be refreshed to show the latest information.");
+  window.location.reload();
 }

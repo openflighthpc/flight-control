@@ -4,6 +4,6 @@ Rails.application.routes.draw do
   root to: 'projects#costs_breakdown'
 
   # Projects
-  get '/costs_breakdown', to: 'projects#costs_breakdown'
-  get '/json/cost-data', to: 'projects#cost_data'
+  get '/costs-breakdown', to: 'projects#costs_breakdown'
+  get '/json/data-check', to: 'projects#data_check'
 end
