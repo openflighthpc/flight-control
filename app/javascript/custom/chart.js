@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', (event) => {
+  addOverBudgetLines();
   if($('#cost-chart-filter').length > 0) {
     $('.cost-chart-date').on('input', validateCostChartDates);
   }
@@ -105,4 +106,109 @@ window.checkForNewData = function() {
 window.requestRefresh = function() {
   alert("Project data has been updated. The page will be refreshed to show the latest information.");
   window.location.reload();
+}
+
+window.addOverBudgetLines = function(){
+  const verticalLinePlugin = {
+    renderVerticalLine: function (chartInstance, pointIndex) {
+      let meta = null;
+      if(typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
+        meta = chartInstance.getDatasetMeta(0);
+      } else {
+        let index = null;
+        let forecastBudgetDataset = null;
+        let datasets = chartInstance.data.datasets;
+        for (let i = 0; i < datasets.length; i++) {
+          if(datasets[i].label === "forecast remaining budget") {
+            index = i;
+            forecastBudgetDataset = datasets[i];
+            break
+          }
+        }
+
+        if (forecastBudgetDataset != null && forecastBudgetDataset.data[pointIndex] != null) {
+          meta = chartInstance.getDatasetMeta(index);
+        } else {
+          let budgetDataset = null;
+          for (let i = 0; i < datasets.length; i++) {
+            if(datasets[i].label === "remaining budget") {
+              index = i;
+              budgetDataset = datasets[i];
+              break
+            }
+          }
+          meta = chartInstance.getDatasetMeta(index);
+        }
+      }
+      const lineLeftOffset = meta.data[pointIndex]._model.x
+      const scale = chartInstance.scales['y-axis-0'];
+      const context = chartInstance.chart.ctx;
+
+      context.beginPath();
+      context.strokeStyle = '#ff0000';
+      context.moveTo(lineLeftOffset, scale.top);
+      context.lineTo(lineLeftOffset, scale.bottom);
+      context.stroke();
+
+      context.fillStyle = "#ff0000";
+      let position = 'center';
+      if (pointIndex < 2) position = 'left';
+      if (pointIndex > chartInstance.data.labels.length - 3) position = 'right';
+      context.textAlign = position;
+      context.fillText('    Over budget ', lineLeftOffset, (scale.bottom - scale.top)/10 + scale.top);
+    },
+
+    afterDatasetsDraw: function (chart, easing) {
+      let indexes = overBudgetDateIndexes();
+      for (let i = 0; i < indexes.length; i++) {
+        this.renderVerticalLine(chart, indexes[i]);
+      }
+    }
+  };
+
+  Chart.plugins.register(verticalLinePlugin);
+}
+
+window.overBudgetDateIndexes = function(){
+  let indexes = [];
+  if (typeof costs_chart != 'undefined') {
+    let budgetDataset = costs_chart.data.datasets.find((dataset) => dataset.label === "remaining budget");
+    let forecastBudgetDataset = costs_chart.data.datasets.find((dataset) => dataset.label === "forecast remaining budget");
+    // We want to show each time it goes over budget (crosses down 0),
+    // but not each day it's already over.
+    let firstOver = true;
+
+    if (budgetDataset != null) {
+      let data = budgetDataset.data;
+      for (let i = 0; i < data.length; i++) {
+        if (data[i] != null) {
+          if (data[i] < 0) {
+            if (firstOver === true) {
+              firstOver = false;
+              indexes.push(i);
+            }
+          } else {
+            firstOver = true;
+          }
+        }
+      }
+    }
+
+    if (forecastBudgetDataset != null) {
+      let data = forecastBudgetDataset.data;
+      for (let i = 0; i < data.length; i++) {
+        if (data[i] != null) {
+          if (data[i] < 0) {
+            if (firstOver === true) {
+              firstOver = false;
+              indexes.push(i);
+            }
+          } else {
+            firstOver = true;
+          }
+        }
+      }
+    }
+  }
+  return indexes;
 }
