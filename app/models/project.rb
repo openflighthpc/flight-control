@@ -28,10 +28,15 @@ class Project < ApplicationRecord
       message: "%{value} is not a valid platform"
     }
   after_save :update_end_balance
-  scope :active, -> { where(archived: false) }
+  scope :active, -> { where("archived_date IS NULL OR archived_date <= ?", Date.today) }
 
   def self.slack_token
     @@slack_token ||= Rails.application.config.slack_token
+  end
+
+  def archived?
+    # use !! so returns false instead nil, which confuses table print
+    !!(archived_date && archived_date <= Date.today)
   end
 
   def latest_instance_logs
@@ -115,7 +120,7 @@ class Project < ApplicationRecord
 
   def record_instance_logs(rerun=false, verbose=false)
     # can't record instance logs if resource group deleted
-    if archived
+    if archived?
       return "Logs not recorded, project is archived"
     end
     
