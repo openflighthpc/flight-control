@@ -29,7 +29,7 @@ class CostsPlotter
     end
     first_forecast = true
     cost_entries.each do |k, v|
-      break if @project.end_date && Date.parse(k) >= @project.end_date
+      break if @project.archived_date && Date.parse(k) >= @project.archived_date
 
       if v.has_key?(:compute)
         compute << v[:compute]
@@ -114,7 +114,7 @@ class CostsPlotter
     first_forecast = true
     cost_entries.each do |k, v|
       k = Date.parse(k)
-      break if @project.end_date && k >= @project.end_date
+      break if @project.archived_date && k >= @project.archived_date
 
       if k < @project.start_date
         main_datasets.each { |dataset| dataset << nil }
@@ -219,7 +219,7 @@ class CostsPlotter
           results[date.to_s][group.to_sym] = 0.0
           results[date.to_s]["#{group}_storage".to_sym] = 0.0
         end
-      elsif @project.end_date && date >= @project.end_date || date < @project.start_date
+      elsif @project.archived_date && date >= @project.archived_date || date < @project.start_date
         results[date.to_s] = {forecast_compute: nil, forecast_core: nil, forecast_data_out: nil,
                               forecast_core_storage: nil, forecast_total: nil,
                               forecast_other: nil, forecast_budget: nil}
@@ -252,7 +252,7 @@ class CostsPlotter
     total = 0.0
     previous_costs = latest_previous_costs(start_date)
     results.keys.each do |k|
-      break if @project.end_date && Date.parse(k) >= @project.end_date
+      break if @project.archived_date && Date.parse(k) >= @project.archived_date
 
       if budget_changes.has_key?(k)
         budget = budget_changes[k]
@@ -377,7 +377,7 @@ class CostsPlotter
     policy_dates.each do |date|
       changes[date.to_s] = budget_on_date(date, for_cumulative_chart)
     end
-    changes[@project.end_date.to_s] = 0.0 if @project.end_date && @project.end_date <= end_date
+    changes[@project.archived_date.to_s] = 0.0 if @project.archived_date && @project.archived_date <= end_date
     changes
   end
 
@@ -405,7 +405,7 @@ class CostsPlotter
 
   # The total amount, not including any spend so far
   def balance_amount(date)
-    return 0.0 if @project.end_date && date >= @project.end_date
+    return 0.0 if @project.archived_date && date >= @project.archived_date
 
     balance = @project.balances.where("effective_at <= ?", date).last
     balance ? balance.amount : 0.0
@@ -470,10 +470,10 @@ class CostsPlotter
       end
 
       active_cycles = []
-      if @project.end_date
-        end_cycle = start_of_billing_interval(@project.end_date - 1.day)
+      if @project.archived_date
+        end_cycle = start_of_billing_interval(@project.archived_date - 1.day)
       else
-        end_cycle = end_of_billing_interval(Date.today) + 1.day
+        end_cycle = end_of_billing_interval(Date.today + 1.year) + 1.day
       end
 
       while (cycle <= end_cycle)
