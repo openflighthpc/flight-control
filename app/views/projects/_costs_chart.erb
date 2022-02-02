@@ -117,6 +117,7 @@
       type: 'bar',
       data: {
         labels: costs.dates,
+        cycle_ends: <%= raw(@cycle_ends.to_json) %>,
         datasets: [
         <% if @cost_breakdown[:actual][:any] %>
           actual_breakdown_data,

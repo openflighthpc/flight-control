@@ -1,5 +1,6 @@
 window.addEventListener('DOMContentLoaded', (event) => {
   addOverBudgetLines();
+  addCycleLines();
   if($('#cost-chart-filter').length > 0) {
     $('.cost-chart-date').on('input', validateCostChartDates);
   }
@@ -160,6 +161,67 @@ window.addOverBudgetLines = function(){
 
     afterDatasetsDraw: function (chart, easing) {
       let indexes = overBudgetDateIndexes();
+      for (let i = 0; i < indexes.length; i++) {
+        this.renderVerticalLine(chart, indexes[i]);
+      }
+    }
+  };
+
+  Chart.plugins.register(verticalLinePlugin);
+}
+
+window.addCycleLines = function(){
+  const verticalLinePlugin = {
+    renderVerticalLine: function (chartInstance, pointIndex) {
+      let meta = null;
+      if(typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
+        meta = chartInstance.getDatasetMeta(0);
+      } else {
+        let index = null;
+        let forecastBudgetDataset = null;
+        let datasets = chartInstance.data.datasets;
+        for (let i = 0; i < datasets.length; i++) {
+          if(datasets[i].label === "forecast remaining budget") {
+            index = i;
+            forecastBudgetDataset = datasets[i];
+            break
+          }
+        }
+
+        if (forecastBudgetDataset != null && forecastBudgetDataset.data[pointIndex] != null) {
+          meta = chartInstance.getDatasetMeta(index);
+        } else {
+          let budgetDataset = null;
+          for (let i = 0; i < datasets.length; i++) {
+            if(datasets[i].label === "remaining budget") {
+              index = i;
+              budgetDataset = datasets[i];
+              break
+            }
+          }
+          meta = chartInstance.getDatasetMeta(index);
+        }
+      }
+      const lineLeftOffset = meta.data[pointIndex]._model.x
+      const scale = chartInstance.scales['y-axis-0'];
+      const context = chartInstance.chart.ctx;
+
+      context.beginPath();
+      context.strokeStyle = '#2a4b70';
+      context.moveTo(lineLeftOffset, scale.top);
+      context.lineTo(lineLeftOffset, scale.bottom);
+      context.stroke();
+
+      context.fillStyle = "#2a4b70";
+      let position = 'center';
+      if (pointIndex < 2) position = 'left';
+      if (pointIndex > chartInstance.data.labels.length - 3) position = 'right';
+      context.textAlign = position;
+      context.fillText('    Cycle end ', lineLeftOffset, (scale.bottom - scale.top)/10 + scale.top);
+    },
+
+    afterDatasetsDraw: function (chart, easing) {
+      let indexes = chart.data.cycle_ends;
       for (let i = 0; i < indexes.length; i++) {
         this.renderVerticalLine(chart, indexes[i]);
       }

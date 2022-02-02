@@ -30,6 +30,7 @@ class ProjectsController < ApplicationController
     @datasets = params['datasets']
     @current_instances = @project.latest_instances
     filter_current_instances if @datasets
+    @cycle_ends = cost_plotter.cycle_ends(@start_date, @end_date)
   end
 
   # Only include filtered groups, or all if none selected

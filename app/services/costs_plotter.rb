@@ -110,8 +110,6 @@ class CostsPlotter
     other_total = 0.0
     overall_total = 0.0
     budget_changes = budget_changes(start_of_cycle, end_date, true)
-    puts "goats"
-    puts budget_changes
     budget = nil
     first_forecast = true
     cost_entries.each do |k, v|
@@ -433,6 +431,16 @@ class CostsPlotter
 
   def latest_cost_log_date
     @latest_cost_log_date ||= @project.cost_logs.last&.date
+  end
+
+  def cycle_ends(start_date, end_date)
+    ends = []
+    (start_date..(end_date + 1.day)).to_a.each_with_index do |date, index|
+      if active_billing_cycles.include?(date) && index > 1 && date != active_billing_cycles.first
+        ends << index - 1
+      end
+    end
+    ends
   end
 
   def cycle_number(date)
