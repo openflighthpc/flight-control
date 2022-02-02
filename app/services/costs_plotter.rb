@@ -74,7 +74,8 @@ class CostsPlotter
   end
 
   def chart_cumulative_costs(start_date, end_date)
-    cost_entries = cost_breakdown(start_of_billing_interval(start_date), end_date)
+    start_of_cycle = start_of_billing_interval(start_date)
+    cost_entries = cost_breakdown(start_of_cycle, end_date)
     dates = (start_date..end_date).map { |date| date.to_s }
     compute = []
     data_out = []
@@ -108,7 +109,9 @@ class CostsPlotter
     core_storage_total = 0.0
     other_total = 0.0
     overall_total = 0.0
-    budget_changes = budget_changes(start_date, end_date, true)
+    budget_changes = budget_changes(start_of_cycle, end_date, true)
+    puts "goats"
+    puts budget_changes
     budget = nil
     first_forecast = true
     cost_entries.each do |k, v|
@@ -192,7 +195,9 @@ class CostsPlotter
         end
       end
       budget = budget_changes[k.to_s] if budget_changes.has_key?(k.to_s)
-      budgets << budget
+      if k >= start_date        
+        budgets << budget
+      end
     end
 
     results = {'dates': dates, 'actual': {'any': overall.compact.length > 0,'compute': compute, 'compute_groups': compute_group_details[:actual],
