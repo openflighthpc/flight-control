@@ -1,6 +1,6 @@
 window.addEventListener('DOMContentLoaded', (event) => {
   addOverBudgetLines();
-  addCycleLines();
+  addEndLines();
   if($('#cost-chart-filter').length > 0) {
     $('.cost-chart-date').on('input', validateCostChartDates);
   }
@@ -170,9 +170,11 @@ window.addOverBudgetLines = function(){
   Chart.plugins.register(verticalLinePlugin);
 }
 
-window.addCycleLines = function(){
+// Cycle and project ends
+window.addEndLines = function(){
   const verticalLinePlugin = {
-    renderVerticalLine: function (chartInstance, pointIndex) {
+    renderVerticalLine: function (chartInstance, end_details) {
+      const pointIndex = end_details.index
       let meta = null;
       if(typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
         meta = chartInstance.getDatasetMeta(0);
@@ -217,13 +219,13 @@ window.addCycleLines = function(){
       if (pointIndex < 2) position = 'left';
       if (pointIndex > chartInstance.data.labels.length - 3) position = 'right';
       context.textAlign = position;
-      context.fillText('    Cycle end ', lineLeftOffset, (scale.bottom - scale.top)/10 + scale.top);
+      context.fillText(`    ${end_details.type} `, lineLeftOffset, (scale.bottom - scale.top)/2 + scale.top);
     },
 
     afterDatasetsDraw: function (chart, easing) {
-      let indexes = chart.data.cycle_ends;
-      for (let i = 0; i < indexes.length; i++) {
-        this.renderVerticalLine(chart, indexes[i]);
+      let cycle_ends = chart.data.cycle_ends;
+      for (let i = 0; i < cycle_ends.length; i++) {
+        this.renderVerticalLine(chart, cycle_ends[i]);
       }
     }
   };

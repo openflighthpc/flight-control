@@ -436,8 +436,9 @@ class CostsPlotter
   def cycle_ends(start_date, end_date)
     ends = []
     (start_date..(end_date + 1.day)).to_a.each_with_index do |date, index|
-      if active_billing_cycles.include?(date) && index > 1 && date != active_billing_cycles.first
-        ends << index - 1
+      if (active_billing_cycles.include?(date) || date == @project.end_date) &&
+          index > 0 && date != active_billing_cycles.first
+        ends << { index: index - 1, type: (date == @project.end_date ? "Project end" : "Cycle end") }
       end
     end
     ends
