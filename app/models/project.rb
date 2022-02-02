@@ -28,7 +28,7 @@ class Project < ApplicationRecord
       message: "%{value} is not a valid platform"
     }
   after_save :update_end_balance
-  scope :active, -> { where("archived_date IS NULL OR archived_date <= ?", Date.today) }
+  scope :active, -> { where("archived_date IS NULL OR archived_date > ?", Date.today) }
 
   def self.slack_token
     @@slack_token ||= Rails.application.config.slack_token
