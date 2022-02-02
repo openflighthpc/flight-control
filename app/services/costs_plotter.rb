@@ -192,8 +192,14 @@ class CostsPlotter
           overall << nil
         end
       end
-      budget = budget_changes[k.to_s] if budget_changes.has_key?(k.to_s)
-      if k >= start_date        
+
+      if @project.end_date && k >= @project.end_date
+        budget = 0.0
+      elsif budget_changes.has_key?(k.to_s)
+        budget = budget_changes[k.to_s]
+      end
+
+      if k >= start_date      
         budgets << budget
       end
     end
@@ -294,12 +300,14 @@ class CostsPlotter
       costs["#{group}_storage".to_sym] = 0.0
     end
 
-    date =  latest_cost_log_date && date > latest_cost_log_date ? latest_cost_log_date : date - 1.day
+    date = latest_cost_log_date && date > latest_cost_log_date ? latest_cost_log_date : date - 1.day
     return costs if !date
 
     logs = @project.cost_logs.where(date: date.to_s)
     logs.each do |log|
-      costs[log.scope.to_sym] = log.risk_cost
+      cost = log.risk_cost
+      costs[log.scope.to_sym] = cost
+      costs[:compute] += cost if log.compute
     end
     costs
   end
@@ -371,18 +379,27 @@ class CostsPlotter
   # and when a cycle end/starts (unless continuous).
   def budget_changes(start_date, end_date, for_cumulative_chart=false)
     # Assume policies only change at the start of a billing cycle
-    policy_dates = (start_date..end_date).to_a & active_billing_cycles
-    policy_dates = [start_date] | policy_dates
+    budget_dates = (start_date..end_date).to_a & active_billing_cycles
+    budget_dates = [start_date] | budget_dates
     changes = {}
-    policy_dates.each do |date|
+    budget_dates.each do |date|
+      break if @project.end_date && date >= @project.end_date && date != start_date
       changes[date.to_s] = budget_on_date(date, for_cumulative_chart)
     end
-    changes[@project.archived_date.to_s] = 0.0 if @project.archived_date && @project.archived_date <= end_date
+    changes[@project.end_date.to_s] = 0.0 if @project.end_date && @project.end_date <= end_date
     changes
   end
 
   def budget_on_date(date, for_cumulative_chart=false)
     amount = 0.0
+    if @project.end_date && date >= @project.end_date
+      if date == @project_end_date
+        return amount
+      else
+        return amount - costs_between_dates(@project.end_date, date)
+      end
+    end
+
     policy = @project.budget_policies.where("effective_at <= ?", date).last
     return amount if !policy
 
@@ -420,7 +437,7 @@ class CostsPlotter
     costs = logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
     latest_actual = latest_cost_log_date ? latest_cost_log_date + 1.day : @project.start_date
     if end_date > latest_actual
-      (latest_actual...end_date).to_a.each do |date|
+      (([start_date, latest_actual].max)...end_date).to_a.each do |date|
         costs += forecast_compute_cost(date)
         costs += latest_compute_storage_costs
         costs += latest_non_compute_costs
