@@ -48,10 +48,10 @@ class CostsPlotter
         compute_group_details[:forecast].keys.each {|group| compute_group_details[:forecast][group] << nil}
       else
         # to connect actual and forecast budget lines
-        if first_forecast && forecast_remaining_budget.length > 0 && compute.any? &&
+        if first_forecast && forecast_remaining_budget.length > 0 && remaining_budget.any? &&
           v[:forecast_budget] && Date.parse(k) > @project.start_date
           first_forecast = false
-          forecast_remaining_budget[-1] = v[:forecast_budget] + v[:forecast_total]
+          forecast_remaining_budget[-1] = remaining_budget[-1]
         end
         forecast_compute << v[:forecast_compute]
         forecast_data_out << v[:forecast_data_out]
@@ -122,17 +122,18 @@ class CostsPlotter
         compute_group_details[:forecast].keys.each { |group| compute_group_details[:forecast][group] << nil }
         next
       end
-      # Reset totals to zero at start of each cycle
-      if active_billing_cycles.include?(k)
-        compute_total = 0.0
-        core_total = 0.0
-        data_out_total = 0.0
-        core_storage_total = 0.0
-        other_total = 0.0
-        overall_total = 0.0
-        compute_group_totals.keys.each { |key| compute_group_totals[key] = 0.0 }
-      end
       if v.has_key?(:compute)
+        # Reset totals to zero at start of each cycle
+        if active_billing_cycles.include?(k)
+          compute_total = 0.0
+          core_total = 0.0
+          data_out_total = 0.0
+          core_storage_total = 0.0
+          other_total = 0.0
+          overall_total = 0.0
+          compute_group_totals.keys.each { |key| compute_group_totals[key] = 0.0 }
+        end
+
         compute_total += v[:compute]
         compute_group_totals.keys.each { |group| compute_group_totals[group] += v[group.to_sym] }
         core_total += v[:core]
@@ -167,6 +168,18 @@ class CostsPlotter
           forecast_core[-1] = core_total
           compute_group_details[:forecast].keys.each {|group| compute_group_details[:forecast][group][-1] = compute_group_totals[group]}
         end
+
+        # Reset totals to zero at start of each cycle
+        if active_billing_cycles.include?(k)
+          compute_total = 0.0
+          core_total = 0.0
+          data_out_total = 0.0
+          core_storage_total = 0.0
+          other_total = 0.0
+          overall_total = 0.0
+          compute_group_totals.keys.each { |key| compute_group_totals[key] = 0.0 }
+        end
+
         compute_total += v[:forecast_compute]
         compute_group_totals.keys.each {|group| compute_group_totals[group] += v["forecast_#{group}".to_sym]}
         core_total += v[:forecast_core]
