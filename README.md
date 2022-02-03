@@ -101,13 +101,13 @@ Tags are available in the Azure instances API after a few minutes, but will only
 
 ### Slack
 
-The application includes the option to send results to slack, specifying a specific channel for each project. To use this function, a slack bot (https://slack.com/apps/A0F7YS25R-bots) must be created. The bot's API Token should then be used to set the value of `slack_token` in the application's credentials (using `EDITOR=vim rails credentials:edit`.
+The application includes the option to send results to slack, specifying a specific channel for each project. To use this function, a slack bot (https://slack.com/apps/A0F7YS25R-bots) must be created. The bot's API Token should then be used to set the value of `slack_token` in the application's credentials (using `EDITOR=vim rails credentials:edit`).
 
 This bot must be invited to each project's chosen slack channel.
 
 ### Adding and updating projects
 
-A `Project` must be created for each project you wish to track. These can be created by running `rake projects:manage` and following the prompts in the command line. This task can also be used to update existing projects. Projects should not be deleted, but instead `archived` set to `true` to mark them as inactive.
+A `Project` must be created for each project you wish to track. These can be created by running `rake projects:manage` and following the prompts in the command line. This task can also be used to update existing projects. Projects should not be deleted, but instead set the `archived_date` to mark them as inactive.
 
 Project names must start with a letter, only include lower or uppercase letters, numbers, dashes or underscores, and must end in a letter or number.
 
@@ -228,4 +228,24 @@ Rake tasks such as generating daily reports, recording instance logs and recordi
 
 ## Visualiser
 
+### Costs Breakdown
 
+#### Selected Project
+
+By default this page shows data for the first active project. This can be changed by adding the url parameter `project=projectname`. This logic will change once users and login has been implemented.
+
+#### Costs Charts
+
+This page shows historic and estimated future costs, based on cost logs and instance logs. These can be viewed in either a daily breakdown or cumulative chart, which can be moved between by selecting the relevant tab.
+
+By default these charts will show the current billing cycle, but the date range can be altered using the form at the top of the page. The last day of a cycle or the project as a whole are shown on the charts. Costs continue to be shown until the project's `archived_date`.
+
+Datasets's visibility can be toggled on the charts by selected them in the chart's legend. They can also be filtered using the form at the top of the page. If a compute group or core is selected, the corresponding storage dataset will also be shown (e.g. selecting 'group1' will show both 'group1' and 'group1 storage').
+
+#### Current States
+
+At the bottom of the page the project's current compute groups and instance counts are displayed, with a summary of the resulting daily costs. If any filtering for compute groups is in place, only those compute groups will be included.
+
+#### New Data Alert and Refresh
+
+If new costs are recorded or instance counts change, this page will show an alert that when accepted refreshes the page, so this latest data can be shown. The application checks for new data every 30 seconds.
