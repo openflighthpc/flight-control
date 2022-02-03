@@ -1,4 +1,4 @@
-2022-02-02 16:36:12 +0000
+2022-02-03 16:36:12 +0000
 {"instance_type":"Standard_B1ls","instance_family":"standardBSFamily","location":"centralus","cpu":1,"gpu":0,"mem":0.5}
 {"instance_type":"Standard_B1ls","instance_family":"standardBSFamily","location":"uksouth","cpu":1,"gpu":0,"mem":0.5}
 {"instance_type":"Standard_B1ls","instance_family":"standardBSFamily","location":"westeurope","cpu":1,"gpu":0,"mem":0.5}

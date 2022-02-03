@@ -236,7 +236,11 @@ By default this page shows data for the first active project. This can be change
 
 #### Costs Charts
 
-This page shows historic and estimated future costs, based on cost logs and instance logs. These can be viewed in either a daily breakdown or cumulative chart, which can be moved between by selecting the relevant tab.
+This page shows historic and estimated future costs in at risk compute units, based on cost logs and instance logs. These can be viewed in either a daily breakdown or cumulative chart, which can be moved between by selecting the relevant tab.
+
+Compute forecasts for today and future days are based upon the current instance counts. For forecast days in the past (i.e. days between the last actual costs recorded and today) compute costs are estimated based on the instance counts on those days.
+
+Non compute costs are based on the most recent recorded costs for that scope. For example, if core costs were last recorded as 10 compute units, all forecast days will estimate core costs to also be 10 compute units.
 
 By default these charts will show the current billing cycle, but the date range can be altered using the form at the top of the page. The last day of a cycle or the project as a whole are shown on the charts. Costs continue to be shown until the project's `archived_date`.
 
@@ -244,7 +248,9 @@ Datasets's visibility can be toggled on the charts by selected them in the chart
 
 #### Current States
 
-At the bottom of the page the project's current compute groups and instance counts are displayed, with a summary of the resulting daily costs. If any filtering for compute groups is in place, only those compute groups will be included.
+At the bottom of the page the project's current compute groups and instance counts are displayed, with a summary of the resulting estimated daily costs. If any filtering for compute groups is in place, only those compute groups will be included.
+
+These groups and types shown in this table are determined by the project's config file. If this is not up to date this may not show the full/ correct details.
 
 #### New Data Alert and Refresh
 
