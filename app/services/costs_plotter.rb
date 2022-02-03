@@ -415,7 +415,12 @@ class CostsPlotter
     when "continuous"
       amount = balance_amount(date) - costs_so_far(date)
     when "dynamic"
-      amount = ((balance_amount(date) - costs_so_far(date)) / remaining_cycles(date)).floor
+      remaining = remaining_cycles(date)
+      if remaining < 1
+        amount = 0
+      else
+        amount = ((balance_amount(date) - costs_so_far(date)) / remaining).floor
+      end
     end
     amount
   end
@@ -477,7 +482,7 @@ class CostsPlotter
   def remaining_cycles(date)
     cycles = active_billing_cycles
     cycles = cycles.select { |cycle| cycle < @project.end_date} if @project.end_date
-    cycles.count - cycle_number(date)
+    cycles.count - cycle_number(date) + 1
   end
 
   def active_billing_cycles
