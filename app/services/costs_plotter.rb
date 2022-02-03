@@ -468,6 +468,43 @@ class CostsPlotter
     @latest_cost_log_date ||= @project.cost_logs.last&.date
   end
 
+  def estimated_end_of_balance
+    balance = @project.balances.where("amount > ?", 0).last
+    balance = balance ? balance.amount : 0.0
+    date_grouped = @project.cost_logs.group_by { |log| log.date }
+    balance_end_date = @project.start_date
+    date_grouped.each do |date, logs|
+      balance -= logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
+      balance_end_date = date
+      break if balance <= 0
+    end
+
+    if balance > 0 && (!@project.archived_date || balance_end_date <= @project.archived_date)
+      # Need to set a final date to avoid possibility of infinite/ very long loop if costs
+      # are zero/ very low
+      final_check_date = @project.archived_date ? @project.archived_date : Date.today + 1.year
+      while(balance > 0 && balance_end_date < final_check_date)
+        balance_end_date += 1.day
+        balance -= forecast_compute_cost(balance_end_date)
+        balance -= latest_compute_storage_costs
+        balance -= latest_non_compute_costs
+        puts balance_end_date
+        puts balance
+      end
+      balance_end_date = nil if balance_end_date >= final_check_date
+    end
+    balance_end_date
+  end
+
+  def estimated_balance_end_in_cycle(start_date, end_date)
+    cycle_index = nil
+    estimated_end = estimated_end_of_balance
+    if estimated_end && estimated_end >= start_date && estimated_end <= end_date
+      cycle_index = (start_date..end_date).to_a.index(estimated_end)
+    end
+    cycle_index
+  end
+
   def cycle_ends(start_date, end_date)
     ends = []
     (start_date..(end_date + 1.day)).to_a.each_with_index do |date, index|

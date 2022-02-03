@@ -31,6 +31,7 @@ class ProjectsController < ApplicationController
     @current_instances = @project.latest_instances
     filter_current_instances if @datasets
     @cycle_ends = cost_plotter.cycle_ends(@start_date, @end_date)
+    @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date)
   end
 
   # Only include filtered groups, or all if none selected

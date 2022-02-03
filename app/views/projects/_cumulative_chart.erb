@@ -147,6 +147,7 @@
       type: 'bar',
       data: {
         cycle_ends: <%= raw(@cycle_ends.to_json) %>,
+        balance_end: <%= raw(@estimated_end_of_balance.to_json) %>,
         labels: cumulative.dates,
         datasets: [
           {
