@@ -11,15 +11,24 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
 - Esure Ruby (2.5.1) and Bundler are installed on your device
 - Ensure PostgreSQL is installed on your device
 - Create a PostgreSQL user with database creation and editing rights, and a password
-- Update `config/database.yaml`, replacing `username` with the name of the user you just created
-- Set the environment variable `CCV_DATABASE_PASSWORD` with the user's password
+- Update the application's database credentials using `EDITOR=vim rails credentials:edit` (replacing `vim` with the editor of your choice) and setting:
+  - `database_username`
+  - `database_password`
+  - `slack_token`
+  - `secret_key_base`, generated using `rake secret`
+- Ensure you save a backup copy of the file `config/master.key` (used for encryption of these credentials)
 - If running in production:
   - Set the `RAILS_ENV` environment variable to `production`
-  - Generate a new value for `secret_key_base` using `rake secret` and add it using `vim rails credentials:edit`
-  - Ensure you save a backup copy of the file `config/master.key` (used for encryption)
+  - Run `bundle exec rake assets:precompile`
 - Run `bundle install`
 - Run `rails db:create`
 - Run `rails db:migrate:with_data`
+
+## Operation
+
+- Run the application with `rails s`
+- By default it will be accessible at `http://localhost:3000/`. This can be changed by adding `-b` and `-p` when running `rails s`. For example `rails s -b 0.0.0.0 -p 4567`
+- By default it will run as `development`, but can this can be changed by setting the environment variable `RAILS_ENV` to `production`
 
 ## Configuration
 
@@ -27,7 +36,6 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
 
 In addition to setting the database username and password in `config/database.yaml`, the following config variables should be set for the development and production files in `config/environments`:
 
-- `config.slack_token`: authorisation token for sending slack messages
 - `config.usd_gbp_conversion`: USD to GBP exchange rate
 - `config.gbp_compute_conversion`: conversion rate for GBP to compute units
 - `config.at_risk_conversion`: conversion rate for compute units to 'at risk' compute units
@@ -93,7 +101,7 @@ Tags are available in the Azure instances API after a few minutes, but will only
 
 ### Slack
 
-The application includes the option to send results to slack, specifying a specific channel for each project. To use this function, a slack bot (https://slack.com/apps/A0F7YS25R-bots) must be created. The bot's API Token should then be used to set `config.slack_token` in `config/environments/development.rb` and `config/environments/production.rb`.
+The application includes the option to send results to slack, specifying a specific channel for each project. To use this function, a slack bot (https://slack.com/apps/A0F7YS25R-bots) must be created. The bot's API Token should then be used to set the value of `slack_token` in the application's credentials (using `EDITOR=vim rails credentials:edit`.
 
 This bot must be invited to each project's chosen slack channel.
 
@@ -119,9 +127,22 @@ Budget policies include a number of attributes:
 
 Both balances and budget policies have an `effective_at` date. When a project reaches its end date, the balance will become zero.
 
+### Instance Mappings
+
+Instance mappings can be used to translate platform names (e.g. t2.micro or Standard_B1ls) into more customer friendly names, such as Compute (Medium).
+
+Instance mappings can be managed using the rake tasks:
+
+- `rake instance_mappings:list`
+- `rake instance_mappings:create[platform,instance_type,customer_facing]`
+- `rake instance_mappings:update[platform,instance_type,new_customer_facing]`
+- `rake instance_mappings:delete[platform,instance_type]`
+
+A default set of instance mappings are created during project setup.
+
 #### Generate project config file
 
-If using the visualiser part of the application (future), once instance logs have been created for a project (see below), a config file must be created using `rake projects:create_config:by_project[project,overwrite]` or `rake projects:create_config:all[overwrite]`.
+If using the visualiser part of the application, once instance logs have been created for a project (see below), a config file must be created using `rake projects:create_config:by_project[project,overwrite]` or `rake projects:create_config:all[overwrite]`.
 
 If overwrite is set to true, any existing file will be replaced using the latest instance logs.
 
@@ -183,18 +204,6 @@ This will include generating cost logs if none are present, or updating them if 
 
 If `slack` is set to `true`, the daily report will be sent to the project's `slack_channel`.
 
-### Instance Mappings
-
-Instance mappings can be used to translate platform names (e.g. t2.micro or Standard_B1ls) into more customer friendly names, such as Compute (Medium).
-
-Instance mappings can be managed using the rake tasks:
-
-- `rake instance_mappings:list`
-- `rake instance_mappings:create[platform,instance_type,customer_facing]`
-- `rake instance_mappings:update[platform,instance_type,new_customer_facing]`
-- `rake instance_mappings:delete[platform,instance_type]`
-
-A default set of instance mappings are created during project setup.
 
 ### Instance Prices and Sizes
 
@@ -216,3 +225,7 @@ For AWS projects, a missing mapping will be highlighted when adding regions usin
 ### Schedule tasks
 
 Rake tasks such as generating daily reports, recording instance logs and recording instance details can be scheduled by defining their timings in `config/schedule.rb`. Once updated in this file, corresponding cron syntax can be determined by running `whenever` in the command line, or your crontab updated automatically with these lines by running `whenever --w`.
+
+## Visualiser
+
+
