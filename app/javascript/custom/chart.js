@@ -111,7 +111,7 @@ window.requestRefresh = function() {
 
 window.addOverBudgetLines = function(){
   const verticalLinePlugin = {
-    renderVerticalLine: function (chartInstance, pointIndex, description) {
+    renderVerticalLine: function (chartInstance, pointIndex, type, number) {
       let meta = null;
       if(typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
         meta = chartInstance.getDatasetMeta(0);
@@ -156,16 +156,17 @@ window.addOverBudgetLines = function(){
       if (pointIndex < 2) position = 'left';
       if (pointIndex > chartInstance.data.labels.length - 3) position = 'right';
       context.textAlign = position;
-      context.fillText(`    ${description} `, lineLeftOffset, (scale.bottom - scale.top)/10 + scale.top);
+      let topPosition = (((scale.bottom - scale.top)/10) * number) + scale.top
+      context.fillText(`    ${type} `, lineLeftOffset, topPosition);
     },
 
     afterDatasetsDraw: function (chart, easing) {
       let indexes = overBudgetDateIndexes();
       for (let i = 0; i < indexes.length; i++) {
-        this.renderVerticalLine(chart, indexes[i], "Over budget");
+        this.renderVerticalLine(chart, indexes[i], "Over budget", 1);
       }
       if(chart.data.balance_end != null) {
-        this.renderVerticalLine(chart, chart.data.balance_end, "Over balance");
+        this.renderVerticalLine(chart, chart.data.balance_end, "Over balance", 2);
       }
     }
   };
