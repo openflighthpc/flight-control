@@ -19,6 +19,7 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
 - Ensure you save a backup copy of the file `config/master.key` (used for encryption of these credentials)
 - If running in production:
   - Set the `RAILS_ENV` environment variable to `production`
+  - Set the `RAILS_SERVE_STATIC_FILES` environment variable to `true`
   - Run `bundle exec rake assets:precompile`
 - Run `bundle install`
 - Run `yarn`
