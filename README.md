@@ -21,6 +21,7 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
   - Set the `RAILS_ENV` environment variable to `production`
   - Run `bundle exec rake assets:precompile`
 - Run `bundle install`
+- Run `yarn`
 - Run `rails db:create`
 - Run `rails db:migrate:with_data`
 

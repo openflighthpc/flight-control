@@ -476,14 +476,14 @@ class CostsPlotter
     date_grouped.each do |date, logs|
       balance -= logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
       balance_end_date = date
-      break if balance < 0
+      break if balance <= 0
     end
 
-    if balance >= 0 && (!@project.archived_date || balance_end_date <= @project.archived_date)
+    if balance > 0 && (!@project.archived_date || balance_end_date <= @project.archived_date)
       # Need to set a final date to avoid possibility of infinite/ very long loop if costs
       # are zero/ very low
       final_check_date = @project.archived_date ? @project.archived_date : Date.today + 1.year
-      while(balance >= 0 && balance_end_date < final_check_date)
+      while(balance > 0 && balance_end_date < final_check_date)
         balance_end_date += 1.day
         balance -= forecast_compute_cost(balance_end_date)
         balance -= latest_compute_storage_costs
