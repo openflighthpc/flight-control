@@ -1,6 +1,44 @@
 <main class="col-md-12 ml-sm-auto col-lg-12 px-4" role="main">
   <div class="mt-4 text-center mb-4">
     <h2><%= @project.name %> - Billing Management</h2>
-    <%= render '/projects/cycles_table' %>
   </div>
+  <div class="billing-overview">
+    <div class="row">
+      <div class="col-sm-3"></div>
+      <div class="col-sm-3">
+        <strong>Balance</strong>: <%= @balance %> c.u.
+      </div>
+      <div class="col-sm-3">
+        <strong>Spend Profile</strong>: <%= @policy.spend_profile.capitalize %>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-3"></div>
+      <div class="col-sm-3">
+        <strong>Cost This Cycle</strong>: 123
+      </div>
+      <div class="col-sm-3">
+        <strong>Fixed Cycle Budget</strong>: 
+        <%= @policy.cycle_limit ? "#{@policy.cycle_limit} c.u." : "n/a" %>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-3"></div>
+      <div class="col-sm-3">
+        <strong>Estimated Total This Cycle</strong>: 123
+      </div>
+      <div class="col-sm-3">
+        <strong>Billing Date</strong>: <%= @billing_date %>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-3"></div>
+      <div class="col-sm-3">
+      </div>
+      <div class="col-sm-3">
+        <strong>Project End Date</strong>: <%= @project.end_date ? @project.end_date : "none" %>
+      </div>
+    </div>
+  </div>
+  <%= render '/projects/cycles_table' %>
 </main>

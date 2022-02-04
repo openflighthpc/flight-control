@@ -627,4 +627,16 @@ class CostsPlotter
     end
     details.reverse
   end
+
+  def billing_date
+    policy = @project.budget_policies.where("effective_at <= ?", Date.today).last
+    case policy.cycle_interval
+    when 'monthly'
+      '1st of the month'
+    when 'weekly'
+      "Every #{@project.start_date.strftime("%A")}"
+    when 'custom'
+      "Every #{policy.days} days"
+    end
+  end
 end
