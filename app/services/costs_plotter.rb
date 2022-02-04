@@ -450,6 +450,7 @@ class CostsPlotter
     costs_between_dates(@project.start_date, date)
   end
 
+  # Does not include end date
   def costs_between_dates(start_date, end_date)
     logs = @project.cost_logs.where(scope: "total").where("date < ? AND date >= ?", end_date, start_date)
     costs = logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
@@ -601,5 +602,29 @@ class CostsPlotter
     datasets ||= []
     datasets += [ "budget", "core", "cycle total", "data out", "other"]
     datasets
+  end
+
+  def historic_cycle_details
+    details = []
+    cycles = active_billing_cycles.select { |date| date <= Date.today }
+    last_index = cycles.length - 1
+    current = false
+    cycles.each_with_index do |start_date, index|
+      if index < last_index
+        end_date = cycles[index + 1] - 1.day
+      else
+        end_date = end_of_billing_interval(start_date)
+        current = true if Date.today >= start_date && Date.today <= end_date
+      end
+      # costs between dates does not include end date, 
+      # so need to add another day
+      cycle_details = { start: start_date, end: end_date,
+                        cost: costs_between_dates(start_date, end_date + 1.day).to_i,
+                        current: current,
+                        estimate: !latest_cost_log_date || end_date > latest_cost_log_date
+                      }
+      details << cycle_details
+    end
+    details.reverse
   end
 end
