@@ -56,3 +56,7 @@ td {
   margin-top: 3rem;
   margin-bottom: 3rem;
 }
+
+.tool-tip:hover {
+  text-decoration: none;
+}

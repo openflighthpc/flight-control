@@ -1,3 +1,7 @@
+<% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'billing'%>
+<% end %>
+
 <main class="col-md-12 ml-sm-auto col-lg-12 px-4" role="main">
   <div class="mt-4 text-center mb-4">
     <h2><%= @project.name %> - Billing Management</h2>
@@ -6,10 +10,10 @@
     <div class="row">
       <div class="col-sm-3"></div>
       <div class="col-sm-3">
-        <strong>Balance</strong>:
-          <span  <%= 'class=text-danger' if @latest_cycle_details[:starting_balance] <= 0 %>>
-            <%= @latest_cycle_details[:starting_balance] %>c.u.
-          </span>
+        <strong>Balance</strong><a href="#" class="tool-tip" data-placement="top" title="Remaining at the start of the latest billing cycle" onClick="return false;"><sup>?</sup></a>:
+        <span  <%= 'class=text-danger' if @latest_cycle_details[:starting_balance] <= 0 %>>
+          <%= @latest_cycle_details[:starting_balance] %>c.u.
+        </span>
       </div>
       <div class="col-sm-3">
         <strong>Spend Profile</strong>: <%= @policy.spend_profile.capitalize %>
@@ -18,7 +22,7 @@
     <div class="row">
       <div class="col-sm-3"></div>
       <div class="col-sm-3">
-        <strong>Cost This Cycle</strong>: <%= @latest_cycle_details[:costs_so_far] %>c.u.
+        <strong>Cost This Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="As of the start of today. Includes some estimation." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:costs_so_far] %>c.u.
       </div>
       <div class="col-sm-3">
         <strong>Fixed Cycle Budget</strong>: 
@@ -28,7 +32,7 @@
     <div class="row">
       <div class="col-sm-3"></div>
       <div class="col-sm-3">
-        <strong>Estimated Total This Cycle</strong>: <%= @latest_cycle_details[:cost] %>c.u.
+        <strong>Estimated Total This Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="At the end of the latest billing cycle" onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:cost] %>c.u.
       </div>
       <div class="col-sm-3">
         <strong>Billing Date</strong>: <%= @billing_date %>

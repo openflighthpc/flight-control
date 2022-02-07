@@ -4,7 +4,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
   if($('#cost-chart-filter').length > 0) {
     $('.cost-chart-date').on('input', validateCostChartDates);
   }
-  $('.instance-tooltip').tooltip();
+  $('.tool-tip').tooltip();
   setTimeout(checkForNewData, 30000);
 });
 
