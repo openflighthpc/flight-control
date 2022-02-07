@@ -640,6 +640,7 @@ class CostsPlotter
         if current
           cycle_details[:costs_so_far] = costs_between_dates(start_date, Date.today + 1.day).to_i
           cycle_details[:starting_balance] = remaining_balance(start_date)
+          cycle_details[:starting_budget] = budget_on_date(start_date)
         end
         @details << cycle_details
       end

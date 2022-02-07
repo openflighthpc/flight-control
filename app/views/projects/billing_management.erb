@@ -25,8 +25,8 @@
         <strong>Cost This Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="As of the start of today. Includes some estimation." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:costs_so_far] %>c.u.
       </div>
       <div class="col-sm-3">
-        <strong>Fixed Cycle Budget</strong>: 
-        <%= @policy.cycle_limit ? "#{@policy.cycle_limit}c.u." : "n/a" %>
+        <strong>Cycle Budget</strong>: 
+        <%= @latest_cycle_details[:starting_budget] %>c.u.
       </div>
     </div>
     <div class="row">
