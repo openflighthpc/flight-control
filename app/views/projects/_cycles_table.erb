@@ -14,7 +14,7 @@
         <% @billing_cycles.each do |details| %>
           <tr>
             <td><%= "#{'[Current]' if details[:current]} #{details[:start]} - #{details[:end]}" %></td>
-            <td><%= details[:cost] %>c.u.<%= ' (estimate)' if details[:estimate] %></td>
+            <td><%= details[:cost].to_i %>c.u.<%= ' (estimate)' if details[:estimate] %></td>
             <td>
               <%= link_to "View", costs_breakdown_path(project: @project.name, start_date: details[:start], end_date: details[:end]) %>
             </td>

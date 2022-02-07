@@ -57,6 +57,10 @@ td {
   margin-bottom: 3rem;
 }
 
+#billing-cycles-table {
+  margin-bottom: 6rem;
+}
+
 .tool-tip:hover {
   text-decoration: none;
 }
