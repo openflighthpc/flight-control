@@ -6,7 +6,10 @@
     <div class="row">
       <div class="col-sm-3"></div>
       <div class="col-sm-3">
-        <strong>Balance</strong>: <%= @balance %> c.u.
+        <strong>Balance</strong>:
+          <span  <%= 'class=text-danger' if @latest_cycle_details[:starting_balance] <= 0 %>>
+            <%= @latest_cycle_details[:starting_balance] %>c.u.
+          </span>
       </div>
       <div class="col-sm-3">
         <strong>Spend Profile</strong>: <%= @policy.spend_profile.capitalize %>
@@ -15,17 +18,17 @@
     <div class="row">
       <div class="col-sm-3"></div>
       <div class="col-sm-3">
-        <strong>Cost This Cycle</strong>: 123
+        <strong>Cost This Cycle</strong>: <%= @latest_cycle_details[:costs_so_far] %>c.u.
       </div>
       <div class="col-sm-3">
         <strong>Fixed Cycle Budget</strong>: 
-        <%= @policy.cycle_limit ? "#{@policy.cycle_limit} c.u." : "n/a" %>
+        <%= @policy.cycle_limit ? "#{@policy.cycle_limit}c.u." : "n/a" %>
       </div>
     </div>
     <div class="row">
       <div class="col-sm-3"></div>
       <div class="col-sm-3">
-        <strong>Estimated Total This Cycle</strong>: 123
+        <strong>Estimated Total This Cycle</strong>: <%= @latest_cycle_details[:cost] %>c.u.
       </div>
       <div class="col-sm-3">
         <strong>Billing Date</strong>: <%= @billing_date %>

@@ -446,6 +446,10 @@ class CostsPlotter
     balance ? balance.amount : 0.0
   end
 
+  def remaining_balance(date)
+    balance_amount(date) - costs_so_far(date)
+  end
+
   def costs_so_far(date)
     costs_between_dates(@project.start_date, date)
   end
@@ -515,6 +519,15 @@ class CostsPlotter
       end 
     end
     thresholds
+  end
+
+  def latest_cycle_details
+    details = historic_cycle_details.detect {|cycle| cycle[:current] }
+    if !details
+      details = {starting_balance: balance_amount(Date.today), costs: 0,
+                 costs_so_far: 0}
+    end
+    details
   end
 
   def cycle_number(date)
@@ -605,27 +618,34 @@ class CostsPlotter
   end
 
   def historic_cycle_details
-    details = []
-    cycles = active_billing_cycles.select { |date| date <= Date.today }
-    last_index = cycles.length - 1
-    current = false
-    cycles.each_with_index do |start_date, index|
-      if index < last_index
-        end_date = cycles[index + 1] - 1.day
-      else
-        end_date = end_of_billing_interval(start_date)
-        current = true if Date.today >= start_date && Date.today <= end_date
+    if !@details
+      @details = []
+      cycles = active_billing_cycles.select { |date| date <= Date.today }
+      last_index = cycles.length - 1
+      current = false
+      cycles.each_with_index do |start_date, index|
+        if index < last_index
+          end_date = cycles[index + 1] - 1.day
+        else
+          end_date = end_of_billing_interval(start_date)
+          current = true if Date.today >= start_date && Date.today <= end_date
+        end
+        # costs between dates does not include end date, 
+        # so need to add another day
+        cycle_details = { start: start_date, end: end_date,
+                          cost: costs_between_dates(start_date, end_date + 1.day).to_i,
+                          current: current,
+                          estimate: !latest_cost_log_date || end_date > latest_cost_log_date
+                        }
+        if current
+          cycle_details[:costs_so_far] = costs_between_dates(start_date, Date.today + 1.day).to_i
+          cycle_details[:starting_balance] = remaining_balance(start_date)
+        end
+        @details << cycle_details
       end
-      # costs between dates does not include end date, 
-      # so need to add another day
-      cycle_details = { start: start_date, end: end_date,
-                        cost: costs_between_dates(start_date, end_date + 1.day).to_i,
-                        current: current,
-                        estimate: !latest_cost_log_date || end_date > latest_cost_log_date
-                      }
-      details << cycle_details
+      @details.reverse!
     end
-    details.reverse
+    @details
   end
 
   def billing_date

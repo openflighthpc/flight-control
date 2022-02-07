@@ -8,8 +8,8 @@ class ProjectsController < ApplicationController
     cost_plotter = CostsPlotter.new(@project)
     @billing_cycles = cost_plotter.historic_cycle_details
     @policy = @project.budget_policies.last
-    @balance = cost_plotter.balance_amount(Date.today)
     @billing_date = cost_plotter.billing_date
+    @latest_cycle_details = cost_plotter.latest_cycle_details
   end
 
   def data_check
