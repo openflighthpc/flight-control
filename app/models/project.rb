@@ -2,9 +2,10 @@ require_relative 'balance'
 require_relative 'budget_policy'
 require_relative 'instance_log'
 require_relative 'cost_log'
-require_relative "../services/project_config_creator"
-require_relative "../services/costs_plotter"
-require_relative "../services/instance_tracker"
+require_relative 'action_log'
+require_relative '../services/project_config_creator'
+require_relative '../services/costs_plotter'
+require_relative '../services/instance_tracker'
 require 'httparty'
 
 class Project < ApplicationRecord
@@ -12,6 +13,7 @@ class Project < ApplicationRecord
   SCOPES = %w[total data_out core core_storage]
   has_many :instance_logs
   has_many :cost_logs
+  has_many :action_logs
   has_many :balances
   has_many :budget_policies
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
