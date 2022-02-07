@@ -1,9 +1,11 @@
 class ProjectsController < ApplicationController
   def costs_breakdown
+    @nav_view = "costs"
     get_costs_data
   end
 
   def billing_management
+    @nav_view = "billing"
     get_project
     cost_plotter = CostsPlotter.new(@project)
     @billing_cycles = cost_plotter.historic_cycle_details

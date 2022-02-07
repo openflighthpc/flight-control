@@ -1,0 +1,10 @@
+<% if @nav_view != nil %>
+  <ul class="nav nav-tabs view-selection">
+    <li class="nav-item">
+      <a class="nav-link <%='active' if @nav_view == "billing"%>" href='/billing-management?project=<%= @project.name %>'>Billing Management</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%='active' if @nav_view == "costs" %>" href='/costs-breakdown?project=<%= @project.name %>'>Costs Breakdown</a>
+    </li>
+  </ul>
+<% end %>

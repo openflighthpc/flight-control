@@ -16,7 +16,7 @@
             <td><%= "#{'[Current]' if details[:current]} #{details[:start]} - #{details[:end]}" %></td>
             <td><%= details[:cost] %>c.u.<%= ' (estimate)' if details[:estimate] %></td>
             <td>
-              <%= link_to "View", costs_breakdown_path(project: @project.name, start_date: details[:start], end_date: details[:end]), data: {turbolinks: "false"} %>
+              <%= link_to "View", costs_breakdown_path(project: @project.name, start_date: details[:start], end_date: details[:end]) %>
             </td>
           </tr>
         <% end %>
