@@ -1,0 +1,39 @@
+<div class="container-fluid pl-0">
+  <main class="col-md-12 ml-sm-auto col-lg-12 px-4" role="main">
+    <div class="mt-4 text-center mb-4">
+      <h2><%= @project.name %> - Cost Breakdown</h2>
+    </div>
+    <%= render '/projects/chart_filter_form' %>
+    <ul class="nav nav-tabs" id="cost-chart-nav">
+      <li class="nav-item">
+        <a class="nav-link active"
+           href="#daily-costs"
+           role="tab"
+           aria-selected="true"
+           data-toggle="tab"
+        >
+          Daily costs
+        </a>
+      </li>
+     <li class="nav-item" role="presentation">
+       <a class="nav-link"
+          href="#cumulative-costs"
+          role="tab"
+          aria-selected="false"
+          data-toggle="tab"
+        >
+          Cumulative costs
+        </a>
+      </li>
+    </ul>
+    <div class="tab-content">
+      <%= render '/projects/costs_chart' %>
+      <%= render '/projects/cumulative_chart' %>
+    </div>
+    <%= render '/projects/static_instances_table' %>
+    <div id="latest-change"
+         data-value="<%= @project.time_of_latest_change.to_s %>"
+         data-project="<%= @project.name %>">
+    </div>
+  </main>
+</div>

@@ -3,6 +3,7 @@ compute_groups:
     priority: 1
     region: centralus
     colour: 0722ef
+    storage_colour: 0722ef
     nodes:
       compute_small:
         limit: 10
@@ -14,6 +15,7 @@ compute_groups:
     priority: 2
     region: uksouth
     colour: ef2d07
+    storage_colour: ef2d07
     nodes:
       compute_small:
         limit: 2
@@ -22,3 +24,4 @@ compute_groups:
     priority: 3
     region: westeurope
     colour: ef07bd
+    storage_colour: ef07bd

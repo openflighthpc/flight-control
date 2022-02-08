@@ -6,7 +6,7 @@ namespace :instance_mappings do
   desc "Create or new instance mapping"
   task :new, [:platform, :instance_type, :customer_facing] => :environment do |task, args|
     mapping = InstanceMapping.new(platform: args["platform"],
-                                  instance_type: args["customer_facing"],
+                                  instance_type: args["instance_type"],
                                   customer_facing_type: args["customer_facing"])
     if mapping.valid?
       mapping.save!
@@ -43,7 +43,7 @@ namespace :instance_mappings do
       puts "Mapping for #{args["instance_type"]} on #{args["platform"]} not found"
     else
       success = mapping.delete
-      if sucess
+      if success
         puts "Mapping deleted" 
       else
         puts "Error deleting mapping"

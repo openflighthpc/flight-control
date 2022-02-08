@@ -3,6 +3,8 @@ require_relative 'budget_policy'
 require_relative 'instance_log'
 require_relative 'cost_log'
 require_relative "../services/project_config_creator"
+require_relative "../services/costs_plotter"
+require_relative "../services/instance_tracker"
 require 'httparty'
 
 class Project < ApplicationRecord
@@ -26,14 +28,27 @@ class Project < ApplicationRecord
       message: "%{value} is not a valid platform"
     }
   after_save :update_end_balance
-  scope :active, -> { where(archived: false) }
+  scope :active, -> { where("archived_date IS NULL OR archived_date > ?", Date.today) }
 
   def self.slack_token
     @@slack_token ||= Rails.application.config.slack_token
   end
 
+  def archived?
+    # use !! so returns false instead nil, which confuses table print
+    !!(archived_date && archived_date <= Date.today)
+  end
+
   def latest_instance_logs
     instance_logs.where(date: instance_logs.maximum(:date))
+  end
+
+  # For front end use and in cost forecast calculations
+  def latest_instances
+    if !@instances
+      @instances = InstanceTracker.new(self).latest_instances
+    end
+    @instances
   end
 
   def current_balance
@@ -41,11 +56,30 @@ class Project < ApplicationRecord
   end
 
   def current_budget_policy
-    budget_policies.where("effective_at <= ?", Date.today).last
+    @budget_policy ||= budget_policies.where("effective_at <= ?", Date.today).last
+  end
+
+  def cycle_days
+    current_budget_policy.days
+  end
+
+  def cycle_interval
+    current_budget_policy.cycle_interval
   end
 
   def current_compute_groups
-    latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
+    @current_groups ||= latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
+  end
+
+  def settings
+    if !@settings
+      @settings = YAML.load(File.read(File.join(Rails.root, 'config', 'projects', "#{name}.yaml")))
+    end
+    @settings
+  end
+
+  def front_end_compute_groups
+    settings["compute_groups"]
   end
 
   def compute_groups_on_date(date)
@@ -66,9 +100,27 @@ class Project < ApplicationRecord
     ProjectConfigCreator.new(self).create_config_file(overwrite)
   end
 
+  def time_of_latest_change
+    latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.any?
+    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.any?
+    if latest_cost_data || latest_instance_data
+      latest = [latest_cost_data, latest_instance_data].compact.max
+    else
+      latest = Date.today.to_time
+    end
+    latest
+  end
+
+  # Timestamps are stored in db with more precision than can be easily represented,
+  # so a parsed string will not necessarily equal the same time (as we see it) in the db.
+  # To get around this we case the Times to ints to remove some of the precision.
+  def data_changed?(timestamp)
+    time_of_latest_change.to_i > timestamp.to_i
+  end
+
   def record_instance_logs(rerun=false, verbose=false)
     # can't record instance logs if resource group deleted
-    if archived
+    if archived?
       return "Logs not recorded, project is archived"
     end
     
@@ -158,7 +210,7 @@ class Project < ApplicationRecord
       "*Compute Costs (#{currency}):* #{compute.to_f.ceil(2)}",
       "*Data Out Costs (#{currency}):* #{data_out.to_f.ceil(2)}",
       "*Total Costs (#{currency}):* #{total.to_f.ceil(2)}",
-      "*Total Compute Units (Flat):* #{total_log.compute_cost}",
+      "*Total Compute Units (Flat):* #{total_log.compute_cost.ceil(2)}",
       "*Total Compute Units (Risk):* #{total_log.risk_cost}"
     ].compact.join("\n") + "\n"
 

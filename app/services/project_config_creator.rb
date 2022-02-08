@@ -1,7 +1,7 @@
 require_relative '../models/project'
 
 class ProjectConfigCreator
-  EXAMPLE_COLOURS = %w[0722ef ef2d07 ef07bd 098765]
+  EXAMPLE_COLOURS = %w[0722ef ef0235 ef07bd 098765]
 
   def initialize(project)
     @project = project
@@ -30,6 +30,7 @@ class ProjectConfigCreator
           "priority" => priority,
           "region" => region,
           "colour" => EXAMPLE_COLOURS[colour_index],
+          "storage_colour" => EXAMPLE_COLOURS[colour_index],
           "nodes" => {}
         }
         priority += 1

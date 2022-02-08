@@ -60,7 +60,7 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  config.slack_token = "xoxb-2188003849-1351803281314-eThQ7669UQt67ZAgtF91d9jB"
+  config.slack_token = Rails.application.credentials.config[:slack_token]
   config.usd_gbp_conversion = 0.77
   config.gbp_compute_conversion = 12.5
   config.at_risk_conversion = 1.25

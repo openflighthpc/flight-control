@@ -3,6 +3,21 @@ require_relative '../models/instance_log'
 
 class AzureInstanceDetailsRecorder < AzureService
   @@region_mappings = {}
+  @@prices_file = nil
+  @@sizes_file = nil
+  @@regions_file = nil
+
+  def self.prices_file
+    @@prices_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_instance_prices.txt')
+  end
+
+  def self.sizes_file
+    @@sizes_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_instance_sizes.txt')
+  end
+
+  def self.regions_file
+    @@regions_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_region_names.txt')
+  end
 
   def record
     record_instance_prices
@@ -15,25 +30,26 @@ class AzureInstanceDetailsRecorder < AzureService
   # logic will need updating to make further requests to get subsquent records.
   def record_instance_prices
     first_query = true
-    regions_and_types.each do |region, types|
-      types_filter = ""
-      types.each_with_index do |type, index|
-        types_filter << "#{index == 0 ? "" : "or"} armSkuName eq '#{type}'"
-      end
-
+    types_filter = ""
+    instance_types.each_with_index do |type, index|
+      types_filter << "#{index == 0 ? "" : " or"} armSkuName eq '#{type}'"
+    end
+    regions.each do |region|
+      
       uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and (#{types_filter})"
       response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
       if response.success?
         if first_query
-          File.write(prices_file, "#{Time.now}\n")
+          File.write(self.class.prices_file, "#{Time.now}\n")
           first_query = false
         end
         matches = response["Items"].select do |price|
-          price["isPrimaryMeterRegion"] && !price["productName"].end_with?("Windows")
+          price["isPrimaryMeterRegion"] && !price["productName"].end_with?("Windows") &&
+          !price["skuName"].end_with?("Low Priority") && !price["skuName"].end_with?("Spot")
         end
         matches.each do |matched|
-          File.write(prices_file, matched.to_json, mode: "a")
-          File.write(prices_file, "\n", mode: "a")
+          File.write(self.class.prices_file, matched.to_json, mode: "a")
+          File.write(self.class.prices_file, "\n", mode: "a")
         end
       end
     end
@@ -56,7 +72,7 @@ class AzureInstanceDetailsRecorder < AzureService
       )
     
       if response.success?
-        File.write(sizes_file, "#{Time.now}\n")
+        File.write(self.class.sizes_file, "#{Time.now}\n")
         response["value"].each do |instance|
           if instance["resourceType"] == "virtualMachines" && regions.include?(instance["locations"][0]) &&
             instance_types.include?(instance["name"])
@@ -75,8 +91,8 @@ class AzureInstanceDetailsRecorder < AzureService
                 details[:gpu] = capability["value"].to_i
               end
             end
-            File.write(sizes_file, details.to_json, mode: "a")
-            File.write(sizes_file, "\n", mode: "a")
+            File.write(self.class.sizes_file, details.to_json, mode: "a")
+            File.write(self.class.sizes_file, "\n", mode: "a")
           end
         end
       elsif response.code == 504
@@ -119,31 +135,12 @@ class AzureInstanceDetailsRecorder < AzureService
 
   private
 
-  def prices_file
-    @prices_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_instance_prices.txt')
-  end
-
-  def sizes_file
-    @sizes_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_instance_sizes.txt')
-  end
-
   def instance_types
     @instance_types ||= InstanceLog.where(platform: "azure").pluck(Arel.sql("DISTINCT instance_type"))
   end
 
   def regions
     @regions ||= (InstanceLog.where(platform: "azure").pluck(Arel.sql("DISTINCT region")) | ["uksouth"])
-  end
-
-  def regions_and_types
-    if !@regions_and_types
-      @regions_and_types = {}
-      regions.each do |region|
-        types = InstanceLog.where(platform: "azure", region: region).pluck(Arel.sql("DISTINCT instance_type"))
-        regions_and_types[region] = types
-      end
-    end
-    @regions_and_types
   end
 
   def mapped_regions
@@ -156,7 +153,7 @@ class AzureInstanceDetailsRecorder < AzureService
 
   def region_mappings
     if @@region_mappings == {}
-      file = File.open(File.join(Rails.root, 'lib', 'platform_files', 'azure_region_names.txt'))
+      file = File.open(self.class.regions_file)
       file.readlines.each do |line|
         line = line.split(",")
         @@region_mappings[line[0]] = line[1].strip

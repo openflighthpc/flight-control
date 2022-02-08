@@ -4,6 +4,16 @@ require 'aws-sdk-pricing'
 
 class AwsInstanceDetailsRecorder
   @@region_mappings = {}
+  @@details_file = nil
+  @@regions_file = nil
+
+  def self.details_file
+    @@details_file ||= File.join(Rails.root, 'lib', 'platform_files', 'aws_instance_details.txt')
+  end
+
+  def self.regions_file
+    @@regions_file ||= File.join(Rails.root, 'lib', 'platform_files', 'aws_region_names.txt')
+  end
 
   def initialize(project)
     @project = project
@@ -15,7 +25,7 @@ class AwsInstanceDetailsRecorder
   def record
     regions.each.with_index do |region, index|
       if index == 0
-        File.write(details_file, "#{Time.now}\n")
+        File.write(self.class.details_file, "#{Time.now}\n")
       end
       first_query = true
       results = nil
@@ -42,7 +52,7 @@ class AwsInstanceDetailsRecorder
             mem: mem.to_f,
             gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0
           }
-          File.write(details_file, "#{info.to_json}\n", mode: 'a')
+          File.write(self.class.details_file, "#{info.to_json}\n", mode: 'a')
         end
         first_query = false
       end
@@ -110,13 +120,9 @@ class AwsInstanceDetailsRecorder
     details
   end
 
-  def details_file
-    @file ||= File.join(Rails.root, 'lib', 'platform_files', 'aws_instance_details.txt')
-  end
-
   def determine_region_mappings
     if @@region_mappings == {}
-      file = File.open(File.join(Rails.root, 'lib', 'platform_files', 'aws_region_names.txt'))
+      file = File.open(self.class.regions_file)
       file.readlines.each do |line|
         line = line.split(",")
         @@region_mappings[line[0]] = line[1].strip

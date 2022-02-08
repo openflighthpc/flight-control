@@ -11,13 +11,26 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
 - Esure Ruby (2.5.1) and Bundler are installed on your device
 - Ensure PostgreSQL is installed on your device
 - Create a PostgreSQL user with database creation and editing rights, and a password
-- Update `config/database.yaml`, replacing `username` with the name of the user you just created
-- Set the environment variable `CCV_DATABASE_PASSWORD` with the user's password
+- Update the application's database credentials using `EDITOR=vim rails credentials:edit` (replacing `vim` with the editor of your choice) and setting:
+  - `database_username`
+  - `database_password`
+  - `slack_token`
+  - `secret_key_base`, generated using `rake secret`
+- Ensure you save a backup copy of the file `config/master.key` (used for encryption of these credentials)
 - If running in production:
   - Set the `RAILS_ENV` environment variable to `production`
+  - Set the `RAILS_SERVE_STATIC_FILES` environment variable to `true`
+  - Run `bundle exec rake assets:precompile`
 - Run `bundle install`
+- Run `yarn`
 - Run `rails db:create`
 - Run `rails db:migrate:with_data`
+
+## Operation
+
+- Run the application with `rails s`
+- By default it will be accessible at `http://localhost:3000/`. This can be changed by adding `-b` and `-p` when running `rails s`. For example `rails s -b 0.0.0.0 -p 4567`
+- By default it will run as `development`, but can this can be changed by setting the environment variable `RAILS_ENV` to `production`
 
 ## Configuration
 
@@ -25,7 +38,6 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
 
 In addition to setting the database username and password in `config/database.yaml`, the following config variables should be set for the development and production files in `config/environments`:
 
-- `config.slack_token`: authorisation token for sending slack messages
 - `config.usd_gbp_conversion`: USD to GBP exchange rate
 - `config.gbp_compute_conversion`: conversion rate for GBP to compute units
 - `config.at_risk_conversion`: conversion rate for compute units to 'at risk' compute units
@@ -91,13 +103,13 @@ Tags are available in the Azure instances API after a few minutes, but will only
 
 ### Slack
 
-The application includes the option to send results to slack, specifying a specific channel for each project. To use this function, a slack bot (https://slack.com/apps/A0F7YS25R-bots) must be created. The bot's API Token should then be used to set `config.slack_token` in `config/environments/development.rb` and `config/environments/production.rb`.
+The application includes the option to send results to slack, specifying a specific channel for each project. To use this function, a slack bot (https://slack.com/apps/A0F7YS25R-bots) must be created. The bot's API Token should then be used to set the value of `slack_token` in the application's credentials (using `EDITOR=vim rails credentials:edit`).
 
 This bot must be invited to each project's chosen slack channel.
 
 ### Adding and updating projects
 
-A `Project` must be created for each project you wish to track. These can be created by running `rake projects:manage` and following the prompts in the command line. This task can also be used to update existing projects. Projects should not be deleted, but instead `archived` set to `true` to mark them as inactive.
+A `Project` must be created for each project you wish to track. These can be created by running `rake projects:manage` and following the prompts in the command line. This task can also be used to update existing projects. Projects should not be deleted, but instead set the `archived_date` to mark them as inactive.
 
 Project names must start with a letter, only include lower or uppercase letters, numbers, dashes or underscores, and must end in a letter or number.
 
@@ -110,16 +122,29 @@ Budget policies include a number of attributes:
 - Days: Describes how many days a custom cycle interval lasts
 - Spend profile: how cycle budgets are calculated
   - Fixed: budget resets start of each cycle to the value of cycle limit (see below)
-  - Rolling: (budget cycles so far * cycle limit ) - total spend so far
+  - Rolling: (budget cycles so far * cycle limit) - total spend so far
   - Continuous: balance - total spend so far
   - Dynamic: (balance - total spend so far) / remaining cycles
 - Cycle limit: compute units assigned to the cycle, for fixed and rolling spend profiles.
 
 Both balances and budget policies have an `effective_at` date. When a project reaches its end date, the balance will become zero.
 
+### Instance Mappings
+
+Instance mappings can be used to translate platform names (e.g. t2.micro or Standard_B1ls) into more customer friendly names, such as Compute (Medium).
+
+Instance mappings can be managed using the rake tasks:
+
+- `rake instance_mappings:list`
+- `rake instance_mappings:create[platform,instance_type,customer_facing]`
+- `rake instance_mappings:update[platform,instance_type,new_customer_facing]`
+- `rake instance_mappings:delete[platform,instance_type]`
+
+A default set of instance mappings are created during project setup.
+
 #### Generate project config file
 
-If using the visualiser part of the application (future), once instance logs have been created for a project (see below), a config file must be created using `rake projects:create_config:by_project[project,overwrite]` or `rake projects:create_config:all[overwrite]`.
+If using the visualiser part of the application, once instance logs have been created for a project (see below), a config file must be created using `rake projects:create_config:by_project[project,overwrite]` or `rake projects:create_config:all[overwrite]`.
 
 If overwrite is set to true, any existing file will be replaced using the latest instance logs.
 
@@ -181,18 +206,6 @@ This will include generating cost logs if none are present, or updating them if 
 
 If `slack` is set to `true`, the daily report will be sent to the project's `slack_channel`.
 
-### Instance Mappings
-
-Instance mappings can be used to translate platform names (e.g. t2.micro or Standard_B1ls) into more customer friendly names, such as Compute (Medium).
-
-Instance mappings can be managed using the rake tasks:
-
-- `rake instance_mappings:list`
-- `rake instance_mappings:create[platform,instance_type,customer_facing]`
-- `rake instance_mappings:update[platform,instance_type,new_customer_facing]`
-- `rake instance_mappings:delete[platform,instance_type]`
-
-A default set of instance mappings are created during project setup.
 
 ### Instance Prices and Sizes
 
@@ -214,3 +227,33 @@ For AWS projects, a missing mapping will be highlighted when adding regions usin
 ### Schedule tasks
 
 Rake tasks such as generating daily reports, recording instance logs and recording instance details can be scheduled by defining their timings in `config/schedule.rb`. Once updated in this file, corresponding cron syntax can be determined by running `whenever` in the command line, or your crontab updated automatically with these lines by running `whenever --w`.
+
+## Visualiser
+
+### Costs Breakdown
+
+#### Selected Project
+
+By default this page shows data for the first active project. This can be changed by adding the url parameter `project=projectname`. This logic will change once users and login has been implemented.
+
+#### Costs Charts
+
+This page shows historic and estimated future costs in at risk compute units, based on cost logs and instance logs. These can be viewed in either a daily breakdown or cumulative chart, which can be moved between by selecting the relevant tab.
+
+Compute forecasts for today and future days are based upon the current instance counts. For forecast days in the past (i.e. days between the last actual costs recorded and today) compute costs are estimated based on the instance counts on those days.
+
+Non compute costs are based on the most recent recorded costs for that scope. For example, if core costs were last recorded as 10 compute units, all forecast days will estimate core costs to also be 10 compute units.
+
+By default these charts will show the current billing cycle, but the date range can be altered using the form at the top of the page. The last day of a cycle or the project as a whole are shown on the charts. Costs continue to be shown until the project's `archived_date`.
+
+Datasets's visibility can be toggled on the charts by selected them in the chart's legend. They can also be filtered using the form at the top of the page. If a compute group or core is selected, the corresponding storage dataset will also be shown (e.g. selecting 'group1' will show both 'group1' and 'group1 storage').
+
+#### Current States
+
+At the bottom of the page the project's current compute groups and instance counts are displayed, with a summary of the resulting estimated daily costs. If any filtering for compute groups is in place, only those compute groups will be included.
+
+These groups and types shown in this table are determined by the project's config file. If this is not up to date this may not show the full/ correct details.
+
+#### New Data Alert and Refresh
+
+If new costs are recorded or instance counts change, this page will show an alert that when accepted refreshes the page, so this latest data can be shown. The application checks for new data every 30 seconds.

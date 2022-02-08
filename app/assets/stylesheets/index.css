@@ -1,0 +1,53 @@
+body {
+  font-family: 'Work Sans', sans-serif;
+}
+
+.chart {
+  margin-left: 4rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  margin-right: 5rem;
+  height: 60vh;
+}
+
+#costs-chart-form {
+  margin-bottom: 2rem;
+}
+
+.charts-form-label {
+  margin-left: 0.85rem; 
+}
+
+#cost-chart-nav {
+  margin-left: 4rem;
+  margin-right: 5rem;
+}
+
+.costs-pane {
+  border: 1px;
+  border-color: #dee2e6;
+  border-style: solid;
+  border-top: none;
+  margin-top: 0;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  padding-left: 1rem;
+  padding-right: 3rem;
+}
+
+.events-table-header {
+  border: 0.08rem solid;
+  border-right-width:  0.05rem;
+}
+
+#static-instances-table {
+  margin-bottom: 4rem;
+}
+
+th {
+  border-color: #dee2e6 !important;
+}
+
+td {
+  border-top: none !important;
+}

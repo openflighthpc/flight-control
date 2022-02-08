@@ -1,4 +1,5 @@
 require_relative 'project'
+require_relative '../services/azure_service'
 require_relative '../services/azure_instance_recorder'
 require_relative '../services/azure_costs_recorder'
 require_relative '../services/azure_authoriser'

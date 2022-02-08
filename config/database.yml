@@ -20,8 +20,8 @@ default: &default
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: ccv
-  password: <%= ENV['CCV_DATABASE_PASSWORD'] %>
+  username: <%= Rails.application.credentials.config[:database_username] %>
+  password: <%= Rails.application.credentials.config[:database_password] %>
 
 development:
   <<: *default
@@ -31,10 +31,10 @@ development:
   # To create additional roles in postgres see `$ createuser --help`.
   # When left blank, postgres will use the default role. This is
   # the same name as the operating system user that initialized the database.
-  username: ccv
+  username: <%= Rails.application.credentials.config[:database_username] %>
 
   # The password associated with the postgres role (username).
-  password: <%= ENV['CCV_DATABASE_PASSWORD'] %>
+  password: <%= Rails.application.credentials.config[:database_password] %>
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -83,5 +83,5 @@ test:
 production:
   <<: *default
   database: ccv_production
-  username: ccv
-  password: <%= ENV['CCV_DATABASE_PASSWORD'] %>
+  username: <%= Rails.application.credentials.config[:database_username] %>
+  password: <%= Rails.application.credentials.config[:database_password] %>

@@ -1,0 +1,51 @@
+<div class="row">
+  <div class="col-sm-2"></div>
+  <div class="col-sm-8">
+    <h3 class="ml-2">Current States</h3>
+    <table class="table" id="static-instances-table">
+      <thead class="table-primary events-table-header border">
+        <tr>
+          <th scope="col">Group</th>
+          <th scope="col">Type</th>
+          <th scope="col" class="text-center">Daily Cost</th>
+          <th scope="col" class="text-center border-left">Count</th>
+          <th scope="col" class="text-center">Total Daily Cost</th>
+        </tr>
+      </thead>
+      <tbody class="border">
+        <% total_compute_cost = 0 %>
+        <% first_group = true %>
+        <% @current_instances.each do |group, instances| %>
+          <tr <%= "class='border-top'" if !first_group %>>
+            <% first_group = false %>
+            <td><%= group %></td>
+            <td></td>
+            <td></td>
+            <td class="border-left"></td>
+          </tr>
+          <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem] } %>
+          <% instances.each do |instance| %>
+            <% next if instance.node_limit == 0 %>
+            <% on = instance.count[:on] %>
+            <tr class="text-nowrap node-row">
+              <td></td>
+              <td scope="row"><%= instance.customer_facing_type %><a href="#" class="instance-tooltip" data-placement="top" title="<%= instance.details_description %>" onClick="return false;"><sup>?</sup>
+                </a> 
+              </td>
+              <td class="text-center"><%= instance.daily_compute_cost %>c.u.</td>
+              <td class="text-center border-left">
+                <div id="<%= "#{group}-#{instance.instance_type}-on" %>"><%= on %></div>
+              </td>
+              <td class="text-center">
+                <div id="<%= "#{group}-#{instance.instance_type}-total" %>"
+                     data-cost-each="<%= instance.daily_compute_cost %>">
+                  <%= instance.total_daily_compute_cost %>c.u.
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
