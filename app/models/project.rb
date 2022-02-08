@@ -110,8 +110,9 @@ class Project < ApplicationRecord
   def time_of_latest_change
     latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.any?
     latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.any?
-    if latest_cost_data || latest_instance_data
-      latest = [latest_cost_data, latest_instance_data].compact.max
+    latest_action_log = action_logs.maximum("updated_at") if action_logs.any?
+    if latest_cost_data || latest_instance_data || latest_action_log
+      latest = [latest_cost_data, latest_instance_data, latest_action_log].compact.max
     else
       latest = Date.today.to_time
     end
