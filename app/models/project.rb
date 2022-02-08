@@ -54,6 +54,10 @@ class Project < ApplicationRecord
     @instances
   end
 
+  def pending_action_logs
+    action_logs.where(status: "pending")
+  end
+
   def current_balance
     balances.where("effective_at <= ?", Date.today).last
   end

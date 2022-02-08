@@ -141,6 +141,10 @@ class Instance
     @count[:on] + @count[:off]
   end
 
+  def pending_on
+    @count[:pending_on] || @count[:on]
+  end
+
   def price_per_hour
     base_price = price || 0
     @platform == "aws" ? base_price * CostLog.usd_gbp_conversion : base_price
