@@ -9,6 +9,7 @@ class CreateActionLogs < ActiveRecord::Migration[6.0]
       t.text :reason
       t.string :status
       t.date :date
+      t.time :actioned_at
       t.timestamps
     end
   end

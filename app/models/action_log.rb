@@ -2,7 +2,7 @@ class ActionLog < ApplicationRecord
   before_create :set_defaults
   belongs_to :project
   # belongs_to :change_request, optional: true
-  default_scope { order(:created_at) }
+  default_scope { order(:actioned_at) }
   validates :project_id, :reason, :instance_id, presence: true
   validates :created_at, :updated_at, presence: true, on: :save
   validates :action,
@@ -18,7 +18,7 @@ class ActionLog < ApplicationRecord
     if !@instance_log
       @instance_log = InstanceLog.where(project_id: project_id).where(
                     instance_id: instance_id).where(
-                    "created_at < ? ", created_at).last
+                    "created_at < ? ", actioned_at).last
       @instance_log ||= InstanceLog.where(project_id: project_id).where(
                     instance_id: instance_id).last
     end
@@ -55,7 +55,7 @@ class ActionLog < ApplicationRecord
   end
 
   def formatted_timestamp
-    Time.parse(created_at).strftime('%-I:%M%P %F')
+    actioned_at.strftime('%-I:%M%P %F')
   end
 
   # def username
@@ -112,10 +112,10 @@ class ActionLog < ApplicationRecord
   def check_and_update_status
     if !@checked
       @checked = true
-      return status if status != "pending" || project.latest_instance_log_time < created_at
+      return status if status != "pending" || project.latest_instance_log_time < actioned_at
 
       goal = action == "on" ? "status = 'Available' OR status = 'running'"  : "NOT status = 'Available' AND NOT status = 'running'"
-      reached = project.latest_instance_logs.where(instance_id: instance_id).where(goal).where('updated_at > ?', created_at).any?
+      reached = project.latest_instance_logs.where(instance_id: instance_id).where(goal).where('updated_at > ?', actioned_at).any?
       complete if reached
       status
     else
@@ -150,7 +150,8 @@ class ActionLog < ApplicationRecord
 
   def set_defaults
     self.status = "pending"
-    self.date = Date.today
+    self.actioned_at ||= Time.now
+    self.date = self.actioned_at.to_date
   end
 
   # def automated_or_user
