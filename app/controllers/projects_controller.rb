@@ -49,9 +49,4 @@ class ProjectsController < ApplicationController
     @current_instances.select! { |group, instances| @datasets.include?(group) }
     @current_instances = original if @current_instances.empty?
   end
-
-  def get_project
-    @project = Project.find_by_name(params['project'])
-    @project ||= Project.visualiser.first
-  end
 end
