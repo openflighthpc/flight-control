@@ -15,6 +15,7 @@ namespace :action_logs do
     if args[:actioned_at]
       begin
         actioned_at = Time.parse(args[:actioned_at])
+        puts actioned_at
       rescue ArgumentError
         puts "Invalid time"
         exit

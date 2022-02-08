@@ -1,4 +1,8 @@
 class InstanceLog < ApplicationRecord
+  ON_STATUSES = {"azure" => "VM running",
+                 "aws" => "running"}
+  OFF_STATUSES = {"azure" => "VM deallocated",
+                 "aws" => "stopped"}
   belongs_to :project
   validates :instance_type, :instance_name, :instance_id,
             :region, :status, :date, presence: true
@@ -9,6 +13,11 @@ class InstanceLog < ApplicationRecord
       message: "%{value} is not a valid platform"
     }
 
+  def on?
+    status == ON_STATUSES[platform]
+  end
+
+  # including at risk margin
   def hourly_compute_cost
     if !@hourly_compute_cost
       price = Instance.instance_details.dig(region, instance_type, :price)
@@ -25,10 +34,22 @@ class InstanceLog < ApplicationRecord
   end
 
   def actual_cost
-    InstanceTracker::ON_STATUSES.include?(status) ? daily_compute_cost : 0.0
+    on? ? daily_compute_cost : 0.0
   end
 
   def has_mapping?
     !InstanceMapping.instance_mappings[platform][instance_type].nil?
+  end
+
+  def pending_on?
+    if !@pending_on
+      action_log = ActionLog.where(instance_id: instance_id).where(status: "pending").last
+      if action_log
+        @pending_on = action_log.action == "on"
+      else
+        @pending_on = on?
+      end
+    end
+    @pending_on
   end
 end

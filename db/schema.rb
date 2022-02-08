@@ -24,7 +24,7 @@ ActiveRecord::Schema.define(version: 2022_02_07_164618) do
     t.text "reason"
     t.string "status"
     t.date "date"
-    t.time "actioned_at"
+    t.datetime "actioned_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["change_request_id"], name: "index_action_logs_on_change_request_id"

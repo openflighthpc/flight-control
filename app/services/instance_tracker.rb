@@ -1,14 +1,13 @@
 class InstanceTracker
-  ON_STATUSES = ["VM running", "running"]
-
   def initialize(project)
     @project = project
+    @platform = @project.platform
   end
 
   def latest_instances
     if !@latest_instances
       logs = @project.latest_instance_logs
-      instance_mappings = InstanceMapping.where(platform: @project.platform)
+      instance_mappings = InstanceMapping.where(platform: @platform)
   
       groups = @project.front_end_compute_groups
 
@@ -21,7 +20,7 @@ class InstanceTracker
           instance = Instance.new(mapping.instance_type, region, node_group, @project.platform, @project)
           if instance.node_limit > 0 && instance.present_in_region?
             group_logs.where(instance_type: mapping.instance_type).each do |log|
-              instance.increase_count(ON_STATUSES.include?(log.status) ? :on : :off)
+              instance.increase_count(InstanceLog::ON_STATUSES[@platform] == log.status ? :on : :off)
             end
             instances << instance
           end
@@ -34,11 +33,11 @@ class InstanceTracker
         grouped.each do |group|
           if !last || last && group[0][0] != last.instance_type
             instance = Instance.new(group[0][0], region, node_group, @project.platform, @project)
-            instance.increase_count(ON_STATUSES.include?(group[0][1]) ? :on : :off, group[1])
+            instance.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
             instances << last if last && last.present_in_region?
             last = instance
           elsif last
-            last.increase_count(ON_STATUSES.include?(group[0][1]) ? :on : :off, group[1])
+            last.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
           end
         end
         instances << last if last && last.present_in_region?
@@ -49,8 +48,11 @@ class InstanceTracker
       all_instances.each do |group, instances|
         instances.each do |instance|
           change = changes.dig(group, instance.instance_type)
+          puts "GOATS"
+          puts change
           if change
-            pending_count = change += instance.pending_on 
+            pending_count = change += instance.pending_on
+            puts pending_count
           end
           instance.set_pending_on(pending_count) if pending_count
         end

@@ -64,11 +64,11 @@ class CostsPlotter
       nodes << v[:compute_nodes]
     end
     results = {'dates': dates, 'actual': {'any': remaining_budget.compact.length > 0, 'compute': compute, 
-              'compute_groups': compute_group_details[:actual], 'data out': data_out, 'core': core, 'core_storage': core_storage,
+              'compute_groups': compute_group_details[:actual], 'data out': data_out, 'core': core, 'core storage': core_storage,
               'other': other, 'remaining budget': remaining_budget}}
     results['forecast'] = {'any': forecast_remaining_budget.compact.length > 0, 'compute': forecast_compute,
                            'compute_groups': compute_group_details[:forecast], 'data out': forecast_data_out, 
-                           'core': forecast_core, 'core_storage': forecast_core_storage, 'other': forecast_other,
+                           'core': forecast_core, 'core storage': forecast_core_storage, 'other': forecast_other,
                            'remaining budget': forecast_remaining_budget}
     results
   end
@@ -218,9 +218,9 @@ class CostsPlotter
     end
 
     results = {'dates': dates, 'actual': {'any': overall.compact.length > 0,'compute': compute, 'compute_groups': compute_group_details[:actual],
-               'core': core, 'data out': data_out, 'core_storage': core_storage, 'other': other, 'total': overall}}
+               'core': core, 'data out': data_out, 'core storage': core_storage, 'other': other, 'total': overall}}
     results['forecast'] = {'any': forecast_overall.compact.length > 0, 'compute': forecast_compute, 'compute_groups': compute_group_details[:forecast],
-                           'core': forecast_core,'data out': forecast_data_out, 'core_storage': forecast_core_storage, 'other': forecast_other, 
+                           'core': forecast_core,'data out': forecast_data_out, 'core storage': forecast_core_storage, 'other': forecast_other, 
                            'total': forecast_overall}
     results['budget'] = budgets
     results
@@ -331,12 +331,52 @@ class CostsPlotter
     if date > Date.today
       group ||= :total
       return current_compute_costs[group]
+    end
+
+    actions = @project.action_logs.where(date: date)
+    instance_logs = @project.instance_logs.where(date: date.to_s)
+    instance_logs = instance_logs.where(compute_group: group) if group
+    # In case no logs recorded on that day, use previous
+    instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
+    if actions.any?
+      instance_logs.each do |log|
+        instance_cost = 0.0
+        instance_actions = actions.where(instance_id: log.instance_id).reorder(:actioned_at)
+        previous_time = date.to_time # start of day (00:00)
+        previous_action = nil
+        # we can calculate running time by comparing action log times and actions
+        time_on = 0
+        if instance_actions.any?
+          instance_actions.each do |action|
+            original_status = action.action == "on" ? "off" : "on"
+            time_at_previous_status = (action.actioned_at - previous_time) / 3600 # in hours
+            time_on += time_at_previous_status.ceil if original_status == "on"
+            previous_time = action.actioned_at
+            previous_action = action.action
+          end
+          previous_action = log.pending_power_status if !instance_actions.any?
+          to_end_of_day = ((date + 1.day).to_time - previous_time) / 3600
+          time_on += to_end_of_day.ceil if previous_action == "on"
+          time_on = [time_on, 24].min
+          instance_cost += log.hourly_compute_cost * time_on.ceil          
+        else
+          # no changes so can use instance log status
+          if date == Date.today # handles if a pending action log from yesterday
+            instance_cost = log.daily_compute_cost if log.pending_on?
+          else
+            instance_cost = log.daily_compute_cost if log.on?
+          end
+        end
+        total += instance_cost
+      end
+      total = total.ceil
     else
-      instance_logs = @project.instance_logs.where(date: date.to_s)
-      instance_logs = instance_logs.where(compute_group: group) if group
-      # In case no logs recored on that day, use previous
-      instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
-      total = instance_logs.reduce(0.0) { |sum, log| sum + log.actual_cost }
+      if date == Date.today # handles if a pending action log from yesterday
+        instance_logs = instance_logs.select { |log| log.pending_on? }
+        total = instance_logs.reduce(0.0) { |sum, log| sum + log.daily_compute_cost }
+      else
+        total = instance_logs.reduce(0.0) { |sum, log| sum + log.actual_cost }
+      end
     end
     total
   end
@@ -356,7 +396,7 @@ class CostsPlotter
       @project.latest_instances.each do |group, instances|
         @current_compute_costs[group.to_sym] = 0.0
         instances.each do |instance|
-          cost = instance.total_daily_compute_cost
+          cost = instance.pending_total_daily_compute_cost
           @current_compute_costs[group.to_sym] += cost
           @current_compute_costs[:total] += cost
         end

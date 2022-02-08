@@ -105,8 +105,9 @@ class ActionLog < ApplicationRecord
   def same_action_as_latest_actual?
     latest = project.latest_instance_logs.where(instance_id: instance_id).last
     return nil if !latest
-    
-    action == "on" ? latest.status == "Available" || latest.status == "running" : latest.status != "Available" && latest.status != "running"
+
+    (action == "on" && latest.status == InstanceLog::ON_STATUSES[project.platform]) ||
+    (action == "off" && latest.status == InstanceLog::OFF_STATUSES[project.platform])
   end
 
   def check_and_update_status
