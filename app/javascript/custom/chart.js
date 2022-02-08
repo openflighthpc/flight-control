@@ -1,6 +1,6 @@
 window.addEventListener('DOMContentLoaded', (event) => {
   addOverBudgetLines();
-  addEndLines();
+  addCycleLines();
   if($('#cost-chart-filter').length > 0) {
     $('.cost-chart-date').on('input', validateCostChartDates);
   }
@@ -174,11 +174,11 @@ window.addOverBudgetLines = function(){
   Chart.plugins.register(verticalLinePlugin);
 }
 
-// Cycle and project ends
-window.addEndLines = function(){
+// Project start, cycle and project ends
+window.addCycleLines = function(){
   const verticalLinePlugin = {
-    renderVerticalLine: function (chartInstance, end_details) {
-      const pointIndex = end_details.index
+    renderVerticalLine: function (chartInstance, cycle_details) {
+      const pointIndex = cycle_details.index
       let meta = null;
       if(typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
         meta = chartInstance.getDatasetMeta(0);
@@ -211,25 +211,25 @@ window.addEndLines = function(){
       const lineLeftOffset = meta.data[pointIndex]._model.x
       const scale = chartInstance.scales['y-axis-0'];
       const context = chartInstance.chart.ctx;
-
+      let colour = cycle_details.type === "Project start" ? "#0EA31B" : "#2a4b70"
       context.beginPath();
-      context.strokeStyle = '#2a4b70';
+      context.strokeStyle = colour;
       context.moveTo(lineLeftOffset, scale.top);
       context.lineTo(lineLeftOffset, scale.bottom);
       context.stroke();
 
-      context.fillStyle = "#2a4b70";
+      context.fillStyle = colour;
       let position = 'center';
       if (pointIndex < 2) position = 'left';
       if (pointIndex > chartInstance.data.labels.length - 3) position = 'right';
       context.textAlign = position;
-      context.fillText(`    ${end_details.type} `, lineLeftOffset, (scale.bottom - scale.top)/2 + scale.top);
+      context.fillText(`    ${cycle_details.type} `, lineLeftOffset, (scale.bottom - scale.top)/2 + scale.top);
     },
 
     afterDatasetsDraw: function (chart, easing) {
-      let cycle_ends = chart.data.cycle_ends;
-      for (let i = 0; i < cycle_ends.length; i++) {
-        this.renderVerticalLine(chart, cycle_ends[i]);
+      let cycle_thresholds = chart.data.cycle_thresholds;
+      for (let i = 0; i < cycle_thresholds.length; i++) {
+        this.renderVerticalLine(chart, cycle_thresholds[i]);
       }
     }
   };

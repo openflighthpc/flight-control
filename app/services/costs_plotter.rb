@@ -503,15 +503,17 @@ class CostsPlotter
     cycle_index
   end
 
-  def cycle_ends(start_date, end_date)
-    ends = []
+  def cycle_thresholds(start_date, end_date)
+    thresholds = []
     (start_date..(end_date + 1.day)).to_a.each_with_index do |date, index|
-      if (active_billing_cycles.include?(date) || date == @project.end_date) &&
+      if (date == @project.start_date)
+        thresholds << { index: index, type: "Project start" }
+      elsif (active_billing_cycles.include?(date) || date == @project.end_date) &&
           index > 0 && date != active_billing_cycles.first
-        ends << { index: index - 1, type: (date == @project.end_date ? "Project end" : "Cycle end") }
-      end
+        thresholds << { index: index - 1, type: (date == @project.end_date ? "Project end" : "Cycle end") }
+      end 
     end
-    ends
+    thresholds
   end
 
   def cycle_number(date)
