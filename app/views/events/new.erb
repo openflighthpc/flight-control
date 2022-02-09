@@ -1,5 +1,5 @@
 <% content_for :page_specific_js do %>
-  <%= javascript_pack_tag 'create_event'%>
+<%= javascript_pack_tag 'create_event'%>
 <% end %>
 
 <main class="col-md-12 ml-sm-auto col-lg-12 px-4" role="main">
@@ -11,32 +11,10 @@
     <div class="row">
       <div class="col-2"></div>
       <div class="col-8 wizard-body">
-        <div id="wizard-title">
-          <h4>What would you like to do?</h4>
-        </div>
-        <div class="row text-center select-count-type">
-          <div class="col-1"></div>
-          <div class="col-5">
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="count-type" id="exact-counts" value="exact" checked>
-              <label class="form-check-label" for="exact-counts">
-                Set exact instance counts<a href="#" class="tool-tip" data-placement="top" title="Instances will be switched on and/or off as needed to match the exact chosen counts."><sup>?</sup></a>
-              </label>
-            </div>
-          </div>
-          <div class="col-5">
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="count-type" id="min-counts" value="min">
-              <label class="form-check-label" for="min-counts">
-                Set minimum instance counts<a href="#" class="tool-tip" data-placement="top" title="Instances will be switched on (but not off) as needed to reach the chosen counts."><sup>?</sup></a>
-              </label>
-            </div>
-          </div>
-        </div>
-        <%= render '/events/node_choices' %>
+        <% render '/events/choose_counts' %>
+        <%= render '/events/choose_when' %>
         <div class="wizard-footer text-right float-right">
           <a class="btn btn-warning" id="wizard-next-button">Next</a>
-        </div>
         </div>
       </div>
     </div>

@@ -90,7 +90,7 @@ td {
   margin-bottom: 4rem;
 }
 
-#wizard-title {
+.wizard-title {
   text-align: center;
   padding: 1rem;
 }
@@ -108,6 +108,10 @@ td {
   margin-bottom: 3rem;
 }
 
+.form-check-input {
+  margin-top:  0.4rem !important;
+}
+
 .wizard-footer {
   margin-right: 1rem;
   margin-bottom: 2rem;
@@ -116,4 +120,17 @@ td {
 #wizard-next-button {
   padding-left: 2rem;
   padding-right: 2rem;
+}
+
+#wizard-choose-when {
+  margin-bottom: 2rem;
+}
+
+.select-timeframe {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+#event-start-title {
+  margin-bottom: 2.2rem;
 }

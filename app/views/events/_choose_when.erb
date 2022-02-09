@@ -1,0 +1,60 @@
+<div id="wizard-choose-when">
+  <div class="wizard-title">
+    <h4>When?</h4>
+  </div>
+  <div class="row text-center select-timeframe">
+    <div class="col-1"></div>
+    <div class="col-5">
+      <div class="form-check">
+        <input class="form-check-input when-radio" type="radio" name="timeframe" id="time-now" value="now" checked>
+        <label class="form-check-label" for="time-now">
+          Now (5 mins after submission)<a href="#" class="tool-tip" data-placement="top" title="Request will be carried out 5 minutes after submission." checked><sup>?</sup></a>
+        </label>
+      </div>
+    </div>
+    <div class="col-5">
+      <div class="form-check">
+        <input class="form-check-input when-radio" type="radio" name="timeframe" id="time-future" value="future">
+        <label class="form-check-label" for="time-future">
+          On chosen date(s) and time<a href="#" class="tool-tip" data-placement="top" title="Request will be carried out on the specified date and time. Can also optionally be set to repeat."><sup>?</sup></a>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="row select-when collapse" id="future-choice">
+    <div class="col-1"></div>
+    <div class="col-5">
+      <div class="text-center" id="event-start-title">
+        <p>
+          <strong>Event Start</strong>
+        </p>
+      </div>
+      <div class="row form-inline mb-4">
+        <div class="col-4 text-left">
+          Start Date:
+        </div>
+        <div class="col-7 request-timings">
+          <input type="date" class="form-control scheduled-date-picker scheduled-input" id="scheduled-date" <%="min='#{Date.today()}'" if !@scheduled_request %> name="date"
+          <%= "value='#{@scheduled_request.date}'" if @scheduled_request %>>
+        </div>
+      </div>
+      <div class="row form-inline mt-4 mb-4">
+        <div class="col-4 text-left">
+          Time:
+        </div>
+        <div class="col-7 request-timings">
+          <input type="time" class="form-control scheduled-time-picker scheduled-input" id="scheduled-time" name="time">
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6" id="scheduled-repeat-details">
+      <div class="text-center">
+        <p>
+          <strong>Policy Repetition (Optional)</strong>
+        </p>
+      </div>
+      <%= render '/events/repeat_details' %>
+      <br>
+    </div>
+  </div>
+</div>
