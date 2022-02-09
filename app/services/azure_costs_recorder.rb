@@ -150,7 +150,7 @@ class AzureCostsRecorder < AzureService
       elsif response.code == 504
         raise Net::ReadTimeout
       else
-        raise AzureApiError.new("Error querying daily cost Azure API for project #{name}.\nError code #{response.code}.\n#{response if @verbose}")
+        raise AzureApiError.new("Error querying daily cost Azure API for project #{@project.name}.\nError code #{response.code}.\n#{response if @verbose}")
       end
     rescue Net::ReadTimeout
       msg = "Attempt #{attempt}: Request timed out.\n"

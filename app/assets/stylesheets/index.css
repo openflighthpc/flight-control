@@ -68,3 +68,19 @@ td {
 .nav-tabs {
   margin-left: -1.5rem;
 }
+
+.simple-node-details {
+  padding-left: 2rem !important;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.simple-node-count {
+  width: 4.5rem !important;
+  text-align: center;
+  text-align-last: center;
+}
+
+.pending {
+  color: #f26907;
+}

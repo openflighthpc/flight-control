@@ -1,7 +1,12 @@
+<% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'create_event'%>
+<% end %>
+
 <main class="col-md-12 ml-sm-auto col-lg-12 px-4" role="main">
   <%= render '/partials/nav.erb' %>
   <div class="mt-4 text-center mb-4">
     <h2><%= @project.name %> - Create Event</h2>
   </div>
+  <%= render '/events/node_table' %>
 </main>
 

@@ -48,11 +48,8 @@ class InstanceTracker
       all_instances.each do |group, instances|
         instances.each do |instance|
           change = changes.dig(group, instance.instance_type)
-          puts "GOATS"
-          puts change
           if change
             pending_count = change += instance.pending_on
-            puts pending_count
           end
           instance.set_pending_on(pending_count) if pending_count
         end

@@ -54,6 +54,10 @@ class Project < ApplicationRecord
     @instances
   end
 
+  def pending?
+    pending_action_logs.exists?
+  end
+
   def pending_action_logs
     action_logs.where(status: "pending")
   end
@@ -92,7 +96,7 @@ class Project < ApplicationRecord
   def compute_groups_on_date(date)
     logs = instance_logs.where(date: date)
     # If no logs on that, get most recent earlier logs
-    if !logs.any?
+    if !logs.exists?
       latest_date = instance_logs.where("date < ?", date).maximum(:date)
       if latest_date
         logs = instance_logs.where(date: latest_date)
@@ -108,9 +112,9 @@ class Project < ApplicationRecord
   end
 
   def time_of_latest_change
-    latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.any?
-    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.any?
-    latest_action_log = action_logs.maximum("updated_at") if action_logs.any?
+    latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.exists?
+    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.exists?
+    latest_action_log = action_logs.maximum("updated_at") if action_logs.exists?
     if latest_cost_data || latest_instance_data || latest_action_log
       latest = [latest_cost_data, latest_instance_data, latest_action_log].compact.max
     else
@@ -133,7 +137,7 @@ class Project < ApplicationRecord
     end
     
     outcome = ""
-    if instance_logs.where(date: Date.today).any?
+    if instance_logs.where(date: Date.today).exists?
       if rerun
         outcome << "Updating existing logs. "
       else
@@ -148,7 +152,7 @@ class Project < ApplicationRecord
   def record_cost_logs(date=DEFAULT_COSTS_DATE, rerun=false, text=false, verbose=false)
     check_costs_date(date)
 
-    if cost_logs.where(date: date).any?
+    if cost_logs.where(date: date).exists?
       if rerun
         print "Updating existing logs. " if text
       else
@@ -198,7 +202,7 @@ class Project < ApplicationRecord
     return if !check_costs_date(date)
 
     date_logs = cost_logs.where(date: date)
-    any_logs = date_logs.any?
+    any_logs = date_logs.exists?
     cached = true
     if !any_logs || rerun
       cached = false

@@ -134,6 +134,11 @@ class Instance
 
   def set_pending_on(amount)
     @count[:pending_on] = amount
+    @pending = true
+  end
+
+  def pending_change?
+    @pending
   end
 
   def total_count
