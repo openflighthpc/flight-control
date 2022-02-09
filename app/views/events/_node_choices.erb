@@ -1,4 +1,4 @@
-<div class="simple-node-details col-sm-6">
+<div class="simple-node-details">
   <% pending = @project.pending? %>
   <table class="table table-borderless" id="simple-node-details-table">
     <thead>
@@ -32,7 +32,7 @@
           <tr class="text-nowrap node-row group-<%=group%> <%='pending' if pending && instance.pending_change? %>">
             <td></td>
             <td scope="row"><%= instance.customer_facing_type %><a href="#" class="instance-tooltip tool-tip" data-placement="top" title="<%= instance.details_and_cost_description %>" onClick="return false;"><sup>?</sup>
-              </a> 
+              </a>
             </td>
             <td class="text-center"><%= on %></td>
             <% if pending %>

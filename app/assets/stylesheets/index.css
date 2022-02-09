@@ -84,3 +84,36 @@ td {
 .pending {
   color: #f26907;
 }
+
+.wizard {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+
+#wizard-title {
+  text-align: center;
+  padding: 1rem;
+}
+
+.wizard-body {
+  background-clip: padding-box;
+  border: 1px solid rgba(0,0,0,.2);
+  border-radius: 0.3rem;
+  outline: 0;
+  box-shadow: 0 0.25rem 0.5rem 0 rgba(0, 0, 0, 0.2), 0 0.4rem 1.3rem 0 rgba(0, 0, 0, 0.19);
+}
+
+.select-count-type {
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+.wizard-footer {
+  margin-right: 1rem;
+  margin-bottom: 2rem;
+}
+
+#wizard-next-button {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
