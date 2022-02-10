@@ -112,8 +112,9 @@ td {
   margin-top:  0.4rem !important;
 }
 
-.wizard-footer {
-  margin-right: 1rem;
+#wizard-footer {
+  margin-right: 2rem;
+  margin-left: 2rem;
   margin-bottom: 2rem;
 }
 

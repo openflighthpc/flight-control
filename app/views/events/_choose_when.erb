@@ -1,4 +1,4 @@
-<div id="wizard-choose-when">
+<div id="wizard-choose-when" style="display:none">
   <div class="wizard-title">
     <h4>When?</h4>
   </div>
@@ -34,7 +34,7 @@
           Start Date:
         </div>
         <div class="col-7 request-timings">
-          <input type="date" class="form-control scheduled-date-picker scheduled-input" id="scheduled-date" <%="min='#{Date.today()}'" if !@scheduled_request %> name="date"
+          <input type="date" class="form-control request-date-picker request-input" id="scheduled-date" <%="min='#{Date.today()}'" if !@scheduled_request %> name="date"
           <%= "value='#{@scheduled_request.date}'" if @scheduled_request %>>
         </div>
       </div>
@@ -43,14 +43,14 @@
           Time:
         </div>
         <div class="col-7 request-timings">
-          <input type="time" class="form-control scheduled-time-picker scheduled-input" id="scheduled-time" name="time">
+          <input type="time" class="form-control request-time-picker request-input" id="scheduled-time" name="time">
         </div>
       </div>
     </div>
-    <div class="col-sm-6" id="scheduled-repeat-details">
+    <div class="col-sm-6" id="request-repeat-details">
       <div class="text-center">
         <p>
-          <strong>Policy Repetition (Optional)</strong>
+          <strong>Repetition (Optional)</strong>
         </p>
       </div>
       <%= render '/events/repeat_details' %>
