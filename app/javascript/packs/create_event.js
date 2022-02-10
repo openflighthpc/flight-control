@@ -1,5 +1,6 @@
 window.addEventListener('DOMContentLoaded', (event) => {
   $('.tool-tip').tooltip();
+  $('.simple-node-count').change(validateCounts);
   $('.when-radio').change(toggleDateSelectors);
   $('#wizard-next-button').click(showNextSection);
   $('#wizard-back-button').click(showPreviousSection);
@@ -36,5 +37,21 @@ function showPreviousSection() {
     $('#wizard-choose-counts').show();
     backButton.data('previous', "");
     $('#wizard-next-button').data('current', 'counts');
+  }
+}
+
+function validateCounts(){
+  let defaults = $('.default-node-count');
+  let nextButton = $('#wizard-next-button');
+  let changes = false;
+  defaults.each(function() {
+    if(!($(this).prop('selected'))) changes = true;
+  });
+  if(!changes) {
+    nextButton.addClass('disabled');
+    nextButton.prop('disabled', true);
+  } else {
+    nextButton.removeClass('disabled');
+    nextButton.prop('disabled', false);
   }
 }
