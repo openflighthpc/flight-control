@@ -14,6 +14,7 @@ class Project < ApplicationRecord
   has_many :instance_logs
   has_many :cost_logs
   has_many :action_logs
+  has_many :change_requests
   has_many :balances
   has_many :budget_policies
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }

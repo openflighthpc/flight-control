@@ -45,7 +45,7 @@
                 class="simple-node-count form-control"
                 autocomplete="off"
               >
-                <option selected value='<%= instance.pending_on %>' class="default-node-count"> - </option>
+                <option selected value='' class="default-node-count"> - </option>
                 <% (0..instance.node_limit).to_a.each do |amount| %>"
                   <option><%=amount%></option>
                 <% end %>

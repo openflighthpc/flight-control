@@ -11,21 +11,25 @@
     <div class="row">
       <div class="col-2"></div>
       <div class="col-8 wizard-body">
-        <%= render '/events/choose_counts' %>
-        <%= render '/events/choose_when' %>
-        <%= render '/events/choose_extras' %>
-        <%= render '/events/review' %>
-        <div class="row justify-content-between" id="wizard-footer">
-          <div>
-            <a class="btn btn-info" id="wizard-back-button" style="visibility: hidden"
-               data-previous=""> Back</a>
+        <form action='/events' method='post' id='create-event-form'>
+          <%= render '/events/choose_counts' %>
+          <%= render '/events/choose_when' %>
+          <%= render '/events/choose_extras' %>
+          <%= render '/events/review' %>
+          <div class="row justify-content-between" id="wizard-footer">
+            <div>
+              <a class="btn btn-info" id="wizard-back-button" style="visibility: hidden"
+                 data-previous=""> Back</a>
+            </div>
+            <div>
+              <a class="btn btn-warning disabled" id="wizard-next-button"
+                 data-current="counts" data-next="when"
+                 title="No counts selected" disabled>Next</a>
+            </div>
           </div>
-          <div>
-            <a class="btn btn-warning disabled" id="wizard-next-button"
-               data-current="counts" data-next="when"
-               title="No counts selected" disabled>Next</a>
-          </div>
-        </div>
+          <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
+           <input type="submit">
+        </form>
       </div>
     </div>
   </div>
