@@ -35,7 +35,7 @@ class AzureInstanceDetailsRecorder < AzureService
       types_filter << "#{index == 0 ? "" : " or"} armSkuName eq '#{type}'"
     end
     regions.each do |region|
-      
+      matches = {} 
       uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and (#{types_filter})"
       response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
       if response.success?
@@ -43,11 +43,22 @@ class AzureInstanceDetailsRecorder < AzureService
           File.write(self.class.prices_file, "#{Time.now}\n")
           first_query = false
         end
-        matches = response["Items"].select do |price|
-          price["isPrimaryMeterRegion"] && !price["productName"].end_with?("Windows") &&
-          !price["skuName"].end_with?("Low Priority") && !price["skuName"].end_with?("Spot")
+        response["Items"].each do |price|
+          if !price["productName"].end_with?("Windows") &&
+             !price["skuName"].end_with?("Low Priority") &&
+             !price["skuName"].end_with?("Spot")
+            type = price["armSkuName"]
+            if matches[type]
+              # The API sometimes returns more than one price for the same type,
+              # but with different date. We only want the most recent.
+              more_recent = Time.parse(price["effectiveStartDate"]) > Time.parse(matches[type]["effectiveStartDate"])
+              matches[type] = price if more_recent
+            else
+              matches[type] = price
+            end
+          end   
         end
-        matches.each do |matched|
+        matches.values.each do |matched|
           File.write(self.class.prices_file, matched.to_json, mode: "a")
           File.write(self.class.prices_file, "\n", mode: "a")
         end
