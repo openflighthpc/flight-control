@@ -147,3 +147,11 @@ input[type=date] {
 .day-checkbox {
   padding-right: 0.14rem !important;
 }
+
+#scheduled-description {
+  width: 18.5rem;
+}
+
+#wizard-choose-extras {
+  margin-bottom: 2rem;
+}

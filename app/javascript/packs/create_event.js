@@ -12,35 +12,57 @@ window.addEventListener('DOMContentLoaded', (event) => {
 function toggleDateSelectors() {
   if($('#time-future').prop('checked')) {
     $('#future-choice').collapse('show');
+    $('#wizard-next-button').data('next', 'extras');
   } else {
     $('#future-choice').collapse('hide');
+    $('#wizard-next-button').data('next', 'review');
   }
 }
 
 // Once done, try to merge show next and show previous
 function showNextSection() {
   let nextButton = $('#wizard-next-button');
-  let current = nextButton.data('current');
+  let target = nextButton.data('next');
   let backButton = $('#wizard-back-button');
-  if(current === "counts") {
-    $('#wizard-choose-counts').hide();
-    $('#wizard-choose-when').show();
-    backButton.data('previous', 'counts')
-    backButton.css('visibility', 'visible');
-    nextButton.data('current', 'when');
+  let nextSection = $(`#wizard-choose-${target}`);
+  let current = nextButton.data('current');
+  backButton.data('previous', current);
+  backButton.css('visibility', 'visible');
+  nextButton.data('current', target);
+  if(target === "when") {
+    nextButton.data('next', 'review');
+    validateTimings();
+  } else if(target === "extras") {
+    nextButton.data('next', 'review');
   }
+  $('.wizard-section').hide();
+  nextSection.show();
 }
 
 function showPreviousSection() {
   let backButton = $('#wizard-back-button');
-  let previous = backButton.data('previous');
-  if(previous === "counts") {
-    $('#wizard-choose-when').hide();
-    backButton.css('visibility', 'hidden');;
-    $('#wizard-choose-counts').show();
-    backButton.data('previous', "");
-    $('#wizard-next-button').data('current', 'counts');
+  let nextButton = $('#wizard-next-button');
+  let origin = nextButton.data('current');
+  let target = backButton.data('previous');
+  let targetSection = $(`#wizard-choose-${target}`);
+  nextButton.data('current', target);
+  nextButton.data('next', origin);
+  if(target === "counts") {
+    backButton.css('visibility', 'hidden');
   }
+  let newPrevious = null;
+  if(target === "when") {
+    newPrevious = "counts";
+  } else if (target === "extras") {
+    newPrevious = "when";
+  }
+  backButton.data('previous', newPrevious);
+  $('.wizard-section').hide();
+  targetSection.show();
+  // Remove any validation from what is now the next section
+  nextButton.removeClass('disabled');
+  nextButton.prop('disabled', false);
+  nextButton.prop('title', '');
 }
 
 function validateCounts(){
@@ -66,7 +88,9 @@ function validateTimings() {
   let valid = false;
   if ($('#time-now').prop("checked")) {
     valid = true;
+    nextButton.data('next', 'review');
   } else {
+    nextButton.data('next', 'extras')
     let time = $('#scheduled-time').val();
     let date = $('#scheduled-date').val();
     let weekdays = $('#weekdays').val();
@@ -88,9 +112,9 @@ function validateTimings() {
       oneHourAhead.setHours(oneHourAhead.getHours() + 1);
       let fullDate = new Date(`${date} ${time}`);
       if (weekdays === "" && fullDate < oneHourAhead) {
-        submitButton.prop("disabled", true);
-        submitButton.prop("title", "Must be at least one hour in the future");
-        submitButton.addClass("disabled");
+        nextButton.prop("disabled", true);
+        nextButton.prop("title", "Must be at least one hour in the future");
+        nextButton.addClass("disabled");
       } else {
         valid = true;
       }

@@ -13,6 +13,7 @@
       <div class="col-8 wizard-body">
         <%= render '/events/choose_counts' %>
         <%= render '/events/choose_when' %>
+        <%= render '/events/choose_extras' %>
         <div class="row justify-content-between" id="wizard-footer">
           <div>
             <a class="btn btn-info" id="wizard-back-button" style="visibility: hidden"
@@ -20,7 +21,8 @@
           </div>
           <div>
             <a class="btn btn-warning disabled" id="wizard-next-button"
-               data-current="counts" title="No counts selected" disabled>Next</a>
+               data-current="counts" data-next="when"
+               title="No counts selected" disabled>Next</a>
           </div>
         </div>
       </div>
