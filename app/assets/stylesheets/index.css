@@ -135,3 +135,15 @@ td {
 #event-start-title {
   margin-bottom: 2.2rem;
 }
+
+.disabled {
+  pointer-events: auto !important;
+}
+
+input[type=date] {
+  width: 10.6rem !important;
+}
+
+.day-checkbox {
+  padding-right: 0.14rem !important;
+}
