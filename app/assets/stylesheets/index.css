@@ -113,9 +113,7 @@ td {
 }
 
 #wizard-footer {
-  margin-right: 2rem;
-  margin-left: 2rem;
-  margin-bottom: 2rem;
+  margin: 2rem
 }
 
 #wizard-next-button {
