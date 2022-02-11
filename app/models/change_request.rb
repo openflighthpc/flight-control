@@ -1,28 +1,24 @@
 class ChangeRequest < ApplicationRecord
   belongs_to :project
   has_many :action_logs
-  validates :project_id, :counts, :date, :time, :user_id, :status, presence: true
+  validates :project_id, :counts, :date, :time, :status, presence: true
   validate :time_in_future, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :only_one_at_time, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :includes_counts, if: Proc.new { |s| !s.persisted? || s.counts_changed? }
-  validate :not_over_budget, if: Proc.new { |s| !s.persisted? || s.counts_changed? || s.time_or_date_changed? }
+  #validate :not_over_budget, if: Proc.new { |s| !s.persisted? || s.counts_changed? || s.time_or_date_changed? }
 
-  def details=(details)
-    @details = details
+  def nodes=(nodes)
+    @nodes = nodes
     update_counts
   end
 
   after_initialize do |change_request|
-    change_request.counts ||= formatted_counts.to_json
+    change_request.counts ||= formatted_counts
     change_request.status ||= "pending"
   end
 
   def update_counts
-    counts = formatted_counts.to_json
-  end
-
-  def parsed_date
-    Date.parse(self.date)
+    counts = formatted_counts
   end
 
   def date_time
@@ -35,8 +31,8 @@ class ChangeRequest < ApplicationRecord
 
   def formatted_changes(with_opening=true)
     message = ""
-    opening ="#{self.user.username} requested the following scheduled minimum counts for *#{self.project.name}*:\n"
-    parsed_counts.each do |group, details|
+    opening ="#{"Someone"} requested the following scheduled #{counts_criteria} counts for *#{self.project.name}*:\n"
+    counts.each do |group, details|
       message << "*#{group}*\n"
       details.each { |instance, count| message << "#{instance}: #{count} node#{"s" if count > 1 || count == 0}\n" }
     end
@@ -50,7 +46,7 @@ class ChangeRequest < ApplicationRecord
     message = ""
     changed = false
     actual_counts = project.actual_with_pending_counts
-    parsed_counts.each do |group, nodes|
+    counts.each do |group, nodes|
       group_message = "*#{group}*\n"
       group_changed = false
       nodes.each do |instance, count|
@@ -184,7 +180,7 @@ class ChangeRequest < ApplicationRecord
   end
 
   def link
-    "/scheduled_requests/#{self.id}?project=#{self.project.name}"
+    "/change_requests/#{self.id}?project=#{self.project.name}"
   end
 
   def switch_all_on?(group_name)
@@ -215,7 +211,7 @@ class ChangeRequest < ApplicationRecord
 
   def formatted_counts
     instances = {}
-    @details.each do |id, count|
+    @nodes.each do |id, count|
       if count != ""
         group = id.split("-")[0]
         type = id.split("-")[1]
@@ -235,12 +231,12 @@ class ChangeRequest < ApplicationRecord
   end
 
   def time_in_future
-    errors.add(:time, "must be at least 1 hour in the future") if (date_time - 1.hour) < Time.now
+    errors.add(:time, "#{date_time }must be at least 5 mins in the future") if (date_time - 5.minutes) < Time.now
   end
 
   def only_one_at_time
     dates = future_dates
-    self.project.scheduled_requests.where(time: self.time).where.not(id: self.id).where.not(status: "cancelled").each do |request|
+    self.project.change_requests.where(time: self.time).where.not(id: self.id).where.not(status: "cancelled").each do |request|
       if (request.future_dates & dates).any?
         errors.add(:time, "must not be the same as an existing request with actions on the same date")
         return  

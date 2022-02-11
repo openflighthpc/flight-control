@@ -10,10 +10,16 @@ class EventsController < ApplicationController
     @project = Project.find_by_name(parameters[:project])
     if !@project
       flash[:danger] = "Project not found"
-      redirect_to events_new_path
     else
-      render json: parameters.to_json
+      parameters.delete(:project)
+      request = @project.create_change_request(parameters)
+      if request.valid?
+        flash[:success] = "Request created"
+      else
+        flash[:danger] = format_errors(request)
+      end
     end
+    redirect_to events_new_path
   end
 
   def filtered_change_request_params

@@ -3,4 +3,14 @@ class ApplicationController < ActionController::Base
     @project = Project.find_by_name(params['project'])
     @project ||= Project.visualiser.first
   end
+
+  def format_errors(model)
+    model.errors.messages.map do |field, messages|
+      "#{format_errors_field(field).to_s.humanize} #{messages.join(', ')}"
+    end.join('; ')
+  end
+
+  def format_errors_field(field)
+    field.to_s.split('.').map { |f| f.singularize.humanize }.join(' ')
+  end
 end

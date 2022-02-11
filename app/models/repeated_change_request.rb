@@ -25,7 +25,7 @@ class RepeatedChangeRequest < ChangeRequest
   def individual_request_on_date(date)
     return nil if !future_dates.include?(date)
 
-    request = OneOffScheduledRequest.new(child_request_attributes(date))
+    request = OneOffChangeRequest.new(child_request_attributes(date))
     request.set_as_temporary_child(self.id)
     request
   end
@@ -56,11 +56,11 @@ class RepeatedChangeRequest < ChangeRequest
   def additional_field_details(slack=false)
     details = ""
     if slack
-      details = "*Override monitor for*: #{monitor_override} hours\n" if monitor_override
+      #details = "*Override monitor for*: #{monitor_override} hours\n" if monitor_override
       details << "\n*Repeat until*: #{end_date}\n"
       details << "*On days*: #{formatted_days}\n"
     else
-      details = "<strong>Override monitor for</strong>: #{monitor_override} hours<br>" if monitor_override
+      #details = "<strong>Override monitor for</strong>: #{monitor_override} hours<br>" if monitor_override
       details << "<br><strong>Repeat until</strong>: #{end_date}<br>"
       details << "<strong>On days</strong>: #{formatted_days}<br>"
     end

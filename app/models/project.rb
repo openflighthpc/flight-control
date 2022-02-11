@@ -236,6 +236,26 @@ class Project < ApplicationRecord
     end
   end
 
+  def create_change_request(params)
+    if params["timeframe"] == "now"
+      params["date"] = Date.today
+      # use 6 minutes as equivalent to rounding up current time
+      # to nearest minute
+      params["time"] = (Time.now + 6.minutes).strftime("%H:%M")
+    end
+    params.delete("timeframe")
+    if params["weekdays"] && params["weekdays"] != ""
+      change = RepeatedChangeRequest.new(params)
+    else
+      change = OneOffChangeRequest.new(params)
+    end
+    change.project_id = self.id
+    success = change.save
+    msg = change.formatted_changes
+    send_slack_message(msg) if success
+    change
+  end
+
   def send_slack_message(msg)
     HTTParty.post("https://slack.com/api/chat.postMessage",
                   headers: {"Authorization": "Bearer #{Project.slack_token}"},

@@ -34,6 +34,9 @@ function showNextSection() {
     validateTimings();
   } else if(target === "extras") {
     nextButton.data('next', 'review');
+  } else if(target === "review") {
+    nextButton.hide();
+    $('#wizard-submit-button').show();
   }
   $('.wizard-section').hide();
   nextSection.show();
@@ -56,6 +59,8 @@ function showPreviousSection() {
   } else if (target === "extras") {
     newPrevious = "when";
   }
+  nextButton.show();
+  $('#wizard-submit-button').hide();
   backButton.data('previous', newPrevious);
   $('.wizard-section').hide();
   targetSection.show();
@@ -140,9 +145,9 @@ function updateWeekdays() {
   });
   if(any) {
     $('#weekdays').val(weekdays.join(""));
-    $('#type').val("RepeatedScheduledRequest");
+    $('#type').val("RepeatedChangeRequest");
   } else {
     $('#weekdays').val(null);
-    $('#type').val("OneOffScheduledRequest");
+    $('#type').val("OneOffChangeRequest");
   }
 }
