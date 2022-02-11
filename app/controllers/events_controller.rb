@@ -6,13 +6,20 @@ class EventsController < ApplicationController
   end
 
   def create
-    get_project
-    render json: filtered_change_request_params.to_json
+    parameters = filtered_change_request_params
+    @project = Project.find_by_name(parameters[:project])
+    if !@project
+      flash[:danger] = "Project not found"
+      redirect_to events_new_path
+    else
+      render json: parameters.to_json
+    end
   end
 
   def filtered_change_request_params
     permitted = params.permit(
       :counts_criteria,
+      :project,
       :timeframe,
       :date,
       :time,
