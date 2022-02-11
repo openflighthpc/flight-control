@@ -210,7 +210,7 @@ class Project < ApplicationRecord
       "*Compute Costs (#{currency}):* #{compute.to_f.ceil(2)}",
       "*Data Out Costs (#{currency}):* #{data_out.to_f.ceil(2)}",
       "*Total Costs (#{currency}):* #{total.to_f.ceil(2)}",
-      "*Total Compute Units (Flat):* #{total_log.compute_cost.ceil(2)}",
+      "*Total Compute Units (Flat):* #{total_log.compute_cost.ceil}",
       "*Total Compute Units (Risk):* #{total_log.risk_cost}"
     ].compact.join("\n") + "\n"
 
