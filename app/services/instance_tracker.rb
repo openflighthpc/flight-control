@@ -109,14 +109,15 @@ class InstanceTracker
 
       scheduled_counts[request.date] = {} if !scheduled_counts.has_key?(request.date)
       request.counts.each do |group, instances|
+        min = request.counts_criteria == "min"
         if !scheduled_counts[request.date].has_key?(group)
           scheduled_counts[request.date][group] = {}
         end
         instances.each do |type, count|
           if scheduled_counts[request.date][group].has_key?(type)
-            scheduled_counts[request.date][group][type][request.time] = {count: count, min: true}
+            scheduled_counts[request.date][group][type][request.time] = {count: count, min: min}
           else
-            scheduled_counts[request.date][group][type] = {request.time => {count: count, min: true}}
+            scheduled_counts[request.date][group][type] = {request.time => {count: count, min: min}}
           end
         end
       end
