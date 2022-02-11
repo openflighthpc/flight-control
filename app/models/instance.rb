@@ -114,6 +114,7 @@ class Instance
     region_details = @@instance_details[region]
     @details = region_details[instance_type] if region_details
     @details ||= {}
+    @future_counts = {}
   end
 
   def present_in_region?
@@ -149,6 +150,33 @@ class Instance
     @count[:pending_on] || @count[:on]
   end
 
+  # at start of day
+  def pending_on_date(date, temp_counts=nil)
+    count = pending_on
+    if temp_counts
+      original_future_counts = Project.deep_copy_hash(@future_counts)
+      add_future_counts(temp_counts)
+    end
+    return count if @future_counts == {}
+
+    dates = @future_counts.keys.sort
+    previous_dates = dates.select { |d| d < date }
+    previous_dates.each do |d|
+      changes = @future_counts[d]
+      # a change might be a budget switch off (exact count)
+      # or a scheduled change (minimum count)
+      changes.each do |time, details|
+        if details[:min] == true
+          count = [count, details[:count]].max
+        else
+          count = details[:count]
+        end
+      end
+    end
+    @future_counts = original_future_counts if temp_counts
+    count
+  end
+
   def price_per_hour
     base_price = price || 0
     @platform == "aws" ? base_price * CostLog.usd_gbp_conversion : base_price
@@ -178,6 +206,66 @@ class Instance
   # if no pending change, the same as actual
   def pending_total_daily_compute_cost
     daily_compute_cost * pending_on
+  end
+
+  # assumes date is in the future
+  def pending_daily_cost_with_future_counts(date)
+    return pending_total_daily_compute_cost if @future_counts == {}
+
+    count = pending_on_date(date)
+    changes_on_date = @future_counts[date.to_s]
+    return daily_compute_cost * count if !changes_on_date
+
+    instances = {}
+    total_count.times do |x|
+      on = x < count
+      instances[x] = {on: on, hours: 0, previous_time: date.to_time}
+    end
+    
+    changes_on_date.each do |time, new_count_and_type|
+      time = Time.parse("#{date} #{time}")
+      new_count = new_count_and_type[:count]
+      min_count = new_count_and_type[:min]
+      total_count.times do |x|
+        instance_on = x < new_count && !instances[x][:on]
+        # only turn off if count is exact, not a minimum (i.e. budget switch offs)
+        instance_off = x >= new_count && instances[x][:on] && !min_count
+        change = instance_on || instance_off
+        if change
+          if instance_off
+            extra_hours = ((time - instances[x][:previous_time])/ 3600).ceil
+            instances[x][:hours] += extra_hours
+          elsif instance_on
+            instances[x][:previous_time] = time
+          end
+          instances[x][:on] = instance_on
+        end
+      end
+    end
+
+    total_cost = 0.0
+    instances.each do |key, values|
+      if instances[key][:on]
+        previous_time_to_midnight = (((date + 1.day).to_time - instances[key][:previous_time]) / 3600).ceil
+        instances[key][:hours] += previous_time_to_midnight
+        instances[key][:hours] = [24, instances[key][:hours]].min
+      end
+      total_cost += (instances[key][:hours] * compute_cost_per_hour).ceil
+    end
+    total_cost.ceil
+  end
+
+  def add_future_counts(counts)
+    counts.each do |date, times_and_counts|
+      times_and_counts.each do |time, details|
+        if @future_counts.has_key?(date)
+          @future_counts[date][time] = details
+        else
+          @future_counts[date] = {time => details}
+        end
+      end
+    end
+    @future_counts
   end
 
   def cpus

@@ -226,7 +226,7 @@ class CostsPlotter
     results
   end
 
-  def cost_breakdown(start_date, end_date)
+  def cost_breakdown(start_date, end_date, change_request=nil)
     results = {}
     compute_groups = @project.front_end_compute_groups
     (start_date..end_date).to_a.each do |date|
@@ -286,7 +286,7 @@ class CostsPlotter
       elsif Date.parse(k) >= @project.start_date
         compute = 0.0
         compute_groups.keys.each do |group|
-          results[k]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(k), group.to_sym)
+          results[k]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(k), group.to_sym, change_request)
           compute += results[k]["forecast_#{group}".to_sym]
           results[k]["forecast_#{group}_storage".to_sym] = previous_costs["#{group}_storage".to_sym]
           compute += results[k]["forecast_#{group}_storage".to_sym]
@@ -326,11 +326,11 @@ class CostsPlotter
   end
 
   # Just instance costs
-  def forecast_compute_cost(date, group=nil)
+  def forecast_compute_cost(date, group=nil, temp_change_request=nil)
     total = 0.0
     if date > Date.today
       group ||= :total
-      return current_compute_costs[group]
+      return temp_change_request || @project.pending? ? pending_compute_costs(date)[group] : current_compute_costs[group]
     end
 
     actions = @project.action_logs.where(date: date)
@@ -387,6 +387,20 @@ class CostsPlotter
     logs = @project.latest_instance_logs if !logs.any?
     logs = logs.where(compute_group: group) if group
     logs
+  end
+
+  # Just instance costs
+  def pending_compute_costs(date=Date.today)
+    pending_compute_costs = {total: 0.0}
+    @project.latest_instances.each do |group, instances|
+      pending_compute_costs[group.to_sym] = 0.0
+      instances.each do |instance|
+        cost = instance.pending_daily_cost_with_future_counts(date)
+        pending_compute_costs[group.to_sym] += cost
+        pending_compute_costs[:total] += cost
+      end
+    end
+    pending_compute_costs
   end
 
   # Just instance costs
@@ -699,5 +713,16 @@ class CostsPlotter
     when 'custom'
       "Every #{policy.days} days"
     end
+  end
+
+  def costs_with_change_request(temp_change_request)
+    set_future_changes(temp_change_request)
+    forecast_costs = cost_breakdown(latest_active_cycle, temp_change_request)
+    @latest_instances = nil
+    forecast_costs < 0
+  end
+
+  def change_request_goes_over_budget(change_request)
+    
   end
 end

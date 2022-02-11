@@ -7,6 +7,8 @@ class EventsController < ApplicationController
 
   def create
     parameters = filtered_change_request_params
+    puts "INDIGO"
+    puts parameters
     @project = Project.find_by_name(parameters[:project])
     if !@project
       flash[:danger] = "Project not found"

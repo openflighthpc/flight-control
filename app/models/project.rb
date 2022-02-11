@@ -15,6 +15,8 @@ class Project < ApplicationRecord
   has_many :cost_logs
   has_many :action_logs
   has_many :change_requests
+  has_many :one_off_change_requests
+  has_many :repeated_change_requests
   has_many :balances
   has_many :budget_policies
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
@@ -47,16 +49,43 @@ class Project < ApplicationRecord
     instance_logs.where(date: instance_logs.maximum(:date))
   end
 
+  def pending?
+    @pending ||= (pending_action_logs.exists? || pending_one_off_and_repeat_requests.any?)
+  end
+
+  # need to add some logic when instance logs are recorded
+  # to check if these requests (and action logs) are now complete
+  def pending_one_off_change_requests
+    one_off_change_requests.where(status: "pending")
+  end
+
+  def pending_repeated_requests
+    repeated_change_requests.where.not(status: "complete").where.not(status: "cancelled")
+  end
+
+  def pending_repeated_request_children
+    if !@repeated_request_children
+      @repeated_request_children = pending_repeated_requests.map { |repeated| repeated.as_future_individual_requests }.flatten
+    end
+    @repeated_request_children
+  end
+
+  def pending_one_off_and_repeat_requests
+    combined = pending_one_off_change_requests.to_a.concat(pending_repeated_request_children).compact
+    combined.sort_by { |request| [request.date, request.time] }
+  end
+
   # For front end use and in cost forecast calculations
-  def latest_instances
-    if !@instances
-      @instances = InstanceTracker.new(self).latest_instances
+  def latest_instances(temp_change_request=nil)
+    if !@instances || temp_change_request
+      @instances = InstanceTracker.new(self).latest_instances(temp_change_request)
     end
     @instances
   end
 
-  def pending?
-    pending_action_logs.exists?
+  # For resetting after temp
+  def reset_latest_instances
+    @instances = nil
   end
 
   def pending_action_logs

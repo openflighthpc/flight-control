@@ -1,7 +1,7 @@
 class ChangeRequest < ApplicationRecord
   belongs_to :project
   has_many :action_logs
-  validates :project_id, :counts, :date, :time, :status, presence: true
+  validates :project_id, :counts, :date, :time, :status, :type, presence: true
   validate :time_in_future, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :only_one_at_time, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :includes_counts, if: Proc.new { |s| !s.persisted? || s.counts_changed? }

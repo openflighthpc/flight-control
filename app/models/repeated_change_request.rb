@@ -75,7 +75,7 @@ class RepeatedChangeRequest < ChangeRequest
 
   def child_request_attributes(date)
     details = self.attributes.except("id", "weekdays", "end_date", "repeat", "status", "type")
-    details[:type] = "OneOffScheduledRequest"
+    details[:type] = "OneOffChangeRequest"
     details[:status] = "pending"
     details[:date] = date.to_s
     details    
