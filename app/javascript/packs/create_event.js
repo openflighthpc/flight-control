@@ -1,5 +1,4 @@
 window.addEventListener('DOMContentLoaded', (event) => {
-  $('.tool-tip').tooltip();
   $('.simple-node-count').change(validateCounts);
   $('.when-radio').change(toggleDateSelectors);
   $('.day-input').change(updateWeekdays);

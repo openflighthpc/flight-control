@@ -41,14 +41,21 @@ window.forecastAndActual = function() {
     let forecast = chart.datasets.find((dataset) => dataset.label === "forecast other");
     let actual = chart.datasets.find((dataset) => dataset.label === "other");
     return forecast !== undefined && actual !== undefined;
+  } else {
+    if (simple_chart === null) return false; // if this is called as part of the creation of the chart
+
+    let chart = simple_chart.data;
+    let forecast = chart.datasets.find((dataset) => dataset.label === "forecast total");
+    let actual = chart.datasets.find((dataset) => dataset.label === "total");
+    return forecast !== undefined && actual !== undefined;
   }
 }
 
 window.overlapDateIndex = function() {
   let date_index = null;
-  let chart = costs_chart;
-  forecast = chart.data.datasets.find((dataset) => dataset.label === "forecast remaining budget");
-  actual = chart.data.datasets.find((dataset) => dataset.label === "remaining budget");
+  let chart = typeof cumulative_chart !== 'undefined' ? cumulative_chart : simple_chart;
+  forecast = chart.data.datasets.find((dataset) => dataset.label === "forecast total");
+  actual = chart.data.datasets.find((dataset) => dataset.label === "total");
   if(forecast != undefined && actual != undefined) {
     for (let i=0; i<actual.data.length; i++) {
       if(actual.data[i] === forecast.data[i]) date_index = i;
@@ -113,8 +120,10 @@ window.addOverBudgetLines = function(){
   const verticalLinePlugin = {
     renderVerticalLine: function (chartInstance, pointIndex, type, number) {
       let meta = null;
-      if(typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
+      if(typeof simple_chart !== 'undefined' && chartInstance === simple_chart ||
+         typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
         meta = chartInstance.getDatasetMeta(0);
+        console.log(meta)
       } else {
         let index = null;
         let forecastBudgetDataset = null;
@@ -141,6 +150,8 @@ window.addOverBudgetLines = function(){
           meta = chartInstance.getDatasetMeta(index);
         }
       }
+      console.log(meta)
+      console.log(pointIndex)
       const lineLeftOffset = meta.data[pointIndex]._model.x
       const scale = chartInstance.scales['y-axis-0'];
       const context = chartInstance.chart.ctx;
@@ -180,7 +191,8 @@ window.addCycleLines = function(){
     renderVerticalLine: function (chartInstance, cycle_details) {
       const pointIndex = cycle_details.index
       let meta = null;
-      if(typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
+      if(typeof simple_chart !== 'undefined' && chartInstance === simple_chart ||
+         typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
         meta = chartInstance.getDatasetMeta(0);
       } else {
         let index = null;
@@ -271,6 +283,39 @@ window.overBudgetDateIndexes = function(){
               firstOver = false;
               indexes.push(i);
             }
+          } else {
+            firstOver = true;
+          }
+        }
+      }
+    }
+  } else {
+    let budgetData = simple_chart.data.datasets.find((dataset) => dataset.label === "budget").data;
+    let totalDataset = simple_chart.data.datasets.find((dataset) => dataset.label === "total");
+    let forecastTotalDataset = simple_chart.data.datasets.find((dataset) => dataset.label === "forecast total");
+    let firstOver = true;
+
+    if (totalDataset != null) {
+      let data = totalDataset.data;
+      for (let i = 0; i < data.length; i++) {
+        if (data[i] != null && data[i] > budgetData[i]) {
+          if (firstOver === true) {
+            firstOver = false;
+            indexes.push(i);
+          }
+        } else {
+          firstOver = true;
+        }
+      }
+    }
+
+    if (forecastTotalDataset != null) {
+      let data = forecastTotalDataset.data;
+      for (let i = 0; i < data.length; i++) {
+        if (data[i] != null && data[i] > budgetData[i]) {
+          if (firstOver === true) {
+            firstOver = false;
+            indexes.push(i);
           } else {
             firstOver = true;
           }

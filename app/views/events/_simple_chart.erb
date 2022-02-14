@@ -1,0 +1,97 @@
+<div class="simple-chart">
+  <div class="chart mr-5 ml-5">
+    <h3 class="chart-title">Estimated Costs</h3>
+    <canvas id="simpleChart"></canvas>
+    <script type="text/javascript">
+      let cumulative = <%= raw(@cumulative_costs.to_json) %>;
+      let actual_cumulative_data = [
+        {
+          label: 'total',
+          data: cumulative['actual']['total'],
+          backgroundColor: 'rgb(230, 138, 25)',
+          borderColor: 'rgb(202,121,23)',
+          fill: false,
+          cubicInterpolationMode: 'monotone',
+          type: 'line',
+        }
+      ]
+      let forecast_cumulative_data = [
+        {
+          label: 'forecast total',
+          data: cumulative['forecast']['total'],
+          backgroundColor: 'rgb(250, 198, 135)',
+          borderColor: 'rgb(250, 198, 135)',
+          fill: false,
+          cubicInterpolationMode: 'monotone',
+          type: 'line',
+          borderDash: [1, 1],
+        },
+      ]
+      ctx = document.getElementById('simpleChart').getContext('2d');
+      let simple_chart = null;
+      simple_chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: cumulative.dates,
+          cycle_ends: <%= raw(@cycle_ends.to_json) %>,
+          balance_end: null,
+          datasets: [
+          {
+            label: 'budget',
+            data: cumulative['budget'],
+            borderColor: 'rgba(120, 63, 191, 0.8)',
+            backgroundColor: 'rgba(120, 63, 191, 0.8)',
+            fill: false,
+            cubicInterpolationMode: 'monotone',
+            type: 'line',
+          },
+          <% if @cumulative_costs[:actual][:any] %>
+            actual_cumulative_data,
+          <% end %>
+          <% if @cumulative_costs['forecast'][:any] %>
+            forecast_cumulative_data,
+          <% end %>
+          ].flat()
+        },
+        options: {
+          responsive: true,
+          title: {
+            display: true,
+            text: 'Select a dataset in the legend to toggle visibility',
+            padding: 0
+          },
+          legend: {
+            labels: {
+              filter: function(item, data) {
+                return !(item.text.includes('forecast') && forecastAndActual());
+              }
+            },
+            onClick: hideRelatedDatasetOnClick
+          },
+          tooltips: {
+            mode: 'index',
+            position: 'nearest',
+            filter: function(tooltipItem, data) {
+              return !(data.datasets[tooltipItem.datasetIndex].label.includes('forecast') && tooltipItem.index === overlapDateIndex())
+            },
+          },
+          scales: {
+            xAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'Date'
+              },
+            }],
+            yAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'Compute Units'
+              },
+            }],
+          }
+        }
+      });
+      filterDatasets(simple_chart);
+    </script>
+  </div>
+</div>

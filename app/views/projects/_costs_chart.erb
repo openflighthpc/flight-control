@@ -135,7 +135,8 @@
           display: true,
           text: 'Select a dataset in the legend to toggle visibility',
           padding: 0
-        },legend: {
+        },
+        legend: {
           labels: {
             filter: function(item, data) {
               return !(item.text.includes('forecast') && forecastAndActual());
