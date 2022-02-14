@@ -250,6 +250,10 @@ class Project < ApplicationRecord
     # platform specific, so none in this superclass
   end
 
+  def costs_plotter
+    @costs_plotter ||= CostsPlotter.new(self)
+  end
+
   def daily_report(date=DEFAULT_COSTS_DATE, rerun=false, slack=true, text=true, verbose=false)
     return if !check_costs_date(date)
 
@@ -287,7 +291,17 @@ class Project < ApplicationRecord
     end
   end
 
-  def create_change_request(params)
+  def change_request_cumulative_costs(params)
+    change = make_change_request(params)
+    # This sets the future instance counts based on the
+    # if the temp change request were carried out
+    latest_instances(change)
+    costs_plotter.cumulative_change_request_costs(change)
+  end
+
+  # create object, but don't persist
+  def make_change_request(params)
+    params["project"] = self
     if params["timeframe"] == "now"
       params["date"] = Date.today
       # use 6 minutes as equivalent to rounding up current time
@@ -300,6 +314,10 @@ class Project < ApplicationRecord
     else
       change = OneOffChangeRequest.new(params)
     end
+  end
+
+  def create_change_request(params)
+    change = make_change_request(params)
     change.project_id = self.id
     success = change.save
     msg = change.formatted_changes

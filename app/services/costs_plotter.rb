@@ -4,8 +4,8 @@ class CostsPlotter
     @project = project
   end
 
-  def chart_cost_breakdown(start_date, end_date)
-    cost_entries = cost_breakdown(start_date, end_date)
+  def chart_cost_breakdown(start_date, end_date, temp_change_request=nil, cost_entries=nil)
+    cost_entries ||= cost_breakdown(start_date, end_date, temp_change_request)
     dates = cost_entries.keys
     compute = []
     nodes = []
@@ -73,9 +73,9 @@ class CostsPlotter
     results
   end
 
-  def chart_cumulative_costs(start_date, end_date)
+  def chart_cumulative_costs(start_date, end_date, temp_change_request=nil, cost_entries=nil)
     start_of_cycle = start_of_billing_interval(start_date)
-    cost_entries = cost_breakdown(start_of_cycle, end_date)
+    cost_entries ||= cost_breakdown(start_of_cycle, end_date, temp_change_request)
     dates = (start_date..end_date).map { |date| date.to_s }
     compute = []
     data_out = []
@@ -730,11 +730,11 @@ class CostsPlotter
     end
   end
 
-  def costs_with_change_request(temp_change_request)
-    set_future_changes(temp_change_request)
-    forecast_costs = cost_breakdown(latest_active_cycle, temp_change_request)
-    @latest_instances = nil
-    forecast_costs < 0
+  def cumulative_change_request_costs(temp_change_request)
+    start_date = start_of_billing_interval(Date.today)
+    end_date = end_of_billing_interval(Date.today)
+    costs = cost_breakdown(start_date, end_date, temp_change_request)
+    chart_cumulative_costs(start_date, end_date, temp_change_request, costs)
   end
 
   def change_request_goes_over_budget(change_request)

@@ -33,7 +33,7 @@ class OneOffChangeRequest < ChangeRequest
   end
 
   def action_on_date?(date)
-    Date.parse(self.date) == Date.parse(date)
+    self.date == Date.parse(date)
   end
 
   # three methods below are so can be interchangeable with repeated request

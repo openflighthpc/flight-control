@@ -10,5 +10,6 @@ Rails.application.routes.draw do
 
   # Events (change requests and their resulting actions)
   get '/events/new', to: 'events#new'
+  get '/json/events/costs-forecast', to: 'events#costs_forecast'
   post '/events/', to: 'events#create'
 end

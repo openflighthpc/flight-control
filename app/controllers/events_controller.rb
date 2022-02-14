@@ -28,6 +28,12 @@ class EventsController < ApplicationController
     redirect_to events_new_path
   end
 
+  def costs_forecast
+    parameters = filtered_change_request_params
+    @project = Project.find_by_name(parameters[:project])
+    render json: {costs: @project.change_request_cumulative_costs(parameters)}
+  end
+
   def filtered_change_request_params
     permitted = params.permit(
       :counts_criteria,
