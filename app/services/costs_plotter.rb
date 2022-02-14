@@ -334,19 +334,28 @@ class CostsPlotter
     end
 
     actions = @project.action_logs.where(date: date)
+    scheduled_actions = @project.pending_one_off_and_repeat_requests_on(date.to_s)
+    if temp_change_request && temp_change_request.action_on_date?(date.to_s)
+      scheduled_actions = scheduled_actions << temp_change_request.individual_request_on_date(date.to_s)
+    end
+    scheuled_actions = scheduled_actions.select { |scheduled| scheduled.counts[group.to_s]} if group
     instance_logs = @project.instance_logs.where(date: date.to_s)
     instance_logs = instance_logs.where(compute_group: group) if group
     # In case no logs recorded on that day, use previous
     instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
-    if actions.any?
+    if actions.any? || scheduled_actions.any?
       instance_logs.each do |log|
         instance_cost = 0.0
         instance_actions = actions.where(instance_id: log.instance_id).reorder(:actioned_at)
+        instance_scheduled = scheduled_actions.select do |schedule| 
+          schedule.counts[log.compute_group] && schedule.counts[log.compute_group][log.instance_type]
+        end
+        instance_scheduled.sort_by! { |scheduled| scheduled.time }
         previous_time = date.to_time # start of day (00:00)
         previous_action = nil
         # we can calculate running time by comparing action log times and actions
         time_on = 0
-        if instance_actions.any?
+        if instance_actions.any? || instance_scheduled.any?
           instance_actions.each do |action|
             original_status = action.action == "on" ? "off" : "on"
             time_at_previous_status = (action.actioned_at - previous_time) / 3600 # in hours
@@ -354,7 +363,13 @@ class CostsPlotter
             previous_time = action.actioned_at
             previous_action = action.action
           end
-          previous_action = log.pending_power_status if !instance_actions.any?
+          previous_action = log.pending_on? ? "on" : "off" if !instance_actions.any?
+          instance_scheduled.each do |schedule|
+            if schedule.required_switch_on(log.compute_group, log.instance_type, previous_action)
+              previous_time = schedule.date_time
+              previous_action = "on"
+            end
+          end
           to_end_of_day = ((date + 1.day).to_time - previous_time) / 3600
           time_on += to_end_of_day.ceil if previous_action == "on"
           time_on = [time_on, 24].min

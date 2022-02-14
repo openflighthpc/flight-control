@@ -88,6 +88,13 @@ class Project < ApplicationRecord
     combined.sort_by { |request| [request.date, request.time] }
   end
 
+  def pending_one_off_and_repeat_requests_on(date)
+    pending = pending_one_off_change_requests.where(date: date)
+    repeated = pending_repeated_requests.select { |repeat| repeat.action_on_date?(date) }
+    repeated_children = repeated.map { |repeat| repeat.individual_request_on_date(date) }
+    pending.to_a.concat(repeated_children).compact
+  end
+
   # For front end use and in cost forecast calculations
   def latest_instances(temp_change_request=nil)
     if !@instances || temp_change_request
