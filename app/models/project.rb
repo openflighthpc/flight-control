@@ -49,8 +49,19 @@ class Project < ApplicationRecord
     instance_logs.where(date: instance_logs.maximum(:date))
   end
 
+  def pending_actions?
+    @pending_actions ||= pending_action_logs.exists?
+  end
+
   def pending?
-    @pending ||= (pending_action_logs.exists? || pending_one_off_and_repeat_requests.any?)
+    @pending ||= (pending_actions? || pending_one_off_and_repeat_requests.any?)
+  end
+
+  # Run this only when new instance logs are created (as we know
+  # statuses can't have changed unless instance statuses have changed)
+  def check_and_update_pending_changes
+    pending_one_off_and_repeat_requests.each { |request| request.check_and_update_status}
+    action_logs.where(change_request_id: nil, status: "pending").each { |action| action.check_and_update_status }
   end
 
   # need to add some logic when instance logs are recorded
@@ -59,6 +70,8 @@ class Project < ApplicationRecord
     one_off_change_requests.where(status: "pending")
   end
 
+  # For repeat requests, they are pending (but don't necessarily have a 
+  # status of pending) until all their actions on every date are complete
   def pending_repeated_requests
     repeated_change_requests.where.not(status: "complete").where.not(status: "cancelled")
   end
@@ -177,6 +190,8 @@ class Project < ApplicationRecord
       outcome << "Writing new logs for today. "
     end
     outcome << instance_recorder&.record_logs(rerun)
+    check_and_update_pending_changes
+    outcome
   end
 
   def record_cost_logs(date=DEFAULT_COSTS_DATE, rerun=false, text=false, verbose=false)

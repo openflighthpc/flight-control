@@ -133,12 +133,12 @@ class ChangeRequest < ApplicationRecord
   end
 
   def start
-    status = "started"
+    self.status = "started"
     save!
   end
 
   def complete
-    status = "completed"
+    self.status = "completed"
     save!
   end
 

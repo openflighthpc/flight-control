@@ -113,9 +113,9 @@ class ActionLog < ApplicationRecord
   def check_and_update_status
     if !@checked
       @checked = true
-      return status if status != "pending" || project.latest_instance_log_time < actioned_at
+      return status if status != "pending"
 
-      goal = action == "on" ? "status = 'Available' OR status = 'running'"  : "NOT status = 'Available' AND NOT status = 'running'"
+      goal = action == "on" ? "status = 'VM running' OR status = 'running'"  : "NOT status = 'VM running' AND NOT status = 'running'"
       reached = project.latest_instance_logs.where(instance_id: instance_id).where(goal).where('updated_at > ?', actioned_at).any?
       complete if reached
       status
@@ -125,7 +125,7 @@ class ActionLog < ApplicationRecord
   end
 
   def complete
-    status = "completed"
+    self.status = "completed"
     save!
 
     complete_previous
