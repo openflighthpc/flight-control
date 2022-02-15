@@ -150,8 +150,6 @@ window.addOverBudgetLines = function(){
           meta = chartInstance.getDatasetMeta(index);
         }
       }
-      console.log(meta)
-      console.log(pointIndex)
       const lineLeftOffset = meta.data[pointIndex]._model.x
       const scale = chartInstance.scales['y-axis-0'];
       const context = chartInstance.chart.ctx;
