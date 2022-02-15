@@ -153,3 +153,9 @@ input[type=date] {
 #wizard-choose-extras {
   margin-bottom: 2rem;
 }
+
+#loading-chart-spinner {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 1rem);
+}

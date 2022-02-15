@@ -25,6 +25,9 @@ function showNextSection() {
   let backButton = $('#wizard-back-button');
   let nextSection = $(`#wizard-choose-${target}`);
   let current = nextButton.data('current');
+  if(current === "when") {
+    getEventCostForecast();
+  }
   backButton.data('previous', current);
   backButton.css('visibility', 'visible');
   nextButton.data('current', target);
@@ -155,14 +158,16 @@ window.getEventCostForecast = function(event) {
     if (this.readyState == 4 && this.status == 200) {
       let response = JSON.parse(this.responseText);
       updateChart(response.costs);
-      $('#event-forecast-spinner').addClass('d-none');
+      $('#loading-chart-spinner').addClass('d-none');
+      $('#simpleChart').css('visibility', 'visible');
     }
   };
   xhttp.onerror = function() {
     alert("Unable to connect to server. Please check your connection and that the application is still running.");
   };
 
-  $('#event-forecast-spinner').removeClass('d-none');
+  $('#loading-chart-spinner').removeClass('d-none');
+  $('#simpleChart').css('visibility', 'hidden');
   let params = `?${$('#create-event-form').serialize()}`;
   xhttp.open("GET", `/json/events/costs-forecast${params}`, true);
   xhttp.send();

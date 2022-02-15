@@ -4,13 +4,15 @@
     <h3 class="chart-title text-center">
       Estimated Costs
     </h3>
-    <canvas id="simpleChart"></canvas>
+    <div class="spinner-border text-info" role="status" id="loading-chart-spinner">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <canvas id="simpleChart" style="visibility:hidden"></canvas>
     <script type="text/javascript">
-      let cumulative = <%= raw(@cumulative_costs.to_json) %>;
       let actual_cumulative_data = [
         {
           label: 'total',
-          data: cumulative['actual']['total'],
+          data: [],
           backgroundColor: 'rgb(230, 138, 25)',
           borderColor: 'rgb(202,121,23)',
           fill: false,
@@ -21,7 +23,7 @@
       let forecast_cumulative_data = [
         {
           label: 'forecast total',
-          data: cumulative['forecast']['total'],
+          data: [],
           backgroundColor: 'rgb(250, 198, 135)',
           borderColor: 'rgb(250, 198, 135)',
           fill: false,
@@ -35,25 +37,21 @@
       simple_chart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: cumulative.dates,
+          labels: [],
           cycle_ends: <%= raw(@cycle_ends.to_json) %>,
           balance_end: null,
           datasets: [
           {
             label: 'budget',
-            data: cumulative['budget'],
+            data: [],
             borderColor: 'rgba(120, 63, 191, 0.8)',
             backgroundColor: 'rgba(120, 63, 191, 0.8)',
             fill: false,
             cubicInterpolationMode: 'monotone',
             type: 'line',
           },
-          <% if @cumulative_costs[:actual][:any] %>
-            actual_cumulative_data,
-          <% end %>
-          <% if @cumulative_costs['forecast'][:any] %>
-            forecast_cumulative_data,
-          <% end %>
+          actual_cumulative_data,
+          forecast_cumulative_data,
           ].flat()
         },
         options: {

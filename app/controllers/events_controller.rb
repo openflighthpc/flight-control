@@ -5,9 +5,7 @@ class EventsController < ApplicationController
     cost_plotter = CostsPlotter.new(@project)
     start_date = cost_plotter.start_of_billing_interval(Date.today)
     end_date = cost_plotter.end_of_billing_interval(Date.today)
-    @cumulative_costs = cost_plotter.chart_cumulative_costs(start_date, end_date)
     @cycle_ends = cost_plotter.cycle_ends(start_date, end_date)
-    @estimated_end_of_balance = nil
     @nav_view = "create event"
   end
 

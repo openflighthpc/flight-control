@@ -218,6 +218,8 @@ window.addCycleLines = function(){
           meta = chartInstance.getDatasetMeta(index);
         }
       }
+      if(meta.data[pointIndex] === undefined) return;
+
       const lineLeftOffset = meta.data[pointIndex]._model.x
       const scale = chartInstance.scales['y-axis-0'];
       const context = chartInstance.chart.ctx;
