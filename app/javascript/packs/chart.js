@@ -123,7 +123,6 @@ window.addOverBudgetLines = function(){
       if(typeof simple_chart !== 'undefined' && chartInstance === simple_chart ||
          typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
         meta = chartInstance.getDatasetMeta(0);
-        console.log(meta)
       } else {
         let index = null;
         let forecastBudgetDataset = null;
@@ -316,9 +315,9 @@ window.overBudgetDateIndexes = function(){
           if (firstOver === true) {
             firstOver = false;
             indexes.push(i);
-          } else {
-            firstOver = true;
           }
+        } else {
+            firstOver = true;
         }
       }
     }

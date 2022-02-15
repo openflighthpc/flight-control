@@ -182,4 +182,14 @@ function updateChart(costs) {
   actualTotalDataset.data = costs.actual.total;
   forecastTotalDataset.data = costs.forecast.total
   simple_chart.update();
+  let submitButton = $('#wizard-submit-button');
+  if(overBudgetDateIndexes().length > 0) {
+    submitButton.addClass('disabled');
+    submitButton.prop('disabled', true);
+    submitButton.prop('title', 'Cannot submit request that goes over budget');
+  } else {
+    submitButton.removeClass('disabled');
+    submitButton.prop('disabled', false);
+    submitButton.prop('title', '');
+  }
 }
