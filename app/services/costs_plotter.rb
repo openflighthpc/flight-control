@@ -737,7 +737,12 @@ class CostsPlotter
     chart_cumulative_costs(start_date, end_date, temp_change_request, costs)
   end
 
-  def change_request_goes_over_budget(change_request)
-    
+  def change_request_goes_over_budget?(change_request)
+    start_date = start_of_billing_interval(Date.today)
+    end_date = end_of_billing_interval(Date.today)
+    costs = cost_breakdown(start_date, end_date, change_request)
+    end_costs = costs.to_a.last[1]
+    end_budget = end_costs[:forecast_budget] ? end_costs[:forecast_budget] : end_costs[:budget]
+    end_budget < 0
   end
 end

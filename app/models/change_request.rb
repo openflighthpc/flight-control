@@ -5,7 +5,7 @@ class ChangeRequest < ApplicationRecord
   validate :time_in_future, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :only_one_at_time, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :includes_counts, if: Proc.new { |s| !s.persisted? || s.counts_changed? }
-  #validate :not_over_budget, if: Proc.new { |s| !s.persisted? || s.counts_changed? || s.time_or_date_changed? }
+  validate :not_over_budget, if: Proc.new { |s| !s.persisted? || s.counts_changed? || s.time_or_date_changed? }
 
   def nodes=(nodes)
     @nodes = nodes
@@ -244,7 +244,7 @@ class ChangeRequest < ApplicationRecord
     end
   end
 
-  # def not_over_budget
-  #   errors.add(:counts, "must not result in going over budget") if project.scheduled_request_goes_over_budget?(self)
-  # end
+  def not_over_budget
+     errors.add(:counts, "must not result in going over budget") if project.change_request_goes_over_budget?(self)
+  end
 end

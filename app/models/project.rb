@@ -299,6 +299,13 @@ class Project < ApplicationRecord
     costs_plotter.cumulative_change_request_costs(change)
   end
 
+  def change_request_goes_over_budget?(change_request)
+    latest_instances(change_request)
+    over = costs_plotter.change_request_goes_over_budget?(change_request)
+    reset_latest_instances
+    over
+  end
+
   # create object, but don't persist
   def make_change_request(params)
     params["project"] = self
