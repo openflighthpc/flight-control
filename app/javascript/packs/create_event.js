@@ -21,6 +21,8 @@ function toggleDateSelectors() {
 // Once done, try to merge show next and show previous
 function showNextSection() {
   let nextButton = $('#wizard-next-button');
+  if(nextButton.attr('disabled') === 'disabled') return;
+
   let target = nextButton.data('next');
   let backButton = $('#wizard-back-button');
   let nextSection = $(`#wizard-choose-${target}`);
@@ -68,7 +70,7 @@ function showPreviousSection() {
   targetSection.show();
   // Remove any validation from what is now the next section
   nextButton.removeClass('disabled');
-  nextButton.prop('disabled', false);
+  nextButton.attr('disabled', false);
   nextButton.prop('title', '');
 }
 
@@ -81,11 +83,11 @@ function validateCounts(){
   });
   if(!changes) {
     nextButton.addClass('disabled');
-    nextButton.prop('disabled', true);
+    nextButton.attr('disabled', true);
     nextButton.prop('title', "No counts selected");
   } else {
     nextButton.removeClass('disabled');
-    nextButton.prop('disabled', false);
+    nextButton.attr('disabled', false);
     nextButton.prop('title', "");
   }
 }
@@ -103,15 +105,15 @@ function validateTimings() {
     let weekdays = $('#weekdays').val();
     let endDate = $('#end-date').val();
     if (time === "" || date === "") {
-      nextButton.prop("disabled", true);
+      nextButton.attr("disabled", true);
       nextButton.prop("title", "Date and time must be specified");
       nextButton.addClass("disabled");
     } else if (weekdays != "" && endDate === "" || weekdays === "" && endDate != "") {
-      nextButton.prop("disabled", true);
+      nextButton.attr("disabled", true);
       nextButton.prop("title", "For repeated policy, weekdays and an end date must be selected");
       nextButton.addClass("disabled");
     } else if (endDate != "" && new Date(endDate) < new Date(date)) {
-      nextButton.prop("disabled", true);
+      nextButton.attr("disabled", true);
       nextButton.prop("title", "For repeated policy, end date must be after or equal to start date");
       nextButton.addClass("disabled");
     } else {
@@ -119,7 +121,7 @@ function validateTimings() {
       oneHourAhead.setHours(oneHourAhead.getHours() + 1);
       let fullDate = new Date(`${date} ${time}`);
       if (weekdays === "" && fullDate < oneHourAhead) {
-        nextButton.prop("disabled", true);
+        nextButton.attr("disabled", true);
         nextButton.prop("title", "Must be at least one hour in the future");
         nextButton.addClass("disabled");
       } else {
@@ -129,7 +131,7 @@ function validateTimings() {
   }
   if (valid) {
     nextButton.removeClass('disabled');
-    nextButton.prop('disabled', false);
+    nextButton.attr('disabled', false);
     nextButton.prop('title', '');
   }
 }
@@ -185,11 +187,11 @@ function updateChart(costs) {
   let submitButton = $('#wizard-submit-button');
   if(overBudgetDateIndexes().length > 0) {
     submitButton.addClass('disabled');
-    submitButton.prop('disabled', true);
+    submitButton.attr('disabled', true);
     submitButton.prop('title', 'Cannot submit request that goes over budget');
   } else {
     submitButton.removeClass('disabled');
-    submitButton.prop('disabled', false);
+    submitButton.attr('disabled', false);
     submitButton.prop('title', '');
   }
 }
