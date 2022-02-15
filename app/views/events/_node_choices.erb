@@ -44,6 +44,8 @@
                 name="nodes[<%= selector %>]"
                 class="simple-node-count form-control"
                 autocomplete="off"
+                data-customer-facing="<%= instance.customer_facing_type %>"
+                data-compute-group="<%= group %>"
               >
                 <option selected value='' class="default-node-count"> - </option>
                 <% (0..instance.node_limit).to_a.each do |amount| %>"

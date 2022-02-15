@@ -195,3 +195,23 @@ function updateChart(costs) {
     submitButton.prop('title', '');
   }
 }
+
+window.updateRequestSummary = function() {
+  let summarySection = $('#request-summary');
+  const countCriteria = $('input[name="counts_criteria"]:checked').val();
+  let text = `Set ${countCriteria} counts:<br><br>`;
+  let counts = $('.simple-node-count');
+  let includedGroups = [];
+  counts.each(function() {
+    let count = $(this);
+    if(count.val() != "") {
+      let group = count.data('compute-group');
+      if(!includedGroups.includes(group)) {
+        text += `<strong>${group}</strong><br>`;
+        includedGroups.push(group);
+      }
+      text += `${count.val()} ${count.data('customer-facing')}<br>`
+    }
+  });
+  summarySection.html(text)
+}
