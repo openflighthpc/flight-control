@@ -148,3 +148,33 @@ function updateWeekdays() {
     $('#weekdays').val(null);
   }
 }
+
+window.getEventCostForecast = function(event) {
+  let xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      let response = JSON.parse(this.responseText);
+      updateChart(response.costs);
+      $('#event-forecast-spinner').addClass('d-none');
+    }
+  };
+  xhttp.onerror = function() {
+    alert("Unable to connect to server. Please check your connection and that the application is still running.");
+  };
+
+  $('#event-forecast-spinner').removeClass('d-none');
+  let params = `?${$('#create-event-form').serialize()}`;
+  xhttp.open("GET", `/json/events/costs-forecast${params}`, true);
+  xhttp.send();
+}
+
+function updateChart(costs) {
+  simple_chart.data.labels = costs.dates;
+  let budgetDataset = simple_chart.data.datasets.find((dataset) => dataset.label === "budget");
+  let actualTotalDataset = simple_chart.data.datasets.find((dataset) => dataset.label === "total");
+  let forecastTotalDataset = simple_chart.data.datasets.find((dataset) => dataset.label == "forecast total");
+  budgetDataset.data = costs.budget;
+  actualTotalDataset.data = costs.actual.total;
+  forecastTotalDataset.data = costs.forecast.total
+  simple_chart.update();
+}
