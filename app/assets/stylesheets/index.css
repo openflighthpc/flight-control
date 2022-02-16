@@ -159,3 +159,7 @@ input[type=date] {
   top: 50%;
   left: calc(50% - 1rem);
 }
+
+#request-summary {
+  margin-top: 2rem;
+}

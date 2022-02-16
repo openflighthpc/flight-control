@@ -1,8 +1,8 @@
 window.addEventListener('DOMContentLoaded', (event) => {
   $('.simple-node-count').change(validateCounts);
   $('.when-radio').change(toggleDateSelectors);
-  $('.day-input').change(updateWeekdays);
   $('.when-radio').change(validateTimings);
+  $('.day-input').change(updateWeekdays);
   $('.scheduled-input').change(validateTimings);
   $('#wizard-next-button').click(showNextSection);
   $('#wizard-back-button').click(showPreviousSection);
@@ -15,6 +15,8 @@ function toggleDateSelectors() {
   } else {
     $('#future-choice').collapse('hide');
     $('#wizard-next-button').data('next', 'review');
+    $('.day-input').prop('checked', false);
+    $('.scheduled-input').val("");
   }
 }
 
@@ -27,9 +29,6 @@ function showNextSection() {
   let backButton = $('#wizard-back-button');
   let nextSection = $(`#wizard-choose-${target}`);
   let current = nextButton.data('current');
-  if(current === "when") {
-    getEventCostForecast();
-  }
   backButton.data('previous', current);
   backButton.css('visibility', 'visible');
   nextButton.data('current', target);
@@ -45,6 +44,9 @@ function showNextSection() {
   }
   $('.wizard-section').hide();
   nextSection.show();
+  if(current === "when") {
+    getEventCostForecast();
+  }
 }
 
 function showPreviousSection() {
