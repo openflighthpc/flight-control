@@ -95,6 +95,22 @@ class Project < ApplicationRecord
     pending.to_a.concat(repeated_children).compact
   end
 
+  def request_dates_and_times(exclude_request=nil)
+    results = {}
+    requests = pending_one_off_and_repeat_requests
+    requests.reject! { |request| request.id == exclude_request.id } if exclude_request
+    requests.pluck(:date, :time).each do |timing|
+      date = timing[0]
+      time = timing[1]
+      if results[date]
+        results[date][time] = true
+      else
+        results[date] = {time => true }
+      end
+    end
+    results
+  end
+
   # For front end use and in cost forecast calculations
   def latest_instances(temp_change_request=nil)
     if !@instances || temp_change_request

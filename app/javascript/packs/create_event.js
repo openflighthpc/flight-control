@@ -17,6 +17,7 @@ function toggleDateSelectors() {
     $('#wizard-next-button').data('next', 'review');
     $('.day-input').prop('checked', false);
     $('.scheduled-input').val("");
+    $('.scheduled-description').val("");
   }
 }
 
@@ -126,6 +127,10 @@ function validateTimings() {
       if (weekdays === "" && fullDate < oneHourAhead) {
         nextButton.attr("disabled", true);
         nextButton.prop("title", "Must be at least one hour in the future");
+        nextButton.addClass("disabled");
+      } else if(overlapsExisting()) {
+        nextButton.attr("disabled", true);
+        nextButton.prop("title", "Timings overlap an existing request");
         nextButton.addClass("disabled");
       } else {
         valid = true;
@@ -253,4 +258,55 @@ function readableWeekdays() {
     }
   }
   return readable;
+}
+
+function overlapsExisting() {
+  if(Object.keys(existingRequestTimings).length === 0) return false;
+
+  let time = $('#scheduled-time').val();
+  let date = $('#scheduled-date').val();
+  if(time === "" || date === "") return false;
+
+  let weekdays = $('#weekdays').val();
+  let endDate = $('#end-date').val();
+  if(weekdays === "") {
+    if(existingRequestTimings[date] && existingRequestTimings[date][time]) {
+      return true;
+    }
+  } else if(weekdays != "" && endDate != "") {
+    weekdays = weekdays.split("");
+    endDate =  new Date(endDate);
+    endDate.setHours(0,0,0,0);
+    date = new Date(date);
+    date.setHours(0,0,0,0);
+    while(date <= endDate) {
+      date.setDate(date.getDate() + 1);
+      let day = (date.getDay() + 6) % 7; // JS treats Sunday as day one, we use Monday
+      if(weekdays[day] === "1") {
+        let formattedDate = format_date(date);
+        if(existingRequestTimings[formattedDate] && existingRequestTimings[formattedDate][time]) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function format_date(dateTime) {
+  // JS getMonth method starts at 0
+  let month = ensureTwoDigits((dateTime.getMonth() + 1).toString());
+  let year = dateTime.getFullYear();
+  let date = ensureTwoDigits(dateTime.getDate().toString());
+  return `${year}-${month}-${date}`;
+}
+
+function format_time(dateTime) {
+  let hours = ensureTwoDigits(dateTime.getHours().toString());
+  let minutes = ensureTwoDigits(dateTime.getMinutes().toString());
+  return `${hours}:${minutes}`;
+}
+
+function ensureTwoDigits(timeAspect) {
+  return timeAspect.length < 2 ? `0${timeAspect}` : timeAspect;
 }

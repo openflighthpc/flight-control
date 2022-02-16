@@ -9,6 +9,7 @@
     </div>
     <canvas id="simpleChart" style="visibility:hidden"></canvas>
     <script type="text/javascript">
+      let existingRequestTimings = <%= raw(@existing_timings.to_json) %>;
       let actual_cumulative_data = [
         {
           label: 'total',
@@ -19,7 +20,7 @@
           cubicInterpolationMode: 'monotone',
           type: 'line',
         }
-      ]
+      ];
       let forecast_cumulative_data = [
         {
           label: 'forecast total',
@@ -31,7 +32,7 @@
           type: 'line',
           borderDash: [1, 1],
         },
-      ]
+      ];
       ctx = document.getElementById('simpleChart').getContext('2d');
       let simple_chart = null;
       simple_chart = new Chart(ctx, {

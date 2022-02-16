@@ -13,7 +13,7 @@ class RepeatedChangeRequest < ChangeRequest
     if !@future_dates
       start = [date, Date.today].max
       start += 1.day if start == Date.today && actioned_at && Date.parse(actioned_at) == Date.today
-      @future_dates = (start..end_date).to_a.map { |date| date.to_s if date == date || named_weekdays.include?(date.strftime("%a")) }.compact
+      @future_dates = (start..end_date).to_a.map { |d| d.to_s if d == date || named_weekdays.include?(d.strftime("%a")) }.compact
     end
     @future_dates
   end

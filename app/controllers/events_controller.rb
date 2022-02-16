@@ -6,6 +6,7 @@ class EventsController < ApplicationController
     start_date = cost_plotter.start_of_billing_interval(Date.today)
     end_date = cost_plotter.end_of_billing_interval(Date.today)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
+    @existing_timings = @project.request_dates_and_times
     @nav_view = "create event"
   end
 
@@ -23,7 +24,7 @@ class EventsController < ApplicationController
         flash[:danger] = format_errors(request)
       end
     end
-    redirect_to events_new_path
+    redirect_to events_new_path(project: @project.name)
   end
 
   def costs_forecast
