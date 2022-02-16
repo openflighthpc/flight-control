@@ -40,6 +40,7 @@ function showNextSection() {
     nextButton.data('next', 'review');
   } else if(target === "review") {
     nextButton.hide();
+    updateRequestSummary();
     $('#wizard-submit-button').show();
   }
   $('.wizard-section').hide();
@@ -199,7 +200,14 @@ function updateChart(costs) {
 window.updateRequestSummary = function() {
   let summarySection = $('#request-summary');
   const countCriteria = $('input[name="counts_criteria"]:checked').val();
-  let text = `Set ${countCriteria} counts:<br><br>`;
+  let timing = "";
+  const now = $('input[name="timeframe"]:checked').val() === "now";
+  if(now) {
+    timing = "now (5 minutes after submission)";
+  } else {
+    timing = `at ${$('#scheduled-date').val()} ${$('#scheduled-time').val()}`;
+  }
+  let text = `Set <strong>${countCriteria}</strong> counts ${timing}:<br><br>`;
   let counts = $('.simple-node-count');
   let includedGroups = [];
   counts.each(function() {
@@ -213,5 +221,34 @@ window.updateRequestSummary = function() {
       text += `${count.val()} ${count.data('customer-facing')}<br>`
     }
   });
-  summarySection.html(text)
+  text += "<br>";
+  if(!now) {
+    if($('#weekdays').val() != "") {
+      text += `<strong>Repeat:</strong> ${readableWeekdays()}<br>`;
+      text += `<strong>Until:</strong> ${$('#end-date').val()}<br>`;
+    }
+    let description = $('#scheduled-description').val();
+    if(description != "") text += `<strong>Description</strong>: ${description}`;
+  }
+  summarySection.html(text);
+}
+
+function readableWeekdays() {
+  let weekdays = $('#weekdays').val();
+  if(weekdays === "1111111") return "Every day";
+
+  daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  let readable = "";
+  let firstDay = true;
+  for (let i = 0; i < weekdays.length; i++) {
+    if(weekdays[i] === "1") {
+      if (firstDay) {
+        firstDay = false;
+      } else {
+        readable += ", ";
+      }
+      readable += daysOfWeek[i];
+    }
+  }
+  return readable;
 }
