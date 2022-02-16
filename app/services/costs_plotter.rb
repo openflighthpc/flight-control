@@ -463,6 +463,7 @@ class CostsPlotter
     # Assume policies only change at the start of a billing cycle
     budget_dates = (start_date..end_date).to_a & active_billing_cycles
     budget_dates = [start_date] | budget_dates
+    budget_dates << @project.start_date if @project.start_date < end_date
     changes = {}
     budget_dates.each do |date|
       break if @project.end_date && date >= @project.end_date && date != start_date
