@@ -266,6 +266,10 @@ class Project < ApplicationRecord
     # platform specific, so none in this superclass
   end
 
+  def instance_manager
+    # platform specific, so none in this superclass
+  end
+
   def costs_plotter
     @costs_plotter ||= CostsPlotter.new(self)
   end
