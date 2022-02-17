@@ -167,7 +167,7 @@ window.getEventCostForecast = function(event) {
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       let response = JSON.parse(this.responseText);
-      updateChart(response.costs);
+      updateChart(response);
       $('#loading-chart-spinner').addClass('d-none');
       $('#simpleChart').css('visibility', 'visible');
     }
@@ -183,7 +183,8 @@ window.getEventCostForecast = function(event) {
   xhttp.send();
 }
 
-function updateChart(costs) {
+function updateChart(response) {
+  let costs = response.costs;
   simple_chart.data.labels = costs.dates;
   let budgetDataset = simple_chart.data.datasets.find((dataset) => dataset.label === "budget");
   let actualTotalDataset = simple_chart.data.datasets.find((dataset) => dataset.label === "total");
@@ -191,9 +192,14 @@ function updateChart(costs) {
   budgetDataset.data = costs.budget;
   actualTotalDataset.data = costs.actual.total;
   forecastTotalDataset.data = costs.forecast.total
+  simple_chart.data.balance_end = response.balance_end;
   simple_chart.update();
   let submitButton = $('#wizard-submit-button');
-  if(overBudgetDateIndexes().length > 0) {
+  if(simple_chart.data.balance_end != null) {
+    submitButton.addClass('disabled');
+    submitButton.attr('disabled', true);
+    submitButton.prop('title', 'Cannot submit request that goes over balance');
+  } else if(overBudgetDateIndexes().length > 0) {
     submitButton.addClass('disabled');
     submitButton.attr('disabled', true);
     submitButton.prop('title', 'Cannot submit request that goes over budget');

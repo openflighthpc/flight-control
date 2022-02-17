@@ -543,7 +543,7 @@ class CostsPlotter
     @latest_cost_log_date ||= @project.cost_logs.last&.date
   end
 
-  def estimated_end_of_balance
+  def estimated_end_of_balance(temp_change_request=nil)
     balance = @project.balances.where("amount > ?", 0).last
     balance = balance ? balance.amount : 0.0
     date_grouped = @project.cost_logs.where(scope: "total").group_by { |log| log.date }
@@ -560,7 +560,7 @@ class CostsPlotter
       final_check_date = @project.archived_date ? @project.archived_date : Date.today + 1.year
       while(balance > 0 && balance_end_date < final_check_date)
         balance_end_date += 1.day
-        balance -= forecast_compute_cost(balance_end_date)
+        balance -= forecast_compute_cost(balance_end_date, nil, temp_change_request)
         balance -= latest_compute_storage_costs
         balance -= latest_non_compute_costs
       end
@@ -569,9 +569,11 @@ class CostsPlotter
     balance_end_date
   end
 
-  def estimated_balance_end_in_cycle(start_date, end_date)
+  def estimated_balance_end_in_cycle(start_date=start_of_current_billing_interval,
+                                     end_date=end_of_current_billing_interval,
+                                     temp_change_request=nil)
     cycle_index = nil
-    estimated_end = estimated_end_of_balance
+    estimated_end = estimated_end_of_balance(temp_change_request)
     if estimated_end && estimated_end >= start_date && estimated_end <= end_date
       cycle_index = (start_date..end_date).to_a.index(estimated_end)
     end
@@ -670,6 +672,14 @@ class CostsPlotter
     else
       start_of_billing_interval(date + @project.cycle_days.days) - 1.day
     end
+  end
+
+  def start_of_current_billing_interval
+    start_of_billing_interval(Date.today)
+  end
+
+  def end_of_current_billing_interval
+    end_of_billing_interval(Date.today)
   end
 
   def billing_start_day_of_month

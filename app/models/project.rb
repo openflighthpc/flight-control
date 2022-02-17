@@ -312,7 +312,11 @@ class Project < ApplicationRecord
     # This sets the future instance counts based on the
     # if the temp change request were carried out
     latest_instances(change)
-    costs_plotter.cumulative_change_request_costs(change)
+    results = {costs: costs_plotter.cumulative_change_request_costs(change)}
+    start_date = costs_plotter.start_of_billing_interval(Date.today)
+    end_date = costs_plotter.end_of_billing_interval(Date.today)
+    results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, change)
+    results
   end
 
   def change_request_goes_over_budget?(change_request)
