@@ -52,4 +52,10 @@ class InstanceLog < ApplicationRecord
     end
     @pending_on
   end
+
+  def resource_group
+    return if platform == "aws"
+    
+    instance_id.split("/")[4]
+  end
 end
