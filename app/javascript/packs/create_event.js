@@ -195,11 +195,12 @@ function updateChart(response) {
   simple_chart.data.balance_end = response.balance_end;
   simple_chart.update();
   let submitButton = $('#wizard-submit-button');
+  let overBudget = overBudgetDateIndexes().length > 0;
   if(simple_chart.data.balance_end != null) {
     submitButton.addClass('disabled');
     submitButton.attr('disabled', true);
     submitButton.prop('title', 'Cannot submit request that goes over balance');
-  } else if(overBudgetDateIndexes().length > 0) {
+  } else if(overBudget) {
     submitButton.addClass('disabled');
     submitButton.attr('disabled', true);
     submitButton.prop('title', 'Cannot submit request that goes over budget');
@@ -208,10 +209,20 @@ function updateChart(response) {
     submitButton.attr('disabled', false);
     submitButton.prop('title', '');
   }
+  if(simple_chart.data.balance_end != null) {
+    $('#over-balance-warning').css('display', 'block');
+  } else {
+    $('#over-balance-warning').css('display', 'none');
+  }
+  if(overBudget) {
+    $('#over-budget-warning').css('display', 'block');
+  } else {
+    $('#over-budget-warning').css('display', 'none');
+  }
 }
 
 window.updateRequestSummary = function() {
-  let summarySection = $('#request-summary');
+  let summarySection = $('#request-choices-summary');
   const countCriteria = $('input[name="counts_criteria"]:checked').val();
   let timing = "";
   const now = $('input[name="timeframe"]:checked').val() === "now";
