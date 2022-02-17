@@ -60,7 +60,9 @@ class Project < ApplicationRecord
   # Run this only when new instance logs are created (as we know
   # statuses can't have changed unless instance statuses have changed)
   def check_and_update_pending_changes
-    pending_one_off_and_repeat_requests.each { |request| request.check_and_update_status}
+    change_requests.where.not(status: "complete").where.not(
+                              status: "cancelled").reorder(
+                              "updated_at DESC").each { |request| request.check_and_update_status }
     action_logs.where(change_request_id: nil, status: "pending").each { |action| action.check_and_update_status }
   end
 
@@ -354,6 +356,31 @@ class Project < ApplicationRecord
     msg = change.formatted_changes
     send_slack_message(msg) if success
     change
+  end
+
+  def action_scheduled(slack, text)
+    any = false
+    pending_one_off_and_repeat_requests.each do |request|
+      if request.due?
+        any = true
+        msg = "" # fix/update this: request.formatted_actions
+        action_change_request(request)
+        request.start
+        send_slack_message(msg) if slack
+        puts msg if text
+      end
+    end
+    puts "No scheduled requests due for project #{self.name}." if !any && text
+  end
+
+  def update_instance_statuses(actions)
+    actions.each do |action, details|
+      next if details.empty?
+      # for aws grouping is region, for azure is resource group
+      details.each do |grouping, instances|
+        instance_manager.update_instance_statuses(action, grouping, instances)
+      end
+    end
   end
 
   def send_slack_message(msg)

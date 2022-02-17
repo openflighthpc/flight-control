@@ -40,6 +40,24 @@ class AwsProject < Project
     @instance_details_recorder ||= AwsInstanceDetailsRecorder.new(self)
   end
 
+  def action_change_request(change)
+    instance_ids = {on: {}, off: {}}
+    instances_to_change.each do |action, instances|
+      instances.each do |instance|
+        if instance_ids[action].has_key?(instance.region)
+          instance_ids[action][instance.region] << instance.instance_id
+        else
+          instance_ids[action][instance.region] = [instance.instance_id]
+        end
+        action_log = ActionLog.new(project_id: self.id, action: action, reason: "Change request",
+                                   instance_id: instance.instance_id,
+                                   change_request_id: change.actual_or_parent_id)
+        action_log.save!
+      end
+    end
+    update_instance_statuses(by_resource_group)
+  end
+
   private
 
   def project_tag_if_tag_filter

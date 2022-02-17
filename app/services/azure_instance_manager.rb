@@ -1,7 +1,7 @@
 class AzureInstanceManager < AzureService
 
   def update_instance_statuses(action, resource_group, node_names, verbose=false)
-    command = action == "on" ? "start" : "deallocate"
+    command = action.to_s == "on" ? "start" : "deallocate"
     node_names.each do |node|
       uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/resourceGroups/#{resource_group}/providers/Microsoft.Compute/virtualMachines/#{node}/#{command}"
       query = {

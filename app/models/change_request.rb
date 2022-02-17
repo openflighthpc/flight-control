@@ -25,6 +25,10 @@ class ChangeRequest < ApplicationRecord
     Time.parse("#{date.to_s} #{time}")
   end
 
+  def actual_or_parent_id
+    self.id
+  end
+
   def customer_facing(type)
     InstanceMapping.customer_facing_type(type)
   end
@@ -107,7 +111,7 @@ class ChangeRequest < ApplicationRecord
     counts.each do |group, nodes|
       nodes.each do |instance, count|
         instance_logs = project_logs.where(instance_type: instance, compute_group: group)
-        on_instance = instance_logs.select { |instance| instance.pending_on? }
+        on_instances = instance_logs.select { |instance| instance.pending_on? }
         diff = count - on_instances.count
         if diff > 0
           off_instances = instance_logs.select { |instance| !instance.pending_on? }
@@ -124,7 +128,7 @@ class ChangeRequest < ApplicationRecord
       @checked = true
       return if status != "started"
 
-      action_logs.reorder("submitted_at DESC").each do |log|
+      action_logs.reorder("actioned_at DESC").each do |log|
         log.check_and_update_status
         return if log.status == "pending"
       end

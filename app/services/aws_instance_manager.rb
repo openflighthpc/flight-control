@@ -11,7 +11,7 @@ class AwsInstanceManager
   def update_instance_statuses(action, region, instance_ids, verbose=false)
     begin
       ec2 = Aws::EC2::Client.new(access_key_id: @project.access_key_ident, secret_access_key: @project.key, region: region)
-      if action == "on"
+      if action.to_s == "on"
         ec2.start_instances(instance_ids: instance_ids)
         ec2.wait_until(:instance_running, instance_ids: instance_ids)
         puts "#{instance_ids} started."

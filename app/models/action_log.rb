@@ -1,7 +1,7 @@
 class ActionLog < ApplicationRecord
   before_create :set_defaults
   belongs_to :project
-  # belongs_to :change_request, optional: true
+  belongs_to :change_request, optional: true
   default_scope { order(:actioned_at) }
   validates :project_id, :reason, :instance_id, presence: true
   validates :created_at, :updated_at, presence: true, on: :save
