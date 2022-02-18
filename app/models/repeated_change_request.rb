@@ -12,7 +12,7 @@ class RepeatedChangeRequest < ChangeRequest
   def future_dates
     if !@future_dates
       start = [date, Date.today].max
-      start += 1.day if start == Date.today && actioned_at && Date.parse(actioned_at) == Date.today
+      start += 1.day if start == Date.today && actioned_at && actioned_at.to_date == Date.today
       @future_dates = (start..end_date).to_a.map { |d| d.to_s if d == date || named_weekdays.include?(d.strftime("%a")) }.compact
     end
     @future_dates
@@ -45,7 +45,7 @@ class RepeatedChangeRequest < ChangeRequest
   end
 
   def start
-    actioned_at = Time.now
+    self.actioned_at = Time.now
     super
   end
 

@@ -117,6 +117,9 @@ class ChangeRequest < ApplicationRecord
           off_instances = instance_logs.select { |instance| !instance.pending_on? }
           instances = off_instances.first(diff.abs)
           actions[:on] = actions[:on].concat(instances)
+        elsif diff < 0 && counts_criteria == "exact"
+          instances = on_instances.first(diff.abs)
+          actions[:off] = actions[:off].concat(instances)
         end
       end
     end
