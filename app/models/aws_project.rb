@@ -41,6 +41,7 @@ class AwsProject < Project
   end
 
   def action_change_request(change)
+    instances_to_change = change.instances_to_change_with_pending
     instance_ids = {on: {}, off: {}}
     instances_to_change.each do |action, instances|
       instances.each do |instance|
@@ -55,7 +56,7 @@ class AwsProject < Project
         action_log.save!
       end
     end
-    update_instance_statuses(by_resource_group)
+    update_instance_statuses(instance_ids)
   end
 
   private
