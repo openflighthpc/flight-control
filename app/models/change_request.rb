@@ -60,7 +60,7 @@ class ChangeRequest < ApplicationRecord
           group_changed = true
           changed = true
           group_message << "#{instance}: turn on #{diff} node#{"s" if diff > 1}\n"
-        elsif diff < 0
+        elsif diff < 0 && counts_criteria == "exact"
           group_changed = true
           changed = true
           group_message << "#{instance}: turn off #{diff.abs} node#{"s" if diff.abs > 1}\n"

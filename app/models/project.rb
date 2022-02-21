@@ -366,8 +366,8 @@ class Project < ApplicationRecord
         msg = request.formatted_actions
         send_slack_message(msg) if slack
         puts msg if text
-        action_change_request(request)
         request.start
+        action_change_request(request)
       end
     end
     puts "No scheduled requests due for project #{self.name}." if !any && text
