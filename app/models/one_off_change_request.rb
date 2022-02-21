@@ -49,31 +49,45 @@ class OneOffChangeRequest < ChangeRequest
     action_on_date?(date) ? self : nil
   end
 
-  def required_switch_on(group, type, current_status)
-    action = false
+  def check_and_update_target_counts(group, type, current_status)
+    action = nil
     return action if !counts[group] || !counts[group][type]
 
-    target_count = counts[group][type]
-    comparison = @comparison_counts[group]
-    comparison = comparison ? comparison[type] : 0
-    comparison ||= 0
-    if comparison < target_count
-      action = true if current_status == "off"
-      increment_comparison_count(group, type)
+    if current_status == "on"
+      update_comparison_count(group, type, 1)
+    else
+      # set to 0 if off and first of this group & type
+      update_comparison_count(group, type, 0)
     end
-    action
+
+    comparison = @comparison_counts[group][type]
+    target_count = counts[group][type]
+    
+    if comparison < target_count
+      if current_status == "off"
+        update_comparison_count(group, type, 1)
+        action = "on"
+      end
+    elsif comparison > target_count && counts_criteria == "exact"
+      if current_status == "on"
+        update_comparison_count(group, type, -1)
+        action = "off"
+      end
+    end
+    action 
   end
 
-  def increment_comparison_count(group, type)
+  def update_comparison_count(group, type, amount)
     if @comparison_counts[group]
       if @comparison_counts[group][type]
-        @comparison_counts[group][type] += 1
+        @comparison_counts[group][type] += amount
       else
-        @comparison_counts[group][type] = 1
+        @comparison_counts[group][type] = amount
       end
     else
-      @comparison_counts[group] = {type => 1}
+      @comparison_counts[group] = {type => amount}
     end
+    @comparison_counts[group][type] = 0 if @comparison_counts[group][type] < 0
   end
 
   def start

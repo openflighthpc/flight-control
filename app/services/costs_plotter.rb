@@ -365,15 +365,18 @@ class CostsPlotter
           end
           previous_action = log.pending_on? ? "on" : "off" if !instance_actions.any?
           instance_scheduled.each do |schedule|
-            if schedule.required_switch_on(log.compute_group, log.instance_type, previous_action)
+            action = schedule.check_and_update_target_counts(log.compute_group, log.instance_type, previous_action)
+            if action
+              time_at_previous_status = (schedule.date_time - previous_time) / 3600 # in hours
+              time_on += time_at_previous_status.ceil if previous_action == "on"
               previous_time = schedule.date_time
-              previous_action = "on"
+              previous_action = action   
             end
           end
           to_end_of_day = ((date + 1.day).to_time - previous_time) / 3600
           time_on += to_end_of_day.ceil if previous_action == "on"
           time_on = [time_on, 24].min
-          instance_cost += log.hourly_compute_cost * time_on.ceil          
+          instance_cost += log.hourly_compute_cost * time_on.ceil
         else
           # no changes so can use instance log status
           if date == Date.today # handles if a pending action log from yesterday
