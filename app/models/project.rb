@@ -363,11 +363,11 @@ class Project < ApplicationRecord
     pending_one_off_and_repeat_requests.each do |request|
       if request.due?
         any = true
-        msg = "" # fix/update this: request.formatted_actions
-        action_change_request(request)
-        request.start
+        msg = request.formatted_actions
         send_slack_message(msg) if slack
         puts msg if text
+        action_change_request(request)
+        request.start
       end
     end
     puts "No scheduled requests due for project #{self.name}." if !any && text
@@ -381,6 +381,10 @@ class Project < ApplicationRecord
         instance_manager.update_instance_statuses(action, grouping, instances)
       end
     end
+  end
+
+  def actual_with_pending_counts
+    InstanceTracker.new(self).actual_with_pending_counts
   end
 
   def send_slack_message(msg)

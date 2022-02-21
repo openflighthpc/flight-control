@@ -124,4 +124,36 @@ class InstanceTracker
     end
     scheduled_counts
   end
+
+  def actual_counts
+    determine_counts(false)
+  end
+
+  def actual_with_pending_counts
+    determine_counts
+  end
+
+  # A lighterweight method of getting just the counts,
+  # for when we don't need to know costs, future counts, etc.
+  def determine_counts(include_pending=true)
+    instances = @project.latest_instance_logs
+
+    counts = {}
+    instances.each do |instance|
+      group = instance.compute_group
+      type = instance.instance_type
+      status = include_pending ? instance.pending_status : instance.status
+      value = InstanceLog::ON_STATUSES[instance.platform][status] ? 1 : 0
+      if counts.has_key?(group)
+        if counts[group].has_key?(type)
+          counts[group][type] += value
+        else
+          counts[group][type] = value
+        end
+      else
+        counts[group] = {type => value}
+      end
+    end
+    counts
+  end
 end

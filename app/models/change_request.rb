@@ -60,14 +60,18 @@ class ChangeRequest < ApplicationRecord
           group_changed = true
           changed = true
           group_message << "#{instance}: turn on #{diff} node#{"s" if diff > 1}\n"
+        elsif diff < 0
+          group_changed = true
+          changed = true
+          group_message << "#{instance}: turn off #{diff.abs} node#{"s" if diff.abs > 1}\n"
         end
       end
       message << group_message if group_changed
     end
     if changed
-      message = "Changes submitted to scripts for automated actioning as part of a scheduled request for *#{project.name}*\n\n" << message
+      message = "Changes submitted to for automated actioning as part of a scheduled request for *#{project.name}*\n\n" << message
     else
-      message = "No changes required to meet minimum counts in the scheduled request at #{date_time} for *#{self.project.name}*\n"
+      message = "No changes required to meet #{counts_criteria} counts in the scheduled request at #{date_time} for *#{project.name}*\n"
     end
     message
   end

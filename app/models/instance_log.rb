@@ -41,16 +41,24 @@ class InstanceLog < ApplicationRecord
     !InstanceMapping.instance_mappings[platform][instance_type].nil?
   end
 
-  def pending_on?
-    if !@pending_on
+  def pending_status
+    if !@pending 
       action_log = ActionLog.where(instance_id: instance_id).where(status: "pending").last
       if action_log
-        @pending_on = action_log.action == "on"
+        if action_log.action == "on"
+          @pending = ON_STATUSES[platform]
+        else
+          @pending = OFF_STATUSES[platform]
+        end
       else
-        @pending_on = on?
+        @pending = status
       end
     end
-    @pending_on
+    @pending
+  end
+
+  def pending_on?
+    status == ON_STATUSES[platform]
   end
 
   def resource_group
