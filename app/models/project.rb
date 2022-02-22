@@ -50,11 +50,17 @@ class Project < ApplicationRecord
   end
 
   def pending_actions?
-    @pending_actions ||= pending_action_logs.exists?
+    if @pending_actions == nil
+      @pending_actions = pending_action_logs.exists?
+    end
+    @pending_actions
   end
 
   def pending?
-    @pending ||= (pending_actions? || pending_one_off_and_repeat_requests.any?)
+    if @pending == nil
+      @pending = (pending_actions? || pending_one_off_and_repeat_requests.any?)
+    end
+    @pending
   end
 
   # Run this only when new instance logs are created (as we know
@@ -86,8 +92,11 @@ class Project < ApplicationRecord
   end
 
   def pending_one_off_and_repeat_requests
-    combined = pending_one_off_change_requests.to_a.concat(pending_repeated_request_children).compact
-    combined.sort_by { |request| [request.date, request.time] }
+    if !@combined_requests
+      @combined_requests = pending_one_off_change_requests.to_a.concat(pending_repeated_request_children).compact
+      @combined_requests = @combined_requests.sort_by { |request| [request.date, request.time] }
+    end
+    @combined_requests
   end
 
   def pending_one_off_and_repeat_requests_on(date)
