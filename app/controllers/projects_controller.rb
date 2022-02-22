@@ -1,18 +1,27 @@
 class ProjectsController < ApplicationController
   def costs_breakdown
+    @nav_view = "costs"
     get_costs_data
   end
 
+  def billing_management
+    @nav_view = "billing"
+    get_project
+    cost_plotter = CostsPlotter.new(@project)
+    @billing_cycles = cost_plotter.historic_cycle_details
+    @policy = @project.budget_policies.last
+    @billing_date = cost_plotter.billing_date
+    @latest_cycle_details = cost_plotter.latest_cycle_details
+  end
+
   def data_check
-    @project = Project.find_by_name(params['project'])
-    @project ||= Project.first
+    get_project
     timestamp = Time.parse(params['timestamp'])
     render json: {changed: @project.data_changed?(timestamp)}
   end
 
   def get_costs_data
-    @project = Project.find_by_name(params['project'])
-    @project ||= Project.first
+    get_project
     cost_plotter = CostsPlotter.new(@project)
     if params['start_date'] && params['start_date'] != ""
       @start_date = Date.parse(params['start_date'])
@@ -39,5 +48,10 @@ class ProjectsController < ApplicationController
     original = @current_instances.clone
     @current_instances.select! { |group, instances| @datasets.include?(group) }
     @current_instances = original if @current_instances.empty?
+  end
+
+  def get_project
+    @project = Project.find_by_name(params['project'])
+    @project ||= Project.visualiser.first
   end
 end

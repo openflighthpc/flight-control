@@ -1,0 +1,10 @@
+<% if @nav_view != nil %>
+  <ul class="nav nav-tabs view-selection">
+    <li class="nav-item">
+      <%= link_to "Billing Management", billing_management_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "billing"}" %>
+    </li>
+    <li class="nav-item">
+      <%= link_to "Costs Breakdown", costs_breakdown_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "costs"}" %>
+    </li>
+  </ul>
+<% end %>

@@ -29,6 +29,7 @@ class Project < ApplicationRecord
     }
   after_save :update_end_balance
   scope :active, -> { where("archived_date IS NULL OR archived_date > ?", Date.today) }
+  scope :visualiser, -> { where(visualiser: true) }
 
   def self.slack_token
     @@slack_token ||= Rails.application.config.slack_token

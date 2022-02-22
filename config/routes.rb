@@ -5,5 +5,6 @@ Rails.application.routes.draw do
 
   # Projects
   get '/costs-breakdown', to: 'projects#costs_breakdown'
+  get '/billing-management', to: 'projects#billing_management'
   get '/json/data-check', to: 'projects#data_check'
 end

@@ -1,5 +1,5 @@
 body {
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Work Sans', sans-serif !important;
 }
 
 .chart {
@@ -50,4 +50,21 @@ th {
 
 td {
   border-top: none !important;
+}
+
+.billing-overview {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
+#billing-cycles-table {
+  margin-bottom: 6rem;
+}
+
+.tool-tip:hover {
+  text-decoration: none;
+}
+
+.nav-tabs {
+  margin-left: -1.5rem;
 }
