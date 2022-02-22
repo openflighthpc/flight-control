@@ -257,3 +257,39 @@ These groups and types shown in this table are determined by the project's confi
 #### New Data Alert and Refresh
 
 If new costs are recorded or instance counts change, this page will show an alert that when accepted refreshes the page, so this latest data can be shown. The application checks for new data every 30 seconds.
+
+### Change Requests
+
+On the Create Event page, users can request to turn instances on or off by submitting a change request.
+
+Change requests can either specify exact counts, which will turn instances on or off to meet the counts, or minimum counts, which will only turn instance on to meet the specified counts. If counts are already met, no actions will be taken.
+
+These requests can either be carried out 'now', 5 minutes after submission(rounded up), or at a specified date and time in the future.
+
+If in the future, the user can also optionally choose to repeat the request on the chosen days of the week, until the chosen end date (inclusive of that date). Users may also specify a description for these requests.
+
+Once all request details have been selected, a chart will be displayed with the estimated resulting costs, for the current billing cycle.
+
+If this forecast will take the project over budget or over balance, the user will be preventing from submitting the request.
+
+Upon submission a slack message will be sent to the project's defined slack channel.
+
+#### Carrying out requests
+
+A cron job is specified as part of the configuration for whenever, that runs a rake task that checks for all due change requests each minute.
+
+When the specified date(s) and time for a request is reached, its targets are compared to the current instance counts to determine what actions (if any) are required. If any, requests are submitted to the relevant cloud platform to switch on/off instances to meet the counts and an Action Log created for each action.
+
+Pending instance counts (based on pending action logs) will be displayed in the instance counts charts on the costs breakdown and create event page.
+
+When new instance logs are created, these are compared against any pending action logs. If the action logs' target states are reached, they are updated from a status of 'pending' to 'complete'.
+
+#### Manual changes and action logs
+
+If a user turns on or off an instance from outside this application, an action log must be created in order for it to have an accurate picture of the project and make appropriate forecasts.
+
+An action log can be created using the task `rake action_logs:add [project_name,action,reason,instance_id,actioned_at_time]`.
+
+`instance_id` here refers to the id given by the instance's platform and must be in the appropriate format. For example, for aws this would be something like `i-0b00efe3aab7010da`, or for azure `/subscriptions/#{subscription_id}/resourceGroups/#{resource_group}/providers/Microsoft.Compute/virtualMachines/#{instance_name}`.
+
+`action` must be `on` or `off` and `actioned_at_time` in the format "yyyy-mm-dd HH:MM".

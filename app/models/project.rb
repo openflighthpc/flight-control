@@ -72,8 +72,6 @@ class Project < ApplicationRecord
     action_logs.where(change_request_id: nil, status: "pending").each { |action| action.check_and_update_status }
   end
 
-  # need to add some logic when instance logs are recorded
-  # to check if these requests (and action logs) are now complete
   def pending_one_off_change_requests
     one_off_change_requests.where(status: "pending")
   end
