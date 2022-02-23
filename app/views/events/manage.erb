@@ -14,5 +14,12 @@
   </div>
   <div class="container mt-5">
     <%= render '/projects/static_instances_table', locals: { show_pending: false } %>
+    <div class="row mt-5">
+      <div class="col-sm-2"></div>
+      <div class="col-sm-8">
+        <h3> Schedule </h3>
+      </div>
+    </div>
+    <%= render '/events/in_progress_table' %>
   </div>
 </main>

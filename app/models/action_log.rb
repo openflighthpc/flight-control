@@ -74,9 +74,9 @@ class ActionLog < ApplicationRecord
   #   "1 #{compute_group} #{customer_facing_type} #{action}#{detail_tooltip}"
   # end
 
-  # def detail_tooltip
-  #   "<a href='#'' class='action-log-tooltip' data-placement='top' title='Instance name: #{instance_name}' onClick='return false;'><sup>?</sup></a>"
-  # end
+  def detail_tooltip
+    "<a href='#'' class='action-log-tooltip' data-placement='top' title='Instance name: #{instance_name}' onClick='return false;'><sup>?</sup></a>"
+  end
 
   # def reason_with_link
   #   return self.reason if !scheduled_request_id
