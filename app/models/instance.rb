@@ -213,7 +213,7 @@ class Instance
     return pending_total_daily_compute_cost if @future_counts == {}
 
     count = pending_on_date(date)
-    changes_on_date = @future_counts[date.to_s]
+    changes_on_date = @future_counts[date]
     return daily_compute_cost * count if !changes_on_date
 
     instances = {}
