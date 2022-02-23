@@ -120,6 +120,41 @@ class Project < ApplicationRecord
     results
   end
 
+  # In future this will include over budget switch offs
+  def events
+    pending_one_off_and_repeat_requests
+  end
+
+  def events_on(date)
+    pending_one_off_and_repeat_requests_on(date)
+  end
+
+  def events_by_date(chosen_events=events)
+    chosen_events.sort_by {|e| [e.date, e.time]}.group_by {|e| e.date}
+  end
+
+  # within next 5 mins
+  def upcoming_events
+    five_mins_from_now = Time.now + 5.minutes
+    today_events = events_on(Date.today.to_s)
+    today_events.select { |event| event.date_time <= five_mins_from_now }
+  end
+
+  def upcoming_events_by_date
+    events_by_date(upcoming_events)
+  end
+
+  # after next 5 mins
+  def future_events
+    five_mins_from_now = Time.now + 5.minutes
+    future = events
+    future.select { |event| event.date_time > five_mins_from_now }
+  end
+
+  def future_events_by_date
+    events_by_date(future_events)
+  end
+
   # For front end use and in cost forecast calculations
   def latest_instances(temp_change_request=nil)
     if !@instances || temp_change_request

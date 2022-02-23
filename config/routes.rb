@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   get '/json/data-check', to: 'projects#data_check'
 
   # Events (change requests and their resulting actions)
+  get '/events', to: 'events#timeline'
   get '/events/new', to: 'events#new'
   get '/json/events/costs-forecast', to: 'events#costs_forecast'
   post '/events/', to: 'events#create'
