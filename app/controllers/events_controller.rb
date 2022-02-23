@@ -1,10 +1,11 @@
 class EventsController < ApplicationController
-  def timeline
+  def manage
     get_project
     @current_instances = @project.latest_instances
     @in_progress = @project.pending_action_logs
     @upcoming = @project.upcoming_events_by_date
     @future = @project.future_events_by_date
+    @nav_view = "manage events"
   end
 
   def new
