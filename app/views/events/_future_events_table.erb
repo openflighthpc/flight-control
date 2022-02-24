@@ -12,7 +12,8 @@
     <table class="table" id="<%= locals[:type] %>-events-table">
       <thead class="thead-dark" class="events-table-header">
         <tr>
-          <th colspan="<%= @project.front_end_compute_groups.length + 4 %>"
+          <th colspan="3" class="events-table-explainer"></th>
+          <th colspan="<%= @project.front_end_compute_groups.length %>"
               class="events-table-explainer">
             Target counts
           </th>

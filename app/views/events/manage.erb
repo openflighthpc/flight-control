@@ -22,5 +22,6 @@
     </div>
     <%= render '/events/in_progress_table' %>
     <%= render '/events/future_events_table', locals: {requests: @upcoming, type: "upcoming", title: "Upcoming (next 5 minutes)"} %>
+    <%= render '/events/future_events_table', locals: {requests: @future_events, type: "future", title: "Future"} %>
   </div>
 </main>
