@@ -9,6 +9,11 @@ class EventsController < ApplicationController
     @nav_view = "manage events"
   end
 
+  def latest
+    get_project
+    render json: @project.current_events_data.to_json({original: false})
+  end
+
   def new
     get_project
     @current_instances = @project.latest_instances

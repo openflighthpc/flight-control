@@ -30,7 +30,7 @@ class ChangeRequest < ApplicationRecord
   end
 
   def customer_facing(type)
-    InstanceMapping.customer_facing_type(type)
+    InstanceMapping.customer_facing_type(project.platform, type)
   end
 
   def formatted_changes(with_opening=true)
@@ -153,34 +153,35 @@ class ChangeRequest < ApplicationRecord
     save!
   end
 
-  # # we want to show the original content, but the current status
-  # def as_json(options={original: true})
-  #   request = options[:original] ? as_original : self
-  #   {
-  #     type: "scheduled_request",
-  #     username: request.user.username,
-  #     date: request.date,
-  #     time: request.time,
-  #     timestamp: request.timestamp,
-  #     formatted_timestamp: request.formatted_timestamp,
-  #     details: request.card_description,
-  #     descriptive_counts: descriptive_counts,
-  #     status: self.status,
-  #     editable: editable?,
-  #     frontend_id: front_end_id,
-  #     monitor: monitor_override,
-  #     link: self.link,
-  #     updated_at: updated_at
-  #   }
-  # end
+  # When we have change logs, we will want to show the original content,
+  # but the current status
+  def as_json(*options)
+    request = self
+    {
+      type: "scheduled_request",
+      username: "Someone",
+      date: request.date,
+      time: request.time,
+      timestamp: request.created_at,
+      formatted_timestamp: request.formatted_timestamp,
+      details: request.card_description,
+      descriptive_counts: descriptive_counts,
+      status: self.status,
+      editable: editable?,
+      counts_criteria: counts_criteria,
+      frontend_id: front_end_id,
+      #link: self.link,
+      updated_at: updated_at
+    }
+  end
 
-  # def to_json(*options)
-  #   as_json(*options).to_json(*options)
-  # end
+  def to_json(*options)
+    as_json(*options).to_json(*options)
+  end
 
-  # def front_end_id
-  #   "#{id}-#{date}"
-  # end
+  def front_end_id
+    "#{id}-#{date}"
+  end
 
   def time_or_date_changed?
     time_changed? || date_changed?
@@ -190,9 +191,9 @@ class ChangeRequest < ApplicationRecord
     status == "pending"
   end
 
-  def link
-    "/change_requests/#{self.id}?project=#{self.project.name}"
-  end
+  # def link
+  #   "/change_requests/#{self.id}?project=#{self.project.name}"
+  # end
 
   def switch_all_on?(group_name)
     project_instances = project.latest_instances[group_name]
@@ -210,7 +211,7 @@ class ChangeRequest < ApplicationRecord
         results[group] = "All on"
       else
         customer_facing_types = instance_types.map do |k,v|
-          [InstanceMapping.customer_facing_name(k),v]
+          [InstanceMapping.customer_facing_type(project.platform, k),v]
         end.to_h
         results[group] = customer_facing_types
       end

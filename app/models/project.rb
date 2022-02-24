@@ -155,6 +155,17 @@ class Project < ApplicationRecord
     events_by_date(future_events)
   end
 
+  def events_by_id(events)
+    results = {}
+    events.each do |date, events|
+      results[date] = {}
+      events.each do |event|
+        results[date][event.front_end_id] = event
+      end
+    end
+    results
+  end
+
   # For front end use and in cost forecast calculations
   def latest_instances(temp_change_request=nil)
     if !@instances || temp_change_request
@@ -427,6 +438,23 @@ class Project < ApplicationRecord
 
   def actual_with_pending_counts
     InstanceTracker.new(self).actual_with_pending_counts
+  end
+
+  def current_events_data
+    {
+      states: InstanceTracker.new(self).actual_counts,
+      in_progress: pending_action_logs_by_id,
+      upcoming: events_by_id(upcoming_events_by_date),
+      future: events_by_id(future_events_by_date)
+    }
+  end
+
+  def pending_action_logs_by_id
+    results = {}
+    pending_action_logs.each do |log|
+      results[log.id] = log
+    end
+    results
   end
 
   def send_slack_message(msg)
