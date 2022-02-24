@@ -1,0 +1,68 @@
+<div class="row">
+  <div class="col-sm-2"></div>
+  <div class="col-sm-8">
+    <h4 class="mr-auto p-2 audit-logs-title text-center">
+      <%= locals[:title] %>
+    </h4>
+  </div>
+</div>
+<div class="row mb-5" id="<%= locals[:type] %>-events-table-row" <%= "style=display:none;" if !locals[:requests].any? %>>
+  <div class="col-1"></div> 
+  <div class="col-10 text-center">
+    <table class="table" id="<%= locals[:type] %>-events-table">
+      <thead class="thead-dark" class="events-table-header">
+        <tr>
+          <th colspan="<%= @project.front_end_compute_groups.length + 4 %>"
+              class="events-table-explainer">
+            Target counts
+          </th>
+        </tr>
+        <tr>
+          <th scope="col" class="events-sub-header">Date</th>
+          <th scope="col" class="events-sub-header">
+            Time<a href="#" class="scheduled-tooltip" id="timezone-tooltip" data-placement="top" title="In timezone GMT<%= Time.now.to_s.split(" ")[2] %>" onClick="return false;"><sup>?</sup>
+            </a>
+          <th scope="col" class="events-sub-header">Criteria</th>
+          </th class="events-sub-header">
+          <% "This needs updating, controlled should pass this, not view to determine" %>
+          <% @project.front_end_compute_groups.keys.each do |group| %>
+            <th scope="col" class="events-sub-header"><%= group %></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody class="border" id="<%= locals[:type] %>-events-table-body">
+        <% locals[:requests].each do |date, schedules| %>
+          <% date_shown = false %>
+          <% schedules.each do |schedule| %>
+            <tr class="schedule-row<%= ' border-top' if !date_shown %>"
+                id='<%= schedule.front_end_id %>' data-date="<%= schedule.date %>"
+                data-updated_at="<%= schedule.updated_at %>"
+                >
+              <td class="future-event-date">
+                <% if !date_shown %>
+                  <%= date %>
+                  <% date_shown = true %>
+                <% end %>
+              </td>
+              <td>
+                <%= schedule.time %>
+              </td>
+              <td>
+                <%= schedule.counts_criteria.capitalize %>
+              </td>
+              <%= render '/events/scheduled_request_event_details', locals: {schedule: schedule} %>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <div class="col-1"></div>
+</div>
+<div class="row  mb-5" id="no-<%= locals[:type] %>-events-row" <%= "style=display:none;" if locals[:requests].any? %>>
+  <div class="col-1"></div>
+  <div class="col-10 text-center">
+    No events
+  </div>
+  <div class="col-1"></div>
+</div>

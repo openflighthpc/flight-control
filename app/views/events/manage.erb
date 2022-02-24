@@ -14,12 +14,13 @@
   </div>
   <div class="container mt-5">
     <%= render '/projects/static_instances_table', locals: { show_pending: false } %>
-    <div class="row mt-5">
+    <div class="row">
       <div class="col-sm-2"></div>
       <div class="col-sm-8">
         <h3> Schedule </h3>
       </div>
     </div>
     <%= render '/events/in_progress_table' %>
+    <%= render '/events/future_events_table', locals: {requests: @upcoming, type: "upcoming", title: "Upcoming (next 5 minutes)"} %>
   </div>
 </main>
