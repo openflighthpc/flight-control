@@ -5,6 +5,7 @@ class EventsController < ApplicationController
     @in_progress = @project.pending_action_logs
     @upcoming = @project.upcoming_events_by_date
     @future = @project.future_events_by_date
+    @compute_groups = @project.front_end_compute_groups.keys
     @nav_view = "manage events"
   end
 

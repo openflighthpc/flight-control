@@ -25,7 +25,7 @@
           <th scope="col" class="events-sub-header">Criteria</th>
           </th class="events-sub-header">
           <% "This needs updating, controlled should pass this, not view to determine" %>
-          <% @project.front_end_compute_groups.keys.each do |group| %>
+          <% @compute_groups.each do |group| %>
             <th scope="col" class="events-sub-header"><%= group %></th>
           <% end %>
         </tr>
@@ -50,7 +50,7 @@
               <td>
                 <%= schedule.counts_criteria.capitalize %>
               </td>
-              <%= render '/events/scheduled_request_event_details', locals: {schedule: schedule} %>
+              <%= render '/events/scheduled_request_event_details', locals: {schedule: schedule, compute_groups: @compute_groups} %>
             </tr>
           <% end %>
         <% end %>
