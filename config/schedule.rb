@@ -32,6 +32,6 @@ every 5.minutes do
   rake "instance_logs:record:all[true]"
 end
 
-# every 1.minute do
-#   rake "change_requests:all[true,false]"
-# end
+every 1.minute do
+  rake "change_requests:all[true,false]"
+end

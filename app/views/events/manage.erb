@@ -1,4 +1,5 @@
 <% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'manage_events'%>
 <% end %>
 
 <main class="col-md-12 ml-sm-auto col-lg-12 px-4" role="main">
@@ -24,4 +25,8 @@
     <%= render '/events/future_events_table', locals: {requests: @upcoming, type: "upcoming", title: "Upcoming (next 5 minutes)"} %>
     <%= render '/events/future_events_table', locals: {requests: @future_events, type: "future", title: "Future"} %>
   </div>
+  <div id="project-name" data-project="<%= @project.name %>"></div>
 </main>
+<script>
+  let groups = <%= raw(@compute_groups.to_json) %>;
+</script>

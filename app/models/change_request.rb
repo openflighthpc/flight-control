@@ -168,10 +168,10 @@ class ChangeRequest < ApplicationRecord
       descriptive_counts: descriptive_counts,
       status: self.status,
       editable: editable?,
-      counts_criteria: counts_criteria,
+      counts_criteria: counts_criteria.capitalize,
       frontend_id: front_end_id,
       #link: self.link,
-      updated_at: updated_at
+      updated_at: updated_at.to_s
     }
   end
 
