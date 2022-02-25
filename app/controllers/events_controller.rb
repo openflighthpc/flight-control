@@ -1,11 +1,13 @@
 class EventsController < ApplicationController
   def manage
     get_project
+    @compute_groups = @project.front_end_compute_groups.keys
+    @filtered_groups = params[:groups]
     @current_instances = @project.latest_instances
     @in_progress = @project.pending_action_logs
-    @upcoming = @project.upcoming_events_by_date
-    @future_events = @project.future_events_by_date
-    @compute_groups = @project.front_end_compute_groups.keys
+    @upcoming = @project.upcoming_events_by_date(@filtered_groups)
+    @future_events = @project.future_events_by_date(@filtered_groups)
+    filter_records if @filtered_groups
     @nav_view = "manage events"
   end
 
@@ -69,5 +71,17 @@ class EventsController < ApplicationController
         value == "" ? nil : value
       end
     end
+  end
+
+  def filter_records
+    return if !@filtered_groups
+    filter_current_instances
+    @in_progress.to_a.select! { |log| @filtered_groups.include?(log.compute_group) }
+  end
+
+  def filter_current_instances
+    original = @current_instances.clone
+    @current_instances = original.select { |group, instances| @filtered_groups.include?(group) }
+    @current_instances = original if @current_instances.empty?
   end
 end

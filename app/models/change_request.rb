@@ -109,6 +109,11 @@ class ChangeRequest < ApplicationRecord
     counts[group][instance_type]
   end
 
+  # Includes counts for any of the provided groups
+  def included_in_groups?(groups)
+    groups.detect { |group| counts[group] }
+  end
+
   def instances_to_change_with_pending
     actions = {on: [], off: []}
     project_logs = project.latest_instance_logs

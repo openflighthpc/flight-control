@@ -97,9 +97,13 @@ class Project < ApplicationRecord
     @combined_requests
   end
 
-  def pending_one_off_and_repeat_requests_on(date)
+  def pending_one_off_and_repeat_requests_on(date, groups=nil)
     pending = pending_one_off_change_requests.where(date: date)
-    repeated = pending_repeated_requests.select { |repeat| repeat.action_on_date?(date) }
+    pending = pending.to_a.select { |request| request.included_in_groups?(groups) } if groups
+    repeated = pending_repeated_requests.select do |repeat|
+      repeat.action_on_date?(date) && (!groups ||
+      repeat.included_in_groups?(groups))
+    end
     repeated_children = repeated.map { |repeat| repeat.individual_request_on_date(date) }
     pending.to_a.concat(repeated_children).compact
   end
@@ -121,12 +125,14 @@ class Project < ApplicationRecord
   end
 
   # In future this will include over budget switch offs
-  def events
-    pending_one_off_and_repeat_requests
+  def events(groups=nil)
+    events = pending_one_off_and_repeat_requests
+    events = events.select { |event| event.included_in_groups?(groups) } if groups
+    events
   end
 
-  def events_on(date)
-    pending_one_off_and_repeat_requests_on(date)
+  def events_on(date, groups=nil)
+    pending_one_off_and_repeat_requests_on(date, groups)
   end
 
   def events_by_date(chosen_events=events)
@@ -134,25 +140,25 @@ class Project < ApplicationRecord
   end
 
   # within next 5 mins
-  def upcoming_events
+  def upcoming_events(groups=nil)
+    today_events = events_on(Date.today.to_s, groups)
     five_mins_from_now = Time.now + 5.minutes
-    today_events = events_on(Date.today.to_s)
     today_events.select { |event| event.date_time <= five_mins_from_now }
   end
 
-  def upcoming_events_by_date
-    events_by_date(upcoming_events)
+  def upcoming_events_by_date(groups=nil)
+    events_by_date(upcoming_events(groups))
   end
 
   # after next 5 mins
-  def future_events
+  def future_events(groups=nil)
     five_mins_from_now = Time.now + 5.minutes
-    future = events
+    future = events(groups)
     future.select { |event| event.date_time > five_mins_from_now }
   end
 
-  def future_events_by_date
-    events_by_date(future_events)
+  def future_events_by_date(groups=nil)
+    events_by_date(future_events(groups))
   end
 
   def events_by_id(events)

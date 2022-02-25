@@ -1,0 +1,26 @@
+<div class="row" id="manage-events-form">
+  <div class="mt-1 mb-4 col-12">
+    <form class="form" action="/events" method="get" id="manage-events-filter">
+      <div class="form-row justify-content-center">
+        <div class="form-group col-md-3">
+          <label for="groups-list">Compute Groups:</label>
+          <select multiple class="form-control events-groups-select" name="groups[]" id="groups-list">
+            <% @compute_groups.each do |group| %>
+              <option value='<%=group%>' <%= @filtered_groups&.include?(group) ? 'selected' : '' if @filtered_groups %>>
+              <%= group %>
+              </option>
+            <% end %>
+          </select>  
+        </div>
+      </div>
+      <input type="hidden" name="project" value=<%= @project.name %>>
+      <div class="form-row justify-content-center">
+        <div class="form-group col-md-3">
+          <input type="submit" value="Filter" class="btn btn-primary"
+                 id="submit-chart-filter">
+          <%= link_to "Clear all", events_path(project: @project.name),  class: "btn btn-danger" %>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
