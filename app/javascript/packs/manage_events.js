@@ -19,7 +19,14 @@ function checkCurrentEvents() {
   };
   let projectName = $('#project-name').data('project');
   let projectParam = `?project=${projectName}`;
-  xhttp.open("GET", `/json/events/latest${projectParam}`, true);
+  let groups = $('#original-groups').data('original-groups');
+  let groupsParam = "";
+  if(groups != "") {
+    for(let i = 0; i < groups.length; i++) {
+      groupsParam += `&groups[]=${groups[i]}`;
+    }
+  }
+  xhttp.open("GET", `/json/events/latest${projectParam}${groupsParam}`, true);
   xhttp.send();
 }
 

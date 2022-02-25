@@ -7,7 +7,7 @@
       </h4>
     </div>
   </div>
-  <% any = @in_progress.exists? %>
+  <% any = @in_progress.any? %>
   <div class="row mb-5" id="in-progress-table-row" <%= 'style=display:none;' if !any %>>
     <div class="col-2"></div> 
     <div class="col-8">

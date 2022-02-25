@@ -446,19 +446,19 @@ class Project < ApplicationRecord
     InstanceTracker.new(self).actual_with_pending_counts
   end
 
-  def current_events_data
+  def current_events_data(groups=nil)
     {
-      states: InstanceTracker.new(self).actual_counts,
-      in_progress: pending_action_logs_by_id,
-      upcoming: events_by_id(upcoming_events_by_date),
-      future: events_by_id(future_events_by_date)
+      states: InstanceTracker.new(self).actual_counts(groups),
+      in_progress: pending_action_logs_by_id(groups),
+      upcoming: events_by_id(upcoming_events_by_date(groups)),
+      future: events_by_id(future_events_by_date(groups))
     }
   end
 
-  def pending_action_logs_by_id
+  def pending_action_logs_by_id(groups=nil)
     results = {}
     pending_action_logs.each do |log|
-      results[log.id] = log
+      results[log.id] = log if !groups || groups.include?(log.compute_group)
     end
     results
   end

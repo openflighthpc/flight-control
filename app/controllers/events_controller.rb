@@ -5,6 +5,9 @@ class EventsController < ApplicationController
     @filtered_groups = params[:groups]
     @current_instances = @project.latest_instances
     @in_progress = @project.pending_action_logs
+    if @filtered_groups
+      @in_progress = @in_progress.select { |log| @filtered_groups.include?(log.compute_group) }
+    end
     @upcoming = @project.upcoming_events_by_date(@filtered_groups)
     @future_events = @project.future_events_by_date(@filtered_groups)
     filter_records if @filtered_groups
@@ -13,7 +16,7 @@ class EventsController < ApplicationController
 
   def latest
     get_project
-    render json: @project.current_events_data.to_json({original: false})
+    render json: @project.current_events_data(params[:groups]).to_json({original: false})
   end
 
   def new
