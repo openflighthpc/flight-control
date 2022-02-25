@@ -1,5 +1,5 @@
 window.addEventListener('DOMContentLoaded', (event) => {
-  let currentEvents = setTimeout(checkCurrentEvents, 10000);
+  let currentEvents = setTimeout(checkCurrentEvents, 30000);
 });
 
 function checkCurrentEvents() {
@@ -11,7 +11,7 @@ function checkCurrentEvents() {
       updateUpcoming(response["upcoming"]);
       updateInProgress(response["in_progress"]);
       updateFuture(response["future"]);
-      newDataTimeout = setTimeout(checkCurrentEvents, 10000);
+      newDataTimeout = setTimeout(checkCurrentEvents, 30000);
     }
   };
   xhttp.onerror = function() {

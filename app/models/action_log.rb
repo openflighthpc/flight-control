@@ -62,17 +62,17 @@ class ActionLog < ApplicationRecord
   #   user_id ? user.username : "Automated"
   # end
 
-  # def card_description
-  #   html = "Started switch #{self.action} of 1 #{customer_facing_type}"
-  #   html << detail_tooltip
-  #   html << " in group #{compute_group}. "
-  #   html << "<strong>Reason:</strong> #{reason_with_link}"
-  #   html
-  # end
+  def card_description
+    html = "Started switch #{self.action} of 1 #{customer_facing_type}"
+    html << detail_tooltip
+    html << " in group #{compute_group}. "
+    html << "<strong>Reason:</strong> #{reason}"
+    html
+  end
 
-  # def simplified_description
-  #   "1 #{compute_group} #{customer_facing_type} #{action}#{detail_tooltip}"
-  # end
+  def simplified_description
+    "1 #{compute_group} #{customer_facing_type} #{action}#{detail_tooltip}"
+  end
 
   def detail_tooltip
     "<a href='#'' class='action-log-tooltip' data-placement='top' title='Instance name: #{instance_name}' onClick='return false;'><sup>?</sup></a>"
@@ -84,23 +84,23 @@ class ActionLog < ApplicationRecord
   #   "<a href='/scheduled-requests/#{scheduled_request_id}'>#{self.reason}</a>"
   # end
 
-  # def as_json(options={})
-  #   {
-  #     id: id,
-  #     type: "action_log",
-  #     timestamp: self.timestamp,
-  #     formatted_timestamp: formatted_timestamp,
-  #     details: self.card_description,
-  #     simplified_details: self.simplified_description,
-  #     username: self.username,
-  #     automated: automated?,
-  #     status: self.status
-  #   }
-  # end
+  def as_json(options={})
+    {
+      id: id,
+      type: "action_log",
+      timestamp: created_at,
+      formatted_timestamp: formatted_timestamp,
+      details: card_description,
+      simplified_details: simplified_description,
+      username: "Someone",
+      automated: automated?,
+      status: status
+    }
+  end
 
-  # def to_json(*options)
-  #   as_json(*options).to_json(*options)
-  # end
+  def to_json(*options)
+    as_json(*options).to_json(*options)
+  end
 
   def same_action_as_latest_actual?
     latest = project.latest_instance_logs.where(instance_id: instance_id).last

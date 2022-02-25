@@ -47,7 +47,8 @@
                 <td class="text-center"><%= instance.pending_on %></td>
               <% end %>
               <td class="text-center">
-                <div id="<%= "#{group}-#{instance.instance_type}-total" %>">
+                <div id="<%= "#{group}-#{instance.instance_type}-total" %>"
+                  data-cost-each="<%= instance.daily_compute_cost %>">
                   <%= pending ? instance.pending_total_daily_compute_cost : instance.total_daily_compute_cost %>c.u.
                 </div>
               </td>
