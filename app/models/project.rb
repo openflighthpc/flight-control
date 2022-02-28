@@ -419,6 +419,17 @@ class Project < ApplicationRecord
     change
   end
 
+  def cancel_change_request(request)
+    original_status = request.status
+    success = request.cancel
+    if success
+      msg = "Scheduled request at #{request.date_time} for project *#{request.project.name}* cancelled by #{'Someone'}"
+      #create_scheduled_request_log(request, {"status" => original_status}, {"status" => request.status}, user)
+      send_slack_message(msg)
+    end
+    success
+  end
+
   def action_scheduled(slack, text)
     any = false
     pending_one_off_and_repeat_requests.each do |request|

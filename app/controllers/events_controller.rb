@@ -48,6 +48,22 @@ class EventsController < ApplicationController
     redirect_to events_new_path(project: @project.name)
   end
 
+  def cancel
+    get_project
+    request = ChangeRequest.find_by_id(params[:id])
+    if !request
+      flash[:danger] = "Request not found"
+    else
+      success = @project.cancel_change_request(request)
+      if success
+        flash[:success] = "Request cancelled"
+      else
+        flash[:danger] = "Unable to cancel request"
+      end
+    end
+    redirect_to events_path(project: @project.name)
+  end
+
   def costs_forecast
     parameters = filtered_change_request_params
     @project = Project.find_by_name(parameters[:project])

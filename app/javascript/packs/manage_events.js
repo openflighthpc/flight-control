@@ -193,8 +193,25 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   // } else {
   //   html += `${details.monitor} hour${details.monitor > 1 ? "s" : ""}`;
   // }
-  //html += `</td><td>`;
-  // if(details.type != "budget_switch_off") html += createRequestButtons(details)
-  html += "</tr>";
+  
+  html += `<td>`;
+  html += createRequestButtons(details)
+  html += "</td></tr>";
+  return html;
+}
+
+function createRequestButtons(details) {
+  const id = details.frontend_id.split("-")[0];
+  const project = $("[name='project']").val();
+  const token = $('meta[name="csrf-token"]').attr('content');
+  let html = `<form action='/events/${id}/cancel?project=${project}'`;
+  html += `method='post' id='cancel-scheduled-request-${id}'`;
+  html += `onsubmit='return confirm("Are you sure you want to cancel this policy?");'>`;
+  html += `<input type="hidden" name="authenticity_token" value="${token}">`;
+  html += `</form> <button class="btn btn-sm btn-danger" form="cancel-scheduled-request-${id}">`;
+  html += ` Cancel </button> <button class="btn btn-sm btn-warning"`
+  if(details.editable) {
+    html += `onclick="window.location.href='/events/${id}'"> Edit </button>`
+  }
   return html;
 }

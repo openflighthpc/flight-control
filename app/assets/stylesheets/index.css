@@ -187,3 +187,7 @@ input[type=date] {
 .login-input {
   width: 12rem !important;
 }
+
+.edit-button {
+  margin-left: 0.35rem;
+}

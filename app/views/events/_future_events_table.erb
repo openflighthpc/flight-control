@@ -17,6 +17,7 @@
               class="events-table-explainer">
             Target counts
           </th>
+          <th class="events-table-explainer"></th>
         </tr>
         <tr>
           <th scope="col" class="events-sub-header">Date</th>
@@ -25,10 +26,10 @@
             </a>
           <th scope="col" class="events-sub-header">Criteria</th>
           </th class="events-sub-header">
-          <% "This needs updating, controlled should pass this, not view to determine" %>
           <% @compute_groups.each do |group| %>
             <th scope="col" class="events-sub-header"><%= group %></th>
           <% end %>
+          <th class="events-sub-header"> Manage </th>
         </tr>
       </thead>
       <tbody class="border" id="<%= locals[:type] %>-events-table-body">

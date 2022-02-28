@@ -158,6 +158,13 @@ class ChangeRequest < ApplicationRecord
     save!
   end
 
+  def cancel
+    if cancellable?
+      self.status = "cancel"
+      save!
+    end
+  end
+
   # When we have change logs, we will want to show the original content,
   # but the current status
   def as_json(*options)
@@ -171,7 +178,7 @@ class ChangeRequest < ApplicationRecord
       formatted_timestamp: request.formatted_timestamp,
       details: request.card_description,
       descriptive_counts: descriptive_counts,
-      status: self.status,
+      status: status,
       editable: editable?,
       counts_criteria: counts_criteria.capitalize,
       frontend_id: front_end_id,
@@ -193,6 +200,10 @@ class ChangeRequest < ApplicationRecord
   end
 
   def editable?
+    status == "pending" && date_time >= (Time.now + 5.minutes)
+  end
+
+  def cancellable?
     status == "pending"
   end
 

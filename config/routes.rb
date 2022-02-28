@@ -25,4 +25,5 @@ Rails.application.routes.draw do
   get '/json/events/latest', to: 'events#latest'
   get '/json/events/costs-forecast', to: 'events#costs_forecast'
   post '/events/', to: 'events#create'
+  post '/events/:id/cancel', to: 'events#cancel'
 end
