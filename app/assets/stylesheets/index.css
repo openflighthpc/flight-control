@@ -184,6 +184,7 @@ input[type=date] {
   text-decoration: none
 }
 
+<<<<<<< HEAD
 .login-input {
   width: 12rem !important;
 }
@@ -204,3 +205,8 @@ input[type=date] {
 .project-link {
   border-radius: 0 !important;
 }
+=======
+.edit-button {
+  margin-left: 0.35rem;
+}
+>>>>>>> updated tables, added initial cancellation route and controls
