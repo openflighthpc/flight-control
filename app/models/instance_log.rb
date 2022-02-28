@@ -44,6 +44,11 @@ class InstanceLog < ApplicationRecord
     @customer_facing
   end
 
+  # JS doesn't work with instance types including '.'
+  def front_end_instance_type
+    instance_type.gsub(".", "_")
+  end
+
   def has_mapping?
     !InstanceMapping.instance_mappings[platform][instance_type].nil?
   end

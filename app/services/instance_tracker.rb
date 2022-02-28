@@ -125,8 +125,8 @@ class InstanceTracker
     scheduled_counts
   end
 
-  def actual_counts(groups=nil)
-    determine_counts(false, groups)
+  def actual_counts(groups=nil, use_front_end_types=false)
+    determine_counts(false, groups, use_front_end_types)
   end
 
   def actual_with_pending_counts
@@ -135,7 +135,7 @@ class InstanceTracker
 
   # A lighterweight method of getting just the counts,
   # for when we don't need to know costs, future counts, etc.
-  def determine_counts(include_pending=true, groups=nil)
+  def determine_counts(include_pending=true, groups=nil, use_front_end_types=false)
     instances = @project.latest_instance_logs
 
     counts = {}
@@ -143,7 +143,7 @@ class InstanceTracker
       group = instance.compute_group
       next if groups && !groups.include?(group)
 
-      type = instance.instance_type
+      type = use_front_end_types ? instance.front_end_instance_type : instance.instance_type
       status = include_pending ? instance.pending_status : instance.status
       value = InstanceLog::ON_STATUSES[instance.platform][status] ? 1 : 0
       if counts.has_key?(group)

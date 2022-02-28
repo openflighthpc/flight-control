@@ -1,5 +1,6 @@
 window.addEventListener('DOMContentLoaded', (event) => {
   let currentEvents = setTimeout(checkCurrentEvents, 30000);
+  $('.tool-tip').tooltip();
 });
 
 function checkCurrentEvents() {
@@ -40,6 +41,7 @@ function updateCurrentStates(states) {
       }
     });
   });
+  $('.tool-tip').tooltip();
 }
 
 function updateCountWithFade(group, type, value) {

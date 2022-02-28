@@ -448,7 +448,7 @@ class Project < ApplicationRecord
 
   def current_events_data(groups=nil)
     {
-      states: InstanceTracker.new(self).actual_counts(groups),
+      states: InstanceTracker.new(self).actual_counts(groups, true),
       in_progress: pending_action_logs_by_id(groups),
       upcoming: events_by_id(upcoming_events_by_date(groups)),
       future: events_by_id(future_events_by_date(groups))

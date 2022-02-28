@@ -46,6 +46,10 @@ class ActionLog < ApplicationRecord
     instance_log.instance_type
   end
 
+  def front_end_instance_type
+    instance_log.front_end_instance_type
+  end
+
   # def partial
   #   :action_log_card
   # end
@@ -75,7 +79,7 @@ class ActionLog < ApplicationRecord
   end
 
   def detail_tooltip
-    "<a href='#'' class='action-log-tooltip' data-placement='top' title='Instance name: #{instance_name}' onClick='return false;'><sup>?</sup></a>"
+    "<a href='#'' class='tool-tip' data-placement='top' title='Instance name: #{instance_name}' onClick='return false;'><sup>?</sup></a>"
   end
 
   # def reason_with_link
