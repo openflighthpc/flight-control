@@ -669,7 +669,7 @@ class CostsPlotter
 
   def end_of_billing_interval(date)
     if @project.cycle_interval == "monthly"
-      start_of_billing_interval(date + 1.month + 4.days) - 1.day
+      start_of_billing_interval(date + 1.month) - 1.day
     elsif @project.cycle_interval == "weekly"
       start_of_billing_interval(date + 1.week) - 1.day
     else
@@ -746,14 +746,14 @@ class CostsPlotter
 
   def cumulative_change_request_costs(temp_change_request)
     start_date = start_of_billing_interval(Date.today)
-    end_date = end_of_billing_interval(Date.today)
+    end_date = end_of_billing_interval(start_date)
     costs = cost_breakdown(start_date, end_date, temp_change_request)
     chart_cumulative_costs(start_date, end_date, temp_change_request, costs)
   end
 
   def change_request_goes_over_budget?(change_request)
     start_date = start_of_billing_interval(Date.today)
-    end_date = end_of_billing_interval(Date.today)
+    end_date = end_of_billing_interval(start_date)
     costs = cost_breakdown(start_date, end_date, change_request)
     end_costs = costs.to_a.last[1]
     end_budget = end_costs[:forecast_budget] ? end_costs[:forecast_budget] : end_costs[:budget]

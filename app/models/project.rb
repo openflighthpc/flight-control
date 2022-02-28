@@ -327,7 +327,7 @@ class Project < ApplicationRecord
     latest_instances(change)
     results = {costs: costs_plotter.cumulative_change_request_costs(change)}
     start_date = costs_plotter.start_of_billing_interval(Date.today)
-    end_date = costs_plotter.end_of_billing_interval(Date.today)
+    end_date = costs_plotter.end_of_billing_interval(start_date)
     results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, change)
     results
   end

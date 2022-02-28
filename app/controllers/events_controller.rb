@@ -4,7 +4,7 @@ class EventsController < ApplicationController
     @current_instances = @project.latest_instances
     cost_plotter = CostsPlotter.new(@project)
     start_date = cost_plotter.start_of_billing_interval(Date.today)
-    end_date = cost_plotter.end_of_billing_interval(Date.today)
+    end_date = cost_plotter.end_of_billing_interval(start_date)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
     @existing_timings = @project.request_dates_and_times
     @nav_view = "create event"
