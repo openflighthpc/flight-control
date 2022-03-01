@@ -34,7 +34,12 @@
           Start Date:
         </div>
         <div class="col-7 request-timings">
-          <input type="date" class="form-control request-date-picker scheduled-input" id="scheduled-date" min='<%= Date.today() %>' name="date">
+          <input type="date"
+                 class="form-control request-date-picker scheduled-input"
+                 id="scheduled-date"
+                 min='<%= Date.today %>'
+                 <%= "value=#{@request.date}" if @request %>
+                 name="date">
         </div>
       </div>
       <div class="row form-inline mt-4 mb-4">
@@ -42,7 +47,11 @@
           Time:
         </div>
         <div class="col-7 request-timings">
-          <input type="time" class="form-control request-time-picker scheduled-input" id="scheduled-time" name="time">
+          <input type="time"
+                 class="form-control request-time-picker scheduled-input"
+                 id="scheduled-time"
+                 <%= "value=#{@request.time}" if @request %>
+                 name="time">
         </div>
       </div>
     </div>

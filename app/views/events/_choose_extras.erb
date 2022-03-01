@@ -8,8 +8,11 @@
       <div class="row mb-3">
         <div class="form scheduled-description-section">
           <label><strong>Description:</strong>
-            <input type="text" name="description" class="form-control"
-               id="scheduled-description">
+            <input type="text"
+                   name="description"
+                   class="form-control"
+                   id="scheduled-description"
+                   <%= "value=#{@request.description}" if @request %> >
           </label>
         </div>
       </div>

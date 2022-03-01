@@ -113,7 +113,7 @@ class Project < ApplicationRecord
   def request_dates_and_times(exclude_request=nil)
     results = {}
     requests = pending_one_off_and_repeat_requests
-    requests.reject! { |request| request.id == exclude_request.id } if exclude_request
+    requests.reject! { |request| request.actual_or_parent_id == exclude_request.actual_or_parent_id } if exclude_request
     requests.pluck(:date, :time).each do |timing|
       date = timing[0]
       time = timing[1]
