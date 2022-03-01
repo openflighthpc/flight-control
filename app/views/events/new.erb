@@ -19,7 +19,7 @@
       <div class="col-2"></div>
       <div class="col-8 wizard-body">
         <% if @request %>
-          <form action='/events/<%= @request.id %>/update' method='post' id='edit-event-form'>
+          <form action='/events/<%= @request.id %>/update' method='post' id='create-event-form'>
         <% else %>
           <form action='/events' method='post' id='create-event-form'>
         <% end %>
@@ -44,6 +44,7 @@
           </div>
           <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
           <%= hidden_field_tag :project, @project.name %>
+          <%= hidden_field_tag :id, @request.id if @request %>
         </form>
       </div>
     </div>

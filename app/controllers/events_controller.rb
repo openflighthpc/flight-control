@@ -42,7 +42,7 @@ class EventsController < ApplicationController
     end_date = cost_plotter.end_of_billing_interval(Date.today)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
     @existing_timings = @project.request_dates_and_times(@request)
-    @nav_view = "create event"  
+    @nav_view = "create event"
     render :new
   end
 
@@ -90,6 +90,7 @@ class EventsController < ApplicationController
     permitted = params.permit(
       :counts_criteria,
       :project,
+      :id,
       :timeframe,
       :date,
       :time,

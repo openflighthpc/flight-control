@@ -101,6 +101,10 @@ class InstanceTracker
     scheduled_counts = {}
     requests = @project.pending_one_off_and_repeat_requests
     if temp_change_request
+      # When checking for an edited existing request, don't include twice
+      if temp_change_request.actual_or_parent_id
+        requests = requests.select { |request| request.actual_or_parent_id != temp_change_request.actual_or_parent_id}
+      end
       requests = requests.to_a << temp_change_request.as_future_individual_requests
       requests = requests.flatten.compact.sort_by { |request| [request.date, request.time] }
     end
