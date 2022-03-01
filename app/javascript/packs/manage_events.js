@@ -209,8 +209,9 @@ function createRequestButtons(details) {
   html += `onsubmit='return confirm("Are you sure you want to cancel this policy?");'>`;
   html += `<input type="hidden" name="authenticity_token" value="${token}">`;
   html += `</form> <button class="btn btn-sm btn-danger" form="cancel-scheduled-request-${id}">`;
-  html += ` Cancel </button> <button class="btn btn-sm btn-warning"`
+  html += ` Cancel </button>`;
   if(details.editable) {
+    html += ' <button class="btn btn-sm btn-warning"';
     html += `onclick="window.location.href='/events/${id}'"> Edit </button>`
   }
   return html;
