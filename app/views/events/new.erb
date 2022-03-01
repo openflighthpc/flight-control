@@ -18,7 +18,11 @@
     <div class="row">
       <div class="col-2"></div>
       <div class="col-8 wizard-body">
-        <form action='/events' method='post' id='create-event-form'>
+        <% if @request %>
+          <form action='/events/<%= @request.id %>/update' method='post' id='edit-event-form'>
+        <% else %>
+          <form action='/events' method='post' id='create-event-form'>
+        <% end %>
           <%= render '/events/choose_counts' %>
           <%= render '/events/choose_when' %>
           <%= render '/events/choose_extras' %>

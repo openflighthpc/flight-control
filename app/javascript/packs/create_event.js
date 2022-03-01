@@ -6,6 +6,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
   $('.scheduled-input').change(validateTimings);
   $('#wizard-next-button').click(showNextSection);
   $('#wizard-back-button').click(showPreviousSection);
+  validateCounts();
 });
 
 function toggleDateSelectors() {

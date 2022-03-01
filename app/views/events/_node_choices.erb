@@ -27,6 +27,9 @@
         <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem] } %>
         <% instances.each do |instance| %>
           <% next if instance.node_limit == 0 %>
+          <% if @request && @request.counts[group] && @request.counts[group][instance.instance_type] %>
+            <%  selected_amount = @request.counts[group][instance.instance_type] %>
+          <% end %>
           <% selector = "#{group}-#{instance.instance_type}".delete("()").gsub(' ', '-').gsub(".", "_") %>
           <% on = instance.count[:on] %>
           <tr class="text-nowrap node-row group-<%=group%> <%='pending' if pending && instance.pending_change? %>">
@@ -47,9 +50,13 @@
                 data-customer-facing="<%= instance.customer_facing_type %>"
                 data-compute-group="<%= group %>"
               >
-                <option selected value='' class="default-node-count"> - </option>
+                <option value=''
+                        class="default-node-count"
+                        <%= 'selected' if !selected_amount %>> - </option>
                 <% (0..instance.node_limit).to_a.each do |amount| %>"
-                  <option><%=amount%></option>
+                  <option <%= 'selected' if selected_amount == amount %>>
+                    <%=amount%>
+                  </option>
                 <% end %>
               </select>
             </td>

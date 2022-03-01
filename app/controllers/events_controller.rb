@@ -30,6 +30,22 @@ class EventsController < ApplicationController
     @nav_view = "create event"
   end
 
+  def edit
+    get_project
+    @request = ChangeRequest.find_by_id(params[:id])
+    if !@request
+      flash[:danger] = "Request not found"
+    end
+    @current_instances = @project.latest_instances
+    cost_plotter = CostsPlotter.new(@project)
+    start_date = cost_plotter.start_of_billing_interval(Date.today)
+    end_date = cost_plotter.end_of_billing_interval(Date.today)
+    @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
+    @existing_timings = @project.request_dates_and_times
+    @nav_view = "create event"  
+    render :new
+  end
+
   def create
     parameters = filtered_change_request_params
     @project = Project.find_by_name(parameters[:project])
