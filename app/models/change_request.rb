@@ -18,7 +18,7 @@ class ChangeRequest < ApplicationRecord
   end
 
   def update_counts
-    counts = formatted_counts
+    self.counts = formatted_counts
   end
 
   def date_time

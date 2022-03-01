@@ -125,7 +125,9 @@ function validateTimings() {
       let oneHourAhead = new Date();
       oneHourAhead.setHours(oneHourAhead.getHours() + 1);
       let fullDate = new Date(`${date} ${time}`);
-      if (weekdays === "" && fullDate < oneHourAhead) {
+      const existing = $('#request-id').length > 0;
+      const changedTime = existing && fullDate.getTime() != new Date($('#original-start').data('value')).getTime();
+      if ((!existing || changedTime) && fullDate < oneHourAhead) {
         nextButton.attr("disabled", true);
         nextButton.prop("title", "Must be at least one hour in the future");
         nextButton.addClass("disabled");

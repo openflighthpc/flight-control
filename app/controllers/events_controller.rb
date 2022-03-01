@@ -64,6 +64,41 @@ class EventsController < ApplicationController
     redirect_to events_new_path(project: @project.name)
   end
 
+
+  def update
+    get_project
+    target = events_new_path(project: @project.name)
+    parameters = filtered_change_request_params
+    request = ChangeRequest.find_by_id(params[:id])
+    if !request
+      flash[:danger] = "Request not found"
+    else
+      target = event_edit_path(request)
+      if request.id != parameters[:id].to_i
+        flash[:danger] = "Ids do not match"
+      else
+        parameters.delete(:project)
+        parameters.delete(:timeframe)
+        request.attributes = parameters
+        if !request.changed?
+          flash[:danger] = "No changes selected"
+        else
+          if request.valid?
+            success = request.save
+            if success
+              flash[:success] = "Request updated"
+            else
+              flash[:danger] = "Unable to cancel request"
+            end
+          else
+            flash[:danger] = format_errors(request)
+          end
+        end
+      end
+    end
+    redirect_to target
+  end
+
   def cancel
     get_project
     request = ChangeRequest.find_by_id(params[:id])
