@@ -206,7 +206,7 @@ function createRequestButtons(details) {
   const token = $('meta[name="csrf-token"]').attr('content');
   let html = `<form action='/events/${id}/cancel?project=${project}'`;
   html += `method='post' id='cancel-scheduled-request-${id}'`;
-  html += `onsubmit='return confirm("Are you sure you want to cancel this policy?");'>`;
+  html += `onsubmit='return confirm("Are you sure you want to cancel this request?");'>`;
   html += `<input type="hidden" name="authenticity_token" value="${token}">`;
   html += `</form> <button class="btn btn-sm btn-danger" form="cancel-scheduled-request-${id}">`;
   html += ` Cancel </button>`;
