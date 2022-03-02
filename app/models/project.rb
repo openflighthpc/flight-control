@@ -416,6 +416,7 @@ class Project < ApplicationRecord
     change
   end
 
+<<<<<<< HEAD
   def update_change_request(request, user, params)
     return request, false if !request.editable?
     
@@ -437,7 +438,6 @@ class Project < ApplicationRecord
         request.reload
         new_attributes = request.attributes
         new_attributes["formatted_days"] = request.formatted_days
-
         create_change_request_log(request.id, user.id, original_attributes, new_attributes)
         send_slack_message(msg)
       end

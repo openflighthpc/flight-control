@@ -63,6 +63,43 @@ class EventsController < ApplicationController
     redirect_to events_new_path(project: @project.name)
   end
 
+<<<<<<< HEAD
+=======
+
+  def update
+    get_project
+    target = events_new_path(project: @project.name)
+    parameters = filtered_change_request_params
+    request = ChangeRequest.find_by_id(params[:id])
+    if !request
+      flash[:danger] = "Request not found"
+    else
+      target = event_edit_path(request)
+      if request.id != parameters[:id].to_i
+        flash[:danger] = "Ids do not match"
+      else
+        if !request.editable?
+          flash[:danger] = "Cannot edit that request"
+        else
+          parameters.delete(:project)
+          parameters.delete(:timeframe)
+          request, success = @project.update_change_request(request, parameters)
+          if success
+            flash[:success] = "Request updated"
+          else
+            if !request.changed?
+              flash[:danger] = "No changes made"
+            elsif !request.valid?
+              flash[:danger] = format_errors(request)
+            end
+          end
+        end
+      end
+    end
+    redirect_to target
+  end
+
+>>>>>>> added change request audit logs and included in update request workflow
   def cancel
     get_project
     request = ChangeRequest.find_by_id(params[:id])

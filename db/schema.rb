@@ -11,7 +11,6 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema.define(version: 2022_03_22_142817) do
-
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -61,10 +60,15 @@ ActiveRecord::Schema.define(version: 2022_03_22_142817) do
     t.date "date"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+<<<<<<< HEAD
     t.bigint "user_id"
     t.index ["change_request_id"], name: "index_change_request_audit_logs_on_change_request_id"
     t.index ["project_id"], name: "index_change_request_audit_logs_on_project_id"
     t.index ["user_id"], name: "index_change_request_audit_logs_on_user_id"
+=======
+    t.index ["change_request_id"], name: "index_change_request_audit_logs_on_change_request_id"
+    t.index ["project_id"], name: "index_change_request_audit_logs_on_project_id"
+>>>>>>> added change request audit logs and included in update request workflow
   end
 
   create_table "change_requests", force: :cascade do |t|
