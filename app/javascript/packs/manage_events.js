@@ -171,7 +171,7 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
     html += `<td ${details.type === "budget_switch_off" ? "class='text-danger'" : ""}>`;
     let instances = details.descriptive_counts[group];
     if(instances != undefined) {
-      if(instances === "All on") {
+      if(instances === "All on" || instances === "All off") {
         html += instances;
       } else {
         Object.keys(instances).forEach(function(instance, index) {
@@ -212,7 +212,7 @@ function createRequestButtons(details) {
   html += ` Cancel </button>`;
   if(details.editable) {
     html += ' <button class="btn btn-sm btn-warning"';
-    html += `onclick="window.location.href='/events/${id}'/edit"> Edit </button>`
+    html += `onclick="window.location.href='/events/${id}/edit?project=${project}'"> Edit </button>`
   }
   return html;
 }

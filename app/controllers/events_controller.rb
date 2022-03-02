@@ -76,7 +76,7 @@ class EventsController < ApplicationController
     if !request
       flash[:danger] = "Request not found"
     else
-      target = event_edit_path(request)
+      target = event_edit_path(request, project: @project.name)
       if request.id != parameters[:id].to_i
         flash[:danger] = "Ids do not match"
       else

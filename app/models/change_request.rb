@@ -221,11 +221,20 @@ class ChangeRequest < ApplicationRecord
     !missing
   end
 
+  def switch_all_off?(group_name)
+    project_instances = project.latest_instances[group_name]
+    request_counts = counts[group_name]
+    request_counts.length == project_instances.length &&
+    request_counts.values.all?(0)
+  end
+
   def descriptive_counts
     results = {}
     counts.each do |group, instance_types|
       if switch_all_on?(group)
         results[group] = "All on"
+      elsif switch_all_off?(group)
+        results[group] = "All off"
       else
         customer_facing_types = instance_types.map do |k,v|
           [InstanceMapping.customer_facing_type(project.platform, k),v]
