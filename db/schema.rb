@@ -52,6 +52,17 @@ ActiveRecord::Schema.define(version: 2022_03_09_104733) do
     t.index ["project_id"], name: "index_budget_policies_on_project_id"
   end
 
+  create_table "change_request_audit_logs", force: :cascade do |t|
+    t.bigint "project_id"
+    t.bigint "change_request_id"
+    t.json "updates"
+    t.date "date"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["change_request_id"], name: "index_change_request_audit_logs_on_change_request_id"
+    t.index ["project_id"], name: "index_change_request_audit_logs_on_project_id"
+  end
+
   create_table "change_requests", force: :cascade do |t|
     t.bigint "project_id"
     t.json "counts"

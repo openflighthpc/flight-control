@@ -77,21 +77,20 @@ class EventsController < ApplicationController
       if request.id != parameters[:id].to_i
         flash[:danger] = "Ids do not match"
       else
-        parameters.delete(:project)
-        parameters.delete(:timeframe)
-        request.attributes = parameters
-        if !request.changed?
-          flash[:danger] = "No changes selected"
+        if !request.editable?
+          flash[:danger] = "Cannot edit that request"
         else
-          if request.valid?
-            success = request.save
-            if success
-              flash[:success] = "Request updated"
-            else
-              flash[:danger] = "Unable to cancel request"
-            end
+          parameters.delete(:project)
+          parameters.delete(:timeframe)
+          request, success = @project.update_change_request(request, parameters)
+          if success
+            flash[:success] = "Request updated"
           else
-            flash[:danger] = format_errors(request)
+            if !request.changed?
+              flash[:danger] = "No changes made"
+            elsif !request.valid?
+              flash[:danger] = format_errors(request)
+            end
           end
         end
       end

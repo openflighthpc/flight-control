@@ -419,6 +419,42 @@ class Project < ApplicationRecord
     change
   end
 
+  def update_change_request(request, params)
+    return request, false if !request.editable?
+    
+    # TODO: update this. Need to set type somewhere based on new choices
+    # allow change between one off and repeated request
+    # request = request.becomes((Object.const_get(params["type"])))
+    # user = params.delete("user")
+    original_date_time = request.date_time
+    original_attributes = request.attributes
+    original_attributes["formatted_days"] = request.formatted_days
+    request.assign_attributes(params)
+    request.nodes = params["nodes"]
+    if !request.changed?
+      success = false
+    else
+      success = request.save
+      if success
+        msg = "Scheduled request at #{original_date_time} for project *#{self.name}* updated by #{"Someone"}. Now: \n"
+        msg << request.formatted_changes(false)
+        request.reload
+        new_attributes = request.attributes
+        new_attributes["formatted_days"] = request.formatted_days
+
+        create_change_request_log(request.id, original_attributes, new_attributes)
+        send_slack_message(msg)
+      end
+    end
+    return request, success
+  end
+
+  def create_change_request_log(request_id, original_attributes, new_attributes)
+    log = ChangeRequestAuditLog.create(project_id: self.id, change_request_id: request_id, 
+                                       original_attributes: original_attributes,
+                                       new_attributes: new_attributes, date: Date.today)
+  end
+
   def cancel_change_request(request)
     original_status = request.status
     success = request.cancel
