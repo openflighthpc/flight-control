@@ -161,7 +161,7 @@ class ChangeRequest < ApplicationRecord
 
   def cancel
     if cancellable?
-      self.status = "cancel"
+      self.status = "cancelled"
       save!
     end
   end

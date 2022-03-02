@@ -35,6 +35,10 @@ class EventsController < ApplicationController
     @request = ChangeRequest.find_by_id(params[:id])
     if !@request
       flash[:danger] = "Request not found"
+    elsif !@request.editable?
+      flash[:danger] = "Cannot edit that request"
+      redirect_to events_path
+      return
     end
     @current_instances = @project.latest_instances
     cost_plotter = CostsPlotter.new(@project)
@@ -63,7 +67,6 @@ class EventsController < ApplicationController
     end
     redirect_to events_new_path(project: @project.name)
   end
-
 
   def update
     get_project
