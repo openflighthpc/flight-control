@@ -45,6 +45,7 @@
           <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
           <%= hidden_field_tag :project, @project.name %>
           <%= hidden_field_tag(:id, @request.id, {id: "request-id"}) if @request %>
+           <%= hidden_field_tag(:type, @request&.type, {id: "request-type"}) %>
         </form>
       </div>
     </div>

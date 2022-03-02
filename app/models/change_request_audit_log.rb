@@ -7,6 +7,7 @@ class ChangeRequestAuditLog < ApplicationRecord
   belongs_to :project
   belongs_to :change_request
   validates :project_id, :change_request_id, :updates, :date, presence: true
+  validate :includes_change, on: :create
   default_scope { order(:created_at) }
 
   after_initialize do |change_request|
@@ -21,9 +22,23 @@ class ChangeRequestAuditLog < ApplicationRecord
     @new_attributes = current.select { |key, value| AUDITED_ATTRIBUTES.include?(key) }
   end
 
+  def changed_attributes
+    changed = []
+    updates["from"].each do |key, value|
+      changed << key if value != updates["to"][key]
+    end
+    changed
+  end
+
   private
 
   def set_updates
     { from: @original_attributes, to: @new_attributes }
+  end
+
+  def includes_change
+    if !changed_attributes.any?
+      errors.add(:log, "must include a change")
+    end
   end
 end

@@ -403,11 +403,7 @@ class Project < ApplicationRecord
       params["time"] = (Time.now + 6.minutes).strftime("%H:%M")
     end
     params.delete("timeframe")
-    if params["weekdays"] && params["weekdays"] != ""
-      change = RepeatedChangeRequest.new(params)
-    else
-      change = OneOffChangeRequest.new(params)
-    end
+    change = params["type"].constantize.new(params)
   end
 
   def create_change_request(params)
@@ -422,9 +418,6 @@ class Project < ApplicationRecord
   def update_change_request(request, params)
     return request, false if !request.editable?
     
-    # TODO: update this. Need to set type somewhere based on new choices
-    # allow change between one off and repeated request
-    # request = request.becomes((Object.const_get(params["type"])))
     # user = params.delete("user")
     original_date_time = request.date_time
     original_attributes = request.attributes
@@ -434,6 +427,8 @@ class Project < ApplicationRecord
     if !request.changed?
       success = false
     else
+      # allow change between one off and repeated request
+      request = request.becomes(params["type"].constantize)
       success = request.save
       if success
         msg = "Scheduled request at #{original_date_time} for project *#{self.name}* updated by #{"Someone"}. Now: \n"

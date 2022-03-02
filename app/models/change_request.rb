@@ -240,6 +240,8 @@ class ChangeRequest < ApplicationRecord
 
   def formatted_counts
     instances = {}
+    return instances if !@nodes
+
     @nodes.each do |id, count|
       if count != ""
         group = id.split("-")[0]
@@ -260,7 +262,7 @@ class ChangeRequest < ApplicationRecord
   end
 
   def time_in_future
-    errors.add(:time, "#{date_time }must be at least 5 mins in the future") if (date_time - 5.minutes) < Time.now
+    errors.add(:time, " must be at least 5 mins in the future") if (date_time - 5.minutes) < Time.now
   end
 
   def only_one_at_time

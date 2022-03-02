@@ -158,10 +158,13 @@ function updateWeekdays() {
       weekdays.push("0");
     }
   });
+  let type = $('#request-type');
   if(any) {
     $('#weekdays').val(weekdays.join(""));
+    type.val('RepeatedChangeRequest');
   } else {
     $('#weekdays').val(null);
+    type.val('OneOffChangeRequest');
   }
 }
 
