@@ -26,6 +26,11 @@
         <span class="pl-2">Flight Control</span>
       </div>
     </nav>
+    <% flash.each do |type, msg| %>
+      <div>
+        <%= msg %>
+      </div>
+    <% end %>
     <%= yield %>
   </body>
 </html>
