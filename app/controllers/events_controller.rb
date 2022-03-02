@@ -27,7 +27,23 @@ class EventsController < ApplicationController
     end_date = cost_plotter.end_of_billing_interval(Date.today)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
     @existing_timings = @project.request_dates_and_times
-    @nav_view = "create event"
+    @nav_view = "event wizard"
+  end
+
+  def edit
+    get_project
+    @request = ChangeRequest.find_by_id(params[:id])
+    if !@request
+      flash[:danger] = "Request not found"
+    end
+    @current_instances = @project.latest_instances
+    cost_plotter = CostsPlotter.new(@project)
+    start_date = cost_plotter.start_of_billing_interval(Date.today)
+    end_date = cost_plotter.end_of_billing_interval(Date.today)
+    @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
+    @existing_timings = @project.request_dates_and_times(@request)
+    @nav_view = "event wizard"
+    render :new
   end
 
   def create
