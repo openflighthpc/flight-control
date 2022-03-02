@@ -212,7 +212,7 @@ function createRequestButtons(details) {
   html += ` Cancel </button>`;
   if(details.editable) {
     html += ' <button class="btn btn-sm btn-warning"';
-    html += `onclick="window.location.href='/events/${id}'"> Edit </button>`
+    html += `onclick="window.location.href='/events/${id}'/edit"> Edit </button>`
   }
   return html;
 }
