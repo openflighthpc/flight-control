@@ -244,8 +244,9 @@ class Project < ApplicationRecord
     latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.exists?
     latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.exists?
     latest_action_log = action_logs.maximum("updated_at") if action_logs.exists?
-    if latest_cost_data || latest_instance_data || latest_action_log
-      latest = [latest_cost_data, latest_instance_data, latest_action_log].compact.max
+    latest_change_request = change_requests.maximum("updated_at") if change_requests.exists?
+    if latest_cost_data || latest_instance_data || latest_action_log || latest_change_request
+      latest = [latest_cost_data, latest_instance_data, latest_action_log, latest_change_request].compact.max
     else
       latest = Date.today.to_time
     end
