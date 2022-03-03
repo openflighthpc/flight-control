@@ -91,7 +91,15 @@ class ChangeRequest < ApplicationRecord
   end
 
   def additional_field_details(slack=false)
-    ""
+    if description
+      if slack
+        "*Description*: #{description}\n"
+      else
+        "<strong>Description</strong>: #{description}<br>"
+      end
+    else
+      ""
+    end
   end
 
   def formatted_timestamp

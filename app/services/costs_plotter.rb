@@ -337,7 +337,7 @@ class CostsPlotter
     scheduled_actions = @project.pending_one_off_and_repeat_requests_on(date.to_s)
     if temp_change_request
       if temp_change_request.actual_or_parent_id
-        scheduled_actions = scheduled_actions.select { |scheuled| scheduled.actual_or_parent_id != temp_change_request.actual_or_parent_id }
+        scheduled_actions = scheduled_actions.select { |scheduled| scheduled.actual_or_parent_id != temp_change_request.actual_or_parent_id }
       end
       if temp_change_request.action_on_date?(date.to_s)
         scheduled_actions = scheduled_actions << temp_change_request.individual_request_on_date(date.to_s)

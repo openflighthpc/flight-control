@@ -74,7 +74,7 @@ class RepeatedChangeRequest < ChangeRequest
       details << "<br><strong>Repeat until</strong>: #{end_date}<br>"
       details << "<strong>On days</strong>: #{formatted_days}<br>"
     end
-    details
+    details << super(slack)
   end
 
   def front_end_id
