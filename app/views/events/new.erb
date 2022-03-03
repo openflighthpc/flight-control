@@ -1,0 +1,51 @@
+<% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'create_event'%>
+  <%= javascript_pack_tag 'chart'%>
+<% end %>
+
+<main class="col-md-12 ml-sm-auto col-lg-12 px-4" role="main">
+  <%= render '/partials/nav.erb' %>
+  <div class="row session-alerts">
+    <div class="col-sm-3"></div>
+    <div class="col-sm-6">
+      <%= render 'partials/flashes' %>
+    </div>
+  </div>
+  <div class="mt-4 text-center mb-4">
+    <h2><%= @project.name %> - Create Event</h2>
+  </div>
+  <div class="wizard">
+    <div class="row">
+      <div class="col-2"></div>
+      <div class="col-8 wizard-body">
+        <form action='/events' method='post' id='create-event-form'>
+          <%= render '/events/choose_counts' %>
+          <%= render '/events/choose_when' %>
+          <%= render '/events/choose_extras' %>
+          <%= render '/events/review' %>
+          <div class="row justify-content-between" id="wizard-footer">
+            <div>
+              <a class="btn btn-info" id="wizard-back-button" style="visibility: hidden"
+                 data-previous=""> Back</a>
+            </div>
+            <div>
+              <a class="btn btn-warning disabled"
+                 id="wizard-next-button"
+                 data-current="counts" data-next="when"
+                 title="No counts selected" disabled>Next</a>
+              <input type="submit"
+                     class="btn btn-warning"
+                     id="wizard-submit-button"
+                     style="display:none;">
+          </div>
+          <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
+          <%= hidden_field_tag :project, @project.name %>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div id="latest-change"
+       data-value="<%= @project.time_of_latest_change.to_s %>"
+       data-project="<%= @project.name %>">
+  </div>
+</main>

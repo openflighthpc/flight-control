@@ -1,0 +1,33 @@
+<div class="row mb-4">
+  <div class="col"></div>
+  <div class="col-3 repeat-label">
+    <br>
+    Weekdays:
+  </div>
+  <% Weekdays::DAYSOFWEEK.each_with_index do |day, index| %>
+    <div class="col day-checkbox">
+      <label> <%= day[0] %>
+        <br>
+        <input type="checkbox" class="scheduled-input day-input" id="day-checkbox-<%= day %>">
+      </label>
+    </div>
+  <% end %>
+  <div class="col"></div>
+  <input type="text" style="display:none;" id="weekdays" 
+         name="weekdays" class="scheduled-input">
+</div>
+<div class="row form-inline" id="last-date">
+  <div class="col"></div>
+  <div class="col-3 repeat-label">
+    End Date<a href="#" class="tool-tip" data-placement="top" title="The last day the request will run, if it is on one of the selected days of the week." onClick="return false;"><sup>?</sup></a>:
+  </div>
+  <div class="col-7">
+    <input type="date" 
+           class="form-control scheduled-date-picker scheduled-input"
+           id="end-date"
+           name="end_date"
+           min="<%= Date.today() %>"
+    >
+  </div>
+  <div class="col"></div>
+</div>

@@ -38,7 +38,7 @@
         show: <%= !@datasets || @datasets.include?('core') %>
       },
       {
-        label: 'core_storage',
+        label: 'core storage',
         data: cumulative['actual']['core storage'],
         backgroundColor: 'rgb(34, 239, 2)',
         borderColor: 'rgb(34, 250, 29)',
@@ -97,7 +97,7 @@
         },
       <% end %>
       {
-        label: 'forecast core storage',
+        label: 'forecast core',
         data: cumulative['forecast']['core'], 
         backgroundColor: 'rgb(148, 206, 153)',
         borderColor: 'rgb(148, 206, 153)',
@@ -109,7 +109,7 @@
       },
       {
         label: 'forecast core storage',
-        data: cumulative['forecast']['core_storage'],
+        data: cumulative['forecast']['core storage'],
         backgroundColor: 'rgb(124, 237, 106)',
         borderColor: 'rgb(124, 237, 106)',
         fill: false,

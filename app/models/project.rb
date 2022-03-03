@@ -2,9 +2,10 @@ require_relative 'balance'
 require_relative 'budget_policy'
 require_relative 'instance_log'
 require_relative 'cost_log'
-require_relative "../services/project_config_creator"
-require_relative "../services/costs_plotter"
-require_relative "../services/instance_tracker"
+require_relative 'action_log'
+require_relative '../services/project_config_creator'
+require_relative '../services/costs_plotter'
+require_relative '../services/instance_tracker'
 require 'httparty'
 
 class Project < ApplicationRecord
@@ -12,6 +13,10 @@ class Project < ApplicationRecord
   SCOPES = %w[total data_out core core_storage]
   has_many :instance_logs
   has_many :cost_logs
+  has_many :action_logs
+  has_many :change_requests
+  has_many :one_off_change_requests
+  has_many :repeated_change_requests
   has_many :balances
   has_many :budget_policies
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
@@ -44,12 +49,92 @@ class Project < ApplicationRecord
     instance_logs.where(date: instance_logs.maximum(:date))
   end
 
+  def pending_actions?
+    if @pending_actions == nil
+      @pending_actions = pending_action_logs.exists?
+    end
+    @pending_actions
+  end
+
+  def pending?
+    if @pending == nil
+      @pending = (pending_actions? || pending_one_off_and_repeat_requests.any?)
+    end
+    @pending
+  end
+
+  # Run this only when new instance logs are created (as we know
+  # statuses can't have changed unless instance statuses have changed)
+  def check_and_update_pending_changes
+    change_requests.where.not(status: "complete").where.not(
+                              status: "cancelled").reorder(
+                              "updated_at DESC").each { |request| request.check_and_update_status }
+    action_logs.where(change_request_id: nil, status: "pending").each { |action| action.check_and_update_status }
+  end
+
+  def pending_one_off_change_requests
+    one_off_change_requests.where(status: "pending")
+  end
+
+  # For repeat requests, they are pending (but don't necessarily have a 
+  # status of pending) until all their actions on every date are complete
+  def pending_repeated_requests
+    repeated_change_requests.where.not(status: "complete").where.not(status: "cancelled")
+  end
+
+  def pending_repeated_request_children
+    if !@repeated_request_children
+      @repeated_request_children = pending_repeated_requests.map { |repeated| repeated.as_future_individual_requests }.flatten
+    end
+    @repeated_request_children
+  end
+
+  def pending_one_off_and_repeat_requests
+    if !@combined_requests
+      @combined_requests = pending_one_off_change_requests.to_a.concat(pending_repeated_request_children).compact
+      @combined_requests = @combined_requests.sort_by { |request| [request.date, request.time] }
+    end
+    @combined_requests
+  end
+
+  def pending_one_off_and_repeat_requests_on(date)
+    pending = pending_one_off_change_requests.where(date: date)
+    repeated = pending_repeated_requests.select { |repeat| repeat.action_on_date?(date) }
+    repeated_children = repeated.map { |repeat| repeat.individual_request_on_date(date) }
+    pending.to_a.concat(repeated_children).compact
+  end
+
+  def request_dates_and_times(exclude_request=nil)
+    results = {}
+    requests = pending_one_off_and_repeat_requests
+    requests.reject! { |request| request.id == exclude_request.id } if exclude_request
+    requests.pluck(:date, :time).each do |timing|
+      date = timing[0]
+      time = timing[1]
+      if results[date]
+        results[date][time] = true
+      else
+        results[date] = {time => true }
+      end
+    end
+    results
+  end
+
   # For front end use and in cost forecast calculations
-  def latest_instances
-    if !@instances
-      @instances = InstanceTracker.new(self).latest_instances
+  def latest_instances(temp_change_request=nil)
+    if !@instances || temp_change_request
+      @instances = InstanceTracker.new(self).latest_instances(temp_change_request)
     end
     @instances
+  end
+
+  # For resetting after temp
+  def reset_latest_instances
+    @instances = nil
+  end
+
+  def pending_action_logs
+    action_logs.where(status: "pending")
   end
 
   def current_balance
@@ -86,7 +171,7 @@ class Project < ApplicationRecord
   def compute_groups_on_date(date)
     logs = instance_logs.where(date: date)
     # If no logs on that, get most recent earlier logs
-    if !logs.any?
+    if !logs.exists?
       latest_date = instance_logs.where("date < ?", date).maximum(:date)
       if latest_date
         logs = instance_logs.where(date: latest_date)
@@ -102,10 +187,11 @@ class Project < ApplicationRecord
   end
 
   def time_of_latest_change
-    latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.any?
-    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.any?
-    if latest_cost_data || latest_instance_data
-      latest = [latest_cost_data, latest_instance_data].compact.max
+    latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.exists?
+    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.exists?
+    latest_action_log = action_logs.maximum("updated_at") if action_logs.exists?
+    if latest_cost_data || latest_instance_data || latest_action_log
+      latest = [latest_cost_data, latest_instance_data, latest_action_log].compact.max
     else
       latest = Date.today.to_time
     end
@@ -126,7 +212,7 @@ class Project < ApplicationRecord
     end
     
     outcome = ""
-    if instance_logs.where(date: Date.today).any?
+    if instance_logs.where(date: Date.today).exists?
       if rerun
         outcome << "Updating existing logs. "
       else
@@ -136,12 +222,14 @@ class Project < ApplicationRecord
       outcome << "Writing new logs for today. "
     end
     outcome << instance_recorder&.record_logs(rerun)
+    check_and_update_pending_changes
+    outcome
   end
 
   def record_cost_logs(date=DEFAULT_COSTS_DATE, rerun=false, text=false, verbose=false)
     check_costs_date(date)
 
-    if cost_logs.where(date: date).any?
+    if cost_logs.where(date: date).exists?
       if rerun
         print "Updating existing logs. " if text
       else
@@ -187,11 +275,19 @@ class Project < ApplicationRecord
     # platform specific, so none in this superclass
   end
 
+  def instance_manager
+    # platform specific, so none in this superclass
+  end
+
+  def costs_plotter
+    @costs_plotter ||= CostsPlotter.new(self)
+  end
+
   def daily_report(date=DEFAULT_COSTS_DATE, rerun=false, slack=true, text=true, verbose=false)
     return if !check_costs_date(date)
 
     date_logs = cost_logs.where(date: date)
-    any_logs = date_logs.any?
+    any_logs = date_logs.exists?
     cached = true
     if !any_logs || rerun
       cached = false
@@ -222,6 +318,80 @@ class Project < ApplicationRecord
       msg << "\n"
       puts msg.gsub(":moneybag:", "").gsub("*", "").gsub("\t", "")
     end
+  end
+
+  def change_request_cumulative_costs(params)
+    change = make_change_request(params)
+    # This sets the future instance counts based on the
+    # if the temp change request were carried out
+    latest_instances(change)
+    results = {costs: costs_plotter.cumulative_change_request_costs(change)}
+    start_date = costs_plotter.start_of_billing_interval(Date.today)
+    end_date = costs_plotter.end_of_billing_interval(start_date)
+    results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, change)
+    results
+  end
+
+  def change_request_goes_over_budget?(change_request)
+    latest_instances(change_request)
+    over = costs_plotter.change_request_goes_over_budget?(change_request)
+    reset_latest_instances
+    over
+  end
+
+  # create object, but don't persist
+  def make_change_request(params)
+    params["project"] = self
+    if params["timeframe"] == "now"
+      params["date"] = Date.today
+      # use 6 minutes as equivalent to rounding up current time
+      # to nearest minute
+      params["time"] = (Time.now + 6.minutes).strftime("%H:%M")
+    end
+    params.delete("timeframe")
+    if params["weekdays"] && params["weekdays"] != ""
+      change = RepeatedChangeRequest.new(params)
+    else
+      change = OneOffChangeRequest.new(params)
+    end
+  end
+
+  def create_change_request(params)
+    change = make_change_request(params)
+    change.project_id = self.id
+    success = change.save
+    msg = change.formatted_changes
+    send_slack_message(msg) if success
+    change
+  end
+
+  def action_scheduled(slack, text)
+    any = false
+    pending_one_off_and_repeat_requests.each do |request|
+      if request.due?
+        any = true
+        msg = request.formatted_actions
+        send_slack_message(msg) if slack
+        puts msg if text
+        request.start
+        action_change_request(request)
+      end
+    end
+    puts "No scheduled requests due for project #{self.name}." if !any && text
+  end
+
+  def update_instance_statuses(actions)
+    actions.each do |action, details|
+      next if details.empty?
+      # for aws grouping is region, for azure is resource group
+      details.each do |grouping, instances|
+        instance_manager.update_instance_statuses(action, grouping, instances)
+      end
+    end
+  end
+
+  def actual_with_pending_counts
+    InstanceTracker.new(self).actual_with_pending_counts
   end
 
   def send_slack_message(msg)

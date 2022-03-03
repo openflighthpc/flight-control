@@ -1,0 +1,25 @@
+<div id="wizard-choose-counts" class="wizard-section">
+  <div class="wizard-title">
+    <h4>What would you like to do?</h4>
+  </div>
+  <div class="row text-center select-count-type">
+    <div class="col-1"></div>
+    <div class="col-5">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="counts_criteria" id="exact-counts" value="exact" checked>
+        <label class="form-check-label" for="exact-counts">
+          Set exact instance counts<a href="#" class="tool-tip" data-placement="top" title="Instances will be switched on and/or off as needed to match the exact chosen counts."><sup>?</sup></a>
+        </label>
+      </div>
+    </div>
+    <div class="col-5">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="counts_criteria" id="min-counts" value="min">
+        <label class="form-check-label" for="min-counts">
+          Set minimum instance counts<a href="#" class="tool-tip" data-placement="top" title="Instances will be switched on (but not off) as needed to reach the chosen counts."><sup>?</sup></a>
+        </label>
+      </div>
+    </div>
+  </div>
+  <%= render '/events/node_choices' %>
+</div>

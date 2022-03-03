@@ -68,3 +68,99 @@ td {
 .nav-tabs {
   margin-left: -1.5rem;
 }
+
+.simple-node-details {
+  padding-left: 2rem !important;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.simple-node-count {
+  width: 4.5rem !important;
+  text-align: center;
+  text-align-last: center;
+}
+
+.pending {
+  color: #f26907;
+}
+
+.wizard {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+
+.wizard-title {
+  text-align: center;
+  padding: 1rem;
+}
+
+.wizard-body {
+  background-clip: padding-box;
+  border: 1px solid rgba(0,0,0,.2);
+  border-radius: 0.3rem;
+  outline: 0;
+  box-shadow: 0 0.25rem 0.5rem 0 rgba(0, 0, 0, 0.2), 0 0.4rem 1.3rem 0 rgba(0, 0, 0, 0.19);
+}
+
+.select-count-type {
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+.form-check-input {
+  margin-top:  0.4rem !important;
+}
+
+#wizard-footer {
+  margin: 2rem
+}
+
+#wizard-next-button {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+#wizard-choose-when {
+  margin-bottom: 2rem;
+}
+
+.select-timeframe {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+#event-start-title {
+  margin-bottom: 2.2rem;
+}
+
+.disabled {
+  pointer-events: auto !important;
+}
+
+input[type=date] {
+  width: 10.6rem !important;
+}
+
+.day-checkbox {
+  padding-right: 0.14rem !important;
+}
+
+#scheduled-description {
+  width: 18.5rem;
+}
+
+#wizard-choose-extras {
+  margin-bottom: 2rem;
+}
+
+#loading-chart-spinner {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 1rem);
+}
+
+#request-summary {
+  margin-top: 2rem;
+  margin-left: 4rem;
+}

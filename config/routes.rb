@@ -7,4 +7,9 @@ Rails.application.routes.draw do
   get '/costs-breakdown', to: 'projects#costs_breakdown'
   get '/billing-management', to: 'projects#billing_management'
   get '/json/data-check', to: 'projects#data_check'
+
+  # Events (change requests and their resulting actions)
+  get '/events/new', to: 'events#new'
+  get '/json/events/costs-forecast', to: 'events#costs_forecast'
+  post '/events/', to: 'events#create'
 end

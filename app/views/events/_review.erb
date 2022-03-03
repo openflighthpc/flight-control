@@ -1,0 +1,19 @@
+<div id="wizard-choose-review" class="wizard-section" style="display:none">
+  <div class="wizard-title">
+    <h4>Review</h4>
+  </div>
+  <%= render '/events/simple_chart' %>
+  <div class="row">
+    <div class="col-2"></div>
+    <div class="col-8" id="request-summary">
+      <div id="request-choices-summary">
+      </div>
+      <div id="over-balance-warning" class="text-danger" style="display:none;">
+        Request is forecast to exceed balance.
+      </div>
+      <div id="over-budget-warning" class="text-danger" style="display:none">
+        Request is forecast to exceed budget.
+      </div>
+    </div>
+  </div>
+</div>

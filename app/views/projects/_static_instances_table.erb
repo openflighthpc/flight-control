@@ -1,3 +1,4 @@
+  <% pending = @project.pending_actions? %>
 <div class="row">
   <div class="col-sm-2"></div>
   <div class="col-sm-8">
@@ -8,7 +9,10 @@
           <th scope="col">Group</th>
           <th scope="col">Type</th>
           <th scope="col" class="text-center">Daily Cost</th>
-          <th scope="col" class="text-center border-left">Count</th>
+          <th scope="col" class="text-center">Currently up</th>
+          <% if pending %>
+            <th scope="col" class="text-center">Pending up</th>
+          <% end %>
           <th scope="col" class="text-center">Total Daily Cost</th>
         </tr>
       </thead>
@@ -22,12 +26,15 @@
             <td></td>
             <td></td>
             <td class="border-left"></td>
+            <% if pending %>
+              <td></td>
+            <% end %>
           </tr>
           <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem] } %>
           <% instances.each do |instance| %>
             <% next if instance.node_limit == 0 %>
             <% on = instance.count[:on] %>
-            <tr class="text-nowrap node-row">
+            <tr class="text-nowrap node-row <%='pending' if pending && instance.pending_change? %>">
               <td></td>
               <td scope="row"><%= instance.customer_facing_type %><a href="#" class="tool-tip" data-placement="top" title="<%= instance.details_description %>" onClick="return false;"><sup>?</sup>
                 </a> 
@@ -36,10 +43,13 @@
               <td class="text-center border-left">
                 <div id="<%= "#{group}-#{instance.instance_type}-on" %>"><%= on %></div>
               </td>
+              <% if pending %>
+                <td class="text-center"><%= instance.pending_on %></td>
+              <% end %>
               <td class="text-center">
                 <div id="<%= "#{group}-#{instance.instance_type}-total" %>"
-                     data-cost-each="<%= instance.daily_compute_cost %>">
-                  <%= instance.total_daily_compute_cost %>c.u.
+                     data-cost-each="<%= instance.pending_total_daily_compute_cost %>">
+                  <%= instance.pending_total_daily_compute_cost %>c.u.
                 </div>
               </td>
             </tr>

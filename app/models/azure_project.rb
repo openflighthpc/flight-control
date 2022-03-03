@@ -4,6 +4,7 @@ require_relative '../services/azure_instance_recorder'
 require_relative '../services/azure_costs_recorder'
 require_relative '../services/azure_authoriser'
 require_relative '../services/azure_instance_details_recorder'
+require_relative '../services/azure_instance_manager'
 
 class AzureProject < Project
   alias_attribute :azure_client_id, :security_id
@@ -31,6 +32,10 @@ class AzureProject < Project
     @instance_recorder ||= AzureInstanceRecorder.new(self)
   end
 
+  def instance_manager
+    @instance_manager ||= AzureInstanceManager.new(self)
+  end
+
   def costs_recorder
     @costs_recorder ||= AzureCostsRecorder.new(self)
   end
@@ -42,6 +47,25 @@ class AzureProject < Project
   def record_cost_logs_for_range(start_date, end_date, rerun=false, text=false, verbose=false)
     puts "May take some time (5+ mins per month of data)" if text
     super(start_date, end_date, rerun, verbose, text)
+  end
+
+  def action_change_request(change)
+    instances_to_change = change.instances_to_change_with_pending
+    by_resource_group = {on: {}, off: {}}
+    instances_to_change.each do |action, instances|
+      instances.each do |instance|
+        if by_resource_group[action].has_key?(instance.resource_group)
+          by_resource_group[action][instance.resource_group] << instance.instance_name
+        else
+          by_resource_group[action][instance.resource_group] = [instance.instance_name]
+        end
+        action_log = ActionLog.new(project_id: self.id, action: action, reason: "Change request",
+                                   instance_id: instance.instance_id,
+                                   change_request_id: change.actual_or_parent_id)
+        action_log.save!
+      end
+    end
+    update_instance_statuses(by_resource_group)
   end
 
   private

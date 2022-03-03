@@ -4,8 +4,8 @@ class CostsPlotter
     @project = project
   end
 
-  def chart_cost_breakdown(start_date, end_date)
-    cost_entries = cost_breakdown(start_date, end_date)
+  def chart_cost_breakdown(start_date, end_date, temp_change_request=nil, cost_entries=nil)
+    cost_entries ||= cost_breakdown(start_date, end_date, temp_change_request)
     dates = cost_entries.keys
     compute = []
     nodes = []
@@ -64,18 +64,18 @@ class CostsPlotter
       nodes << v[:compute_nodes]
     end
     results = {'dates': dates, 'actual': {'any': remaining_budget.compact.length > 0, 'compute': compute, 
-              'compute_groups': compute_group_details[:actual], 'data out': data_out, 'core': core, 'core_storage': core_storage,
+              'compute_groups': compute_group_details[:actual], 'data out': data_out, 'core': core, 'core storage': core_storage,
               'other': other, 'remaining budget': remaining_budget}}
     results['forecast'] = {'any': forecast_remaining_budget.compact.length > 0, 'compute': forecast_compute,
                            'compute_groups': compute_group_details[:forecast], 'data out': forecast_data_out, 
-                           'core': forecast_core, 'core_storage': forecast_core_storage, 'other': forecast_other,
+                           'core': forecast_core, 'core storage': forecast_core_storage, 'other': forecast_other,
                            'remaining budget': forecast_remaining_budget}
     results
   end
 
-  def chart_cumulative_costs(start_date, end_date)
+  def chart_cumulative_costs(start_date, end_date, temp_change_request=nil, cost_entries=nil)
     start_of_cycle = start_of_billing_interval(start_date)
-    cost_entries = cost_breakdown(start_of_cycle, end_date)
+    cost_entries ||= cost_breakdown(start_of_cycle, end_date, temp_change_request)
     dates = (start_date..end_date).map { |date| date.to_s }
     compute = []
     data_out = []
@@ -218,15 +218,15 @@ class CostsPlotter
     end
 
     results = {'dates': dates, 'actual': {'any': overall.compact.length > 0,'compute': compute, 'compute_groups': compute_group_details[:actual],
-               'core': core, 'data out': data_out, 'core_storage': core_storage, 'other': other, 'total': overall}}
+               'core': core, 'data out': data_out, 'core storage': core_storage, 'other': other, 'total': overall}}
     results['forecast'] = {'any': forecast_overall.compact.length > 0, 'compute': forecast_compute, 'compute_groups': compute_group_details[:forecast],
-                           'core': forecast_core,'data out': forecast_data_out, 'core_storage': forecast_core_storage, 'other': forecast_other, 
+                           'core': forecast_core,'data out': forecast_data_out, 'core storage': forecast_core_storage, 'other': forecast_other, 
                            'total': forecast_overall}
     results['budget'] = budgets
     results
   end
 
-  def cost_breakdown(start_date, end_date)
+  def cost_breakdown(start_date, end_date, change_request=nil)
     results = {}
     compute_groups = @project.front_end_compute_groups
     (start_date..end_date).to_a.each do |date|
@@ -286,7 +286,7 @@ class CostsPlotter
       elsif Date.parse(k) >= @project.start_date
         compute = 0.0
         compute_groups.keys.each do |group|
-          results[k]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(k), group.to_sym)
+          results[k]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(k), group.to_sym, change_request)
           compute += results[k]["forecast_#{group}".to_sym]
           results[k]["forecast_#{group}_storage".to_sym] = previous_costs["#{group}_storage".to_sym]
           compute += results[k]["forecast_#{group}_storage".to_sym]
@@ -326,17 +326,75 @@ class CostsPlotter
   end
 
   # Just instance costs
-  def forecast_compute_cost(date, group=nil)
+  def forecast_compute_cost(date, group=nil, temp_change_request=nil)
     total = 0.0
     if date > Date.today
       group ||= :total
-      return current_compute_costs[group]
+      return temp_change_request || @project.pending? ? pending_compute_costs(date)[group] : current_compute_costs[group]
+    end
+
+    actions = @project.action_logs.where(date: date)
+    scheduled_actions = @project.pending_one_off_and_repeat_requests_on(date.to_s)
+    if temp_change_request && temp_change_request.action_on_date?(date.to_s)
+      scheduled_actions = scheduled_actions << temp_change_request.individual_request_on_date(date.to_s)
+    end
+    scheuled_actions = scheduled_actions.select { |scheduled| scheduled.counts[group.to_s]} if group
+    instance_logs = @project.instance_logs.where(date: date.to_s)
+    instance_logs = instance_logs.where(compute_group: group) if group
+    # In case no logs recorded on that day, use previous
+    instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
+    if actions.any? || scheduled_actions.any?
+      instance_logs.each do |log|
+        instance_cost = 0.0
+        instance_actions = actions.where(instance_id: log.instance_id).reorder(:actioned_at)
+        instance_scheduled = scheduled_actions.select do |schedule| 
+          schedule.counts[log.compute_group] && schedule.counts[log.compute_group][log.instance_type]
+        end
+        instance_scheduled.sort_by! { |scheduled| scheduled.time }
+        previous_time = date.to_time # start of day (00:00)
+        previous_action = nil
+        # we can calculate running time by comparing action log times and actions
+        time_on = 0
+        if instance_actions.any? || instance_scheduled.any?
+          instance_actions.each do |action|
+            original_status = action.action == "on" ? "off" : "on"
+            time_at_previous_status = (action.actioned_at - previous_time) / 3600 # in hours
+            time_on += time_at_previous_status.ceil if original_status == "on"
+            previous_time = action.actioned_at
+            previous_action = action.action
+          end
+          previous_action = log.pending_on? ? "on" : "off" if !instance_actions.any?
+          instance_scheduled.each do |schedule|
+            action = schedule.check_and_update_target_counts(log.compute_group, log.instance_type, previous_action)
+            if action
+              time_at_previous_status = (schedule.date_time - previous_time) / 3600 # in hours
+              time_on += time_at_previous_status.ceil if previous_action == "on"
+              previous_time = schedule.date_time
+              previous_action = action   
+            end
+          end
+          to_end_of_day = ((date + 1.day).to_time - previous_time) / 3600
+          time_on += to_end_of_day.ceil if previous_action == "on"
+          time_on = [time_on, 24].min
+          instance_cost += log.hourly_compute_cost * time_on.ceil
+        else
+          # no changes so can use instance log status
+          if date == Date.today # handles if a pending action log from yesterday
+            instance_cost = log.daily_compute_cost if log.pending_on?
+          else
+            instance_cost = log.daily_compute_cost if log.on?
+          end
+        end
+        total += instance_cost
+      end
+      total = total.ceil
     else
-      instance_logs = @project.instance_logs.where(date: date.to_s)
-      instance_logs = instance_logs.where(compute_group: group) if group
-      # In case no logs recored on that day, use previous
-      instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
-      total = instance_logs.reduce(0.0) { |sum, log| sum + log.actual_cost }
+      if date == Date.today # handles if a pending action log from yesterday
+        instance_logs = instance_logs.select { |log| log.pending_on? }
+        total = instance_logs.reduce(0.0) { |sum, log| sum + log.daily_compute_cost }
+      else
+        total = instance_logs.reduce(0.0) { |sum, log| sum + log.actual_cost }
+      end
     end
     total
   end
@@ -350,13 +408,27 @@ class CostsPlotter
   end
 
   # Just instance costs
+  def pending_compute_costs(date=Date.today)
+    pending_compute_costs = {total: 0.0}
+    @project.latest_instances.each do |group, instances|
+      pending_compute_costs[group.to_sym] = 0.0
+      instances.each do |instance|
+        cost = instance.pending_daily_cost_with_future_counts(date)
+        pending_compute_costs[group.to_sym] += cost
+        pending_compute_costs[:total] += cost
+      end
+    end
+    pending_compute_costs
+  end
+
+  # Just instance costs
   def current_compute_costs
     if !@current_compute_costs
       @current_compute_costs = {total: 0.0}
       @project.latest_instances.each do |group, instances|
         @current_compute_costs[group.to_sym] = 0.0
         instances.each do |instance|
-          cost = instance.total_daily_compute_cost
+          cost = instance.pending_total_daily_compute_cost
           @current_compute_costs[group.to_sym] += cost
           @current_compute_costs[:total] += cost
         end
@@ -394,6 +466,7 @@ class CostsPlotter
     # Assume policies only change at the start of a billing cycle
     budget_dates = (start_date..end_date).to_a & active_billing_cycles
     budget_dates = [start_date] | budget_dates
+    budget_dates << @project.start_date if @project.start_date < end_date
     changes = {}
     budget_dates.each do |date|
       break if @project.end_date && date >= @project.end_date && date != start_date
@@ -473,7 +546,7 @@ class CostsPlotter
     @latest_cost_log_date ||= @project.cost_logs.last&.date
   end
 
-  def estimated_end_of_balance
+  def estimated_end_of_balance(temp_change_request=nil)
     balance = @project.balances.where("amount > ?", 0).last
     balance = balance ? balance.amount : 0.0
     date_grouped = @project.cost_logs.where(scope: "total").group_by { |log| log.date }
@@ -490,7 +563,7 @@ class CostsPlotter
       final_check_date = @project.archived_date ? @project.archived_date : Date.today + 1.year
       while(balance > 0 && balance_end_date < final_check_date)
         balance_end_date += 1.day
-        balance -= forecast_compute_cost(balance_end_date)
+        balance -= forecast_compute_cost(balance_end_date, nil, temp_change_request)
         balance -= latest_compute_storage_costs
         balance -= latest_non_compute_costs
       end
@@ -499,9 +572,11 @@ class CostsPlotter
     balance_end_date
   end
 
-  def estimated_balance_end_in_cycle(start_date, end_date)
+  def estimated_balance_end_in_cycle(start_date=start_of_current_billing_interval,
+                                     end_date=end_of_current_billing_interval,
+                                     temp_change_request=nil)
     cycle_index = nil
-    estimated_end = estimated_end_of_balance
+    estimated_end = estimated_end_of_balance(temp_change_request)
     if estimated_end && estimated_end >= start_date && estimated_end <= end_date
       cycle_index = (start_date..end_date).to_a.index(estimated_end)
     end
@@ -594,12 +669,20 @@ class CostsPlotter
 
   def end_of_billing_interval(date)
     if @project.cycle_interval == "monthly"
-      start_of_billing_interval(date + 1.month + 4.days) - 1.day
+      start_of_billing_interval(date + 1.month) - 1.day
     elsif @project.cycle_interval == "weekly"
       start_of_billing_interval(date + 1.week) - 1.day
     else
       start_of_billing_interval(date + @project.cycle_days.days) - 1.day
     end
+  end
+
+  def start_of_current_billing_interval
+    start_of_billing_interval(Date.today)
+  end
+
+  def end_of_current_billing_interval
+    end_of_billing_interval(Date.today)
   end
 
   def billing_start_day_of_month
@@ -659,5 +742,21 @@ class CostsPlotter
     when 'custom'
       "Every #{policy.days} days"
     end
+  end
+
+  def cumulative_change_request_costs(temp_change_request)
+    start_date = start_of_billing_interval(Date.today)
+    end_date = end_of_billing_interval(start_date)
+    costs = cost_breakdown(start_date, end_date, temp_change_request)
+    chart_cumulative_costs(start_date, end_date, temp_change_request, costs)
+  end
+
+  def change_request_goes_over_budget?(change_request)
+    start_date = start_of_billing_interval(Date.today)
+    end_date = end_of_billing_interval(start_date)
+    costs = cost_breakdown(start_date, end_date, change_request)
+    end_costs = costs.to_a.last[1]
+    end_budget = end_costs[:forecast_budget] ? end_costs[:forecast_budget] : end_costs[:budget]
+    end_budget < 0
   end
 end

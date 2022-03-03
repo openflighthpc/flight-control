@@ -33,8 +33,9 @@ class ProjectsController < ApplicationController
     else
       @end_date = cost_plotter.end_of_billing_interval(@start_date)
     end
-    @cost_breakdown = cost_plotter.chart_cost_breakdown(@start_date, @end_date)
-    @cumulative_costs = cost_plotter.chart_cumulative_costs(@start_date, @end_date)
+    costs = cost_plotter.cost_breakdown(@start_date, @end_date)
+    @cost_breakdown = cost_plotter.chart_cost_breakdown(@start_date, @end_date, nil, costs)
+    @cumulative_costs = cost_plotter.chart_cumulative_costs(@start_date, @end_date, nil, costs)
     @possible_datasets = cost_plotter.possible_datasets
     @datasets = params['datasets']
     @current_instances = @project.latest_instances
@@ -48,10 +49,5 @@ class ProjectsController < ApplicationController
     original = @current_instances.clone
     @current_instances.select! { |group, instances| @datasets.include?(group) }
     @current_instances = original if @current_instances.empty?
-  end
-
-  def get_project
-    @project = Project.find_by_name(params['project'])
-    @project ||= Project.visualiser.first
   end
 end
