@@ -16,12 +16,3 @@
     <% end %>
   </td>
 <% end %>
-<td class="d-flex justify-content-center">
-  <%= button_to "Cancel", {action: "cancel", id: locals[:schedule].actual_or_parent_id, project:  locals[:schedule].project.name}, {data: { confirm: 'Are you sure you want to cancel this request?' },class: "btn btn-sm btn-danger"} %>
-  <% if locals[:schedule].editable? %>
-    <button class="btn btn-sm btn-warning edit-button"
-    onclick="window.location.href='/events/<%= locals[:schedule].actual_or_parent_id %>/edit?project=<%= @project.name %>'">
-      Edit
-    </button>
-  <% end %>
-</td>

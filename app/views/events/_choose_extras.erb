@@ -12,7 +12,7 @@
                    name="description"
                    class="form-control"
                    id="scheduled-description"
-                   value='<%= "#{@request.description&.html_safe}" if @request %>'>
+                   value='<%= "#{sanitize(@request.description)}" if @request %>'>
           </label>
         </div>
       </div>

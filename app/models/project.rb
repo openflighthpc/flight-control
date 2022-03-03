@@ -456,7 +456,7 @@ class Project < ApplicationRecord
     success = request.cancel
     if success
       msg = "Scheduled request at #{request.date_time} for project *#{request.project.name}* cancelled by #{'Someone'}"
-      create_change_request_log(request, {"status" => original_status}, {"status" => request.status})
+      create_change_request_log(request.id, {"status" => original_status}, {"status" => request.status})
       send_slack_message(msg)
     end
     success

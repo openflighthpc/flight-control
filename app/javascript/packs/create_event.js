@@ -7,6 +7,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
   $('#wizard-next-button').click(showNextSection);
   $('#wizard-back-button').click(showPreviousSection);
   validateCounts();
+  // Prevent pressing enter in the description field submitting the form early
+  $('#create-event-form').on("keydown", function(event) {
+    return event.key != "Enter";
+  });
 });
 
 function toggleDateSelectors() {
@@ -257,7 +261,7 @@ window.updateRequestSummary = function() {
       text += `<strong>Repeat:</strong> ${readableWeekdays()}<br>`;
       text += `<strong>Until:</strong> ${$('#end-date').val()}<br>`;
     }
-    let description = $('#scheduled-description').val();
+    let description = $('#scheduled-description').val().replace(/<\/?[^>]+(>|$)/g, "");
     if(description != "") text += `<strong>Description</strong>: ${description}`;
   }
   summarySection.html(text);

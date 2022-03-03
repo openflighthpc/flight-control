@@ -1,7 +1,10 @@
+include ActionView::Helpers::SanitizeHelper
+
 class ChangeRequest < ApplicationRecord
   belongs_to :project
   has_many :action_logs
   has_many :change_request_audit_logs
+  before_save :clean_description
   validates :project_id, :counts, :date, :counts_criteria, :time, :status, :type, presence: true
   validate :time_in_future, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :only_one_at_time, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
@@ -191,7 +194,8 @@ class ChangeRequest < ApplicationRecord
       editable: editable?,
       counts_criteria: counts_criteria.capitalize,
       frontend_id: front_end_id,
-      #link: self.link,
+      description: description,
+      link: self.link,
       updated_at: updated_at.to_s
     }
   end
@@ -216,9 +220,9 @@ class ChangeRequest < ApplicationRecord
     status == "pending"
   end
 
-  # def link
-  #   "/change_requests/#{self.id}?project=#{self.project.name}"
-  # end
+  def link
+    "/events/#{self.id}/edit?project=#{self.project.name}"
+  end
 
   def switch_all_on?(group_name)
     project_instances = project.latest_instances[group_name]
@@ -272,6 +276,12 @@ class ChangeRequest < ApplicationRecord
       end
     end
     instances
+  end
+
+  def clean_description
+    if description
+      self.description = strip_tags(description)
+    end
   end
 
   def includes_counts

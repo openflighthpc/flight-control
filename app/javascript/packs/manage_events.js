@@ -193,7 +193,7 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   // } else {
   //   html += `${details.monitor} hour${details.monitor > 1 ? "s" : ""}`;
   // }
-  
+  html += `<td>${details.description ? details.description : '-'}</td>`
   html += `<td>`;
   html += createRequestButtons(details)
   html += "</td></tr>";
@@ -212,7 +212,7 @@ function createRequestButtons(details) {
   html += ` Cancel </button>`;
   if(details.editable) {
     html += ' <button class="btn btn-sm btn-warning"';
-    html += `onclick="window.location.href='/events/${id}/edit?project=${project}'"> Edit </button>`
+    html += `onclick="window.location.href='${details.link}'"> Edit </button>`
   }
   return html;
 }

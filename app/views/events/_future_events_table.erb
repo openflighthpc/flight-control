@@ -18,6 +18,7 @@
             Target counts
           </th>
           <th class="events-table-explainer"></th>
+          <th class="events-table-explainer"></th>
         </tr>
         <tr>
           <th scope="col" class="events-sub-header">Date</th>
@@ -29,7 +30,8 @@
           <% @compute_groups.each do |group| %>
             <th scope="col" class="events-sub-header"><%= group %></th>
           <% end %>
-          <th class="events-sub-header"> Manage </th>
+          <th scope="col" class="events-sub-header"> Description </th>
+          <th scope="col" class="events-sub-header"> Manage </th>
         </tr>
       </thead>
       <tbody class="border" id="<%= locals[:type] %>-events-table-body">
@@ -53,6 +55,18 @@
                 <%= schedule.counts_criteria.capitalize %>
               </td>
               <%= render '/events/scheduled_request_event_details', locals: {schedule: schedule, compute_groups: @compute_groups} %>
+              <td>
+                <%= schedule.description ? schedule.description : "-" %>
+              </td>
+              <td class="d-flex justify-content-center">
+                <%= button_to "Cancel", {action: "cancel", id: schedule.actual_or_parent_id, project:  schedule.project.name}, {data: { confirm: 'Are you sure you want to cancel this request?' },class: "btn btn-sm btn-danger"} %>
+                <% if schedule.editable? %>
+                  <button class="btn btn-sm btn-warning edit-button"
+                          onclick="window.location.href='/events/<%= schedule.actual_or_parent_id %>/edit?project=<%= @project.name %>'">
+                    Edit
+                  </button>
+                <% end %>
+              </td>
             </tr>
           <% end %>
         <% end %>
