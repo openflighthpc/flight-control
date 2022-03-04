@@ -5,7 +5,7 @@ class AwsMonitor
     @project = project
   end
 
-  def check_and_switch_off
+  def check_and_switch_off(slack=false)
     return if !@project.utilisation_threshold
 
     node_usage = get_nodes_usage
@@ -19,6 +19,11 @@ class AwsMonitor
                            instance_id: id,
                            reason: 'Utilisation below configured threshold',
                            action: "off")
+          if slack
+            msg = "Shutting down #{values[:name]} (20 min avg of max load is #{values[:average]}; this is " \
+                  "lower than threshold of #{@project.utilisation_threshold})"
+            @project.send_slack_message(msg)
+          end
           if under_threshold[region]
             under_threshold[region] << id
           else
@@ -33,8 +38,10 @@ class AwsMonitor
   # Results grouped by region, as this required for efficient switch offs
   # (if required)
   def get_nodes_usage
-    # Probably should check directly with provider, as instance logs
-    # could be out of date
+    # Ensure we have up to date logs
+    if @project.latest_instance_logs.maximum(:updated_at) < (Time.now - 1.minute)
+      @project.record_instance_logs(true)
+    end
     on = @project.latest_instance_logs.where(status: InstanceLog::ON_STATUSES["aws"])
     grouped = on.group_by { |instance| instance.region }
     results = {}
@@ -42,6 +49,8 @@ class AwsMonitor
       results[region] = {}
       instances.each do |instance| 
         results[region][instance.instance_id] = get_node_usage(instance.instance_id, region)
+        # Need the name for slack
+        results[region][instance.instance_id][:name] = instance.instance_name
       end
     end
     results
@@ -49,7 +58,7 @@ class AwsMonitor
 
   # Average and most recent value. For both we check the maximum values, for the past
   # 20 minutes.
-  def get_node_usage(node, region)
+  def get_node_usage(node_id, region)
     watcher = Aws::CloudWatch::Client.new(region: region)
     response = watcher.get_metric_statistics({
       namespace: "AWS/EC2",
@@ -57,7 +66,7 @@ class AwsMonitor
       dimensions: [
         {
           name: "InstanceId",
-          value: node
+          value: node_id
         }
       ],
       statistics: ["Maximum"],

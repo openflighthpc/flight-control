@@ -35,6 +35,10 @@ class AwsProject < Project
     @costs_recorder ||= AwsCostsRecorder.new(self)
   end
 
+  def monitor
+    @monitor ||= AwsMonitor.new(self)
+  end
+
   # Instance type prices and sizes
   def instance_details_recorder
     @instance_details_recorder ||= AwsInstanceDetailsRecorder.new(self)

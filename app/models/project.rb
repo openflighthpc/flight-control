@@ -334,8 +334,18 @@ class Project < ApplicationRecord
     # platform specific, so none in this superclass
   end
 
+  def monitor
+    # platform specific, so none in this superclass
+  end
+
   def costs_plotter
     @costs_plotter ||= CostsPlotter.new(self)
+  end
+
+  def check_and_switch_off_idle_nodes(slack=false)
+    return if !utilisation_threshold
+
+    monitor.check_and_switch_off(slack)
   end
 
   def daily_report(date=DEFAULT_COSTS_DATE, rerun=false, slack=true, text=true, verbose=false)
