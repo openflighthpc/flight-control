@@ -3,6 +3,7 @@ require_relative '../services/aws_instance_recorder'
 require_relative '../services/aws_costs_recorder'
 require_relative '../services/aws_instance_details_recorder'
 require_relative '../services/aws_instance_manager'
+require_relative '../services/aws_monitor'
 
 class AwsProject < Project
   alias_attribute :access_key_ident, :security_id

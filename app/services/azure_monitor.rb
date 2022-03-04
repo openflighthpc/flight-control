@@ -1,11 +1,12 @@
 require 'httparty'
 require_relative 'azure_service'
+require_relative 'monitor_logging'
 
 class AzureMonitor < AzureService
   include MonitorLogging
 
   def check_and_switch_off(slack=false)
-    return if !@project.utilisation_threshold
+    return if !@project.utilisation_threshold || !@project.monitor_active
 
     @loggers = {}
     node_usage = get_nodes_usage

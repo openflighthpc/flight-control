@@ -1,4 +1,5 @@
 require 'aws-sdk-cloudwatch'
+require_relative 'monitor_logging'
 
 class AwsMonitor
   include MonitorLogging
@@ -8,7 +9,7 @@ class AwsMonitor
   end
 
   def check_and_switch_off(slack=false)
-    return if !@project.utilisation_threshold
+    return if !@project.utilisation_threshold || !@project.monitor_active
 
     @loggers = {}
     node_usage = get_nodes_usage
