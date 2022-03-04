@@ -1,6 +1,8 @@
 require 'aws-sdk-cloudwatch'
 
 class AwsMonitor
+  include MonitorLogging
+
   def initialize(project)
     @project = project
   end
@@ -8,11 +10,14 @@ class AwsMonitor
   def check_and_switch_off(slack=false)
     return if !@project.utilisation_threshold
 
+    @loggers = {}
     node_usage = get_nodes_usage
     under_threshold = {}
     node_usage.each do |region, instances|
+      logger = @loggers[region]
       instances.each do |id, values|
         if values[:average] < @project.utilisation_threshold
+          logger.info("Turning off #{values[:name]}")
           # Creating the action log should be done in project,
           # so this service class doesn't need to know about it
           ActionLog.create(project_id: @project.id,
@@ -44,13 +49,22 @@ class AwsMonitor
     end
     on = @project.latest_instance_logs.where(status: InstanceLog::ON_STATUSES["aws"])
     grouped = on.group_by { |instance| instance.region }
+    @loggers ||= {}
     results = {}
-    grouped.each do |region, instances|
+    @project.regions.each do |region|
       results[region] = {}
-      instances.each do |instance| 
-        results[region][instance.instance_id] = get_node_usage(instance.instance_id, region)
-        # Need the name for slack
-        results[region][instance.instance_id][:name] = instance.instance_name
+      logger = setup_logger(region)
+      @loggers[region] = logger
+      instances = grouped[region]
+      if instances
+        logger.info("Checking utilisation of running instances for region #{region}")
+        instances.each do |instance| 
+          results[region][instance.instance_id] = get_node_usage(instance.instance_id, region, logger)
+          # Need the name for slack
+          results[region][instance.instance_id][:name] = instance.instance_name
+        end
+      else
+        logger.info("No running nodes for region #{region}")
       end
     end
     results
@@ -58,7 +72,9 @@ class AwsMonitor
 
   # Average and most recent value. For both we check the maximum values, for the past
   # 20 minutes.
-  def get_node_usage(node_id, region)
+  def get_node_usage(node_id, region, logger=nil)
+    logger ||= setup_logger(region)
+    logger.info("Getting utilisation data for #{node_id}")
     watcher = Aws::CloudWatch::Client.new(region: region)
     response = watcher.get_metric_statistics({
       namespace: "AWS/EC2",
@@ -76,8 +92,8 @@ class AwsMonitor
       unit: "Percent"                 # and use the latest 4 readings.
     })
     vals = response.datapoints.sort_by(&:timestamp).last(4).map(&:maximum)
-    #logger.info("Maximum percentage CPU usage per 5 minutes for the last 20 minutes:")
-    # logger.info(vals)
+    logger.info("Maximum percentage CPU usage per 5 minutes for the last 20 minutes:")
+    logger.info(vals)
     last = vals.last
     last ||= 0
 
