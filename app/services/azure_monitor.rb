@@ -3,17 +3,52 @@ require_relative 'azure_service'
 
 class AzureMonitor < AzureService
 
+  def check_and_switch_off(slack=false)
+    return if !@project.utilisation_threshold
+
+    node_usage = get_nodes_usage
+    under_threshold = {}
+    node_usage.each do |compute_group, instances|
+      instances.each do |id, values|
+        if values[:average] < @project.utilisation_threshold
+          # Creating the action log should be done in project,
+          # so this service class doesn't need to know about it
+          ActionLog.create(project_id: @project.id,
+                           instance_id: id,
+                           reason: 'Utilisation below configured threshold',
+                           action: "off")
+          if slack
+            msg = "Shutting down #{values[:name]} (20 min avg of max load is #{values[:average]}; this is " \
+                  "lower than threshold of #{@project.utilisation_threshold})"
+            @project.send_slack_message(msg)
+          end
+          if under_threshold[compute_group]
+            under_threshold[compute_group] << values[:name]
+          else
+            under_threshold[compute_group] = [values[:name]]
+          end
+        end
+      end
+    end
+    @project.update_instance_statuses({off: under_threshold})
+  end
+
+  # Results grouped by region, as this required for efficient switch offs
+  # (if required)
   def get_nodes_usage
     # Ensure we have up to date logs
     if @project.latest_instance_logs.maximum(:updated_at) < (Time.now - 1.minute)
       @project.record_instance_logs(true)
     end
     on = @project.latest_instance_logs.where(status: InstanceLog::ON_STATUSES["azure"])
+    grouped = on.group_by { |instance| instance.resource_group }
     results = {}
-    on.each do |instance| 
-      results[instance.instance_id] = get_node_usage(instance.instance_id)
-      # Need the name for slack
-      results[instance.instance_id][:name] = instance.instance_name
+    grouped.each do |resource_group, instances|
+      results[resource_group] = {}
+      instances.each do |instance| 
+        results[resource_group][instance.instance_id] = get_node_usage(instance.instance_id)
+        results[resource_group][instance.instance_id][:name] = instance.instance_name
+      end
     end
     results
   end
