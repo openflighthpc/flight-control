@@ -2,7 +2,17 @@ Rails.application.routes.draw do
   devise_for :users
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 
-  root to: 'projects#costs_breakdown'
+  devise_scope :user do
+    # When user authenticated, root page is as normal
+    authenticated :user do
+      root 'projects#costs_breakdown', as: :authenticated_root
+    end
+
+    # When no authenticated user, root page is the sign in page
+    unauthenticated do
+      root 'devise/sessions#new', as: :unauthenticated_root
+    end
+  end
 
   # Projects
   get '/costs-breakdown', to: 'projects#costs_breakdown'
