@@ -25,6 +25,11 @@
         <%= image_tag("logo-square.png", width: "50", height: "50", class: "d-inline-block align-top") %>
         <span class="pl-2">Flight Control</span>
       </div>
+      <% if current_user %>
+        <div class="d-inline-flex">
+          <%= link_to "Sign out", destroy_user_session_path, :method => :delete, class: "btn btn-secondary"%>
+        </div>
+      <% end %>
     </nav>
     <% flash.each do |type, msg| %>
       <div>
