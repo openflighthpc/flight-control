@@ -15,8 +15,12 @@ class User < ApplicationRecord
     false
   end
 
+  def active_for_authentication?
+    super && !archived?
+  end
+
   def archived?
-    archived_at <= Time.current
+    archived_at&.<= Time.current
   end
 
   # User#archive takes an argument in case we want
