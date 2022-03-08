@@ -30,6 +30,27 @@ namespace :users do
     end
   end
 
+  desc "Un-archive a user"
+  task :activate, [:username] => :environment do |task, args|
+    arguments = args.to_h
+
+    if activate(arguments[:username])
+      puts "User \"#{arguments[:username]}\" activated"
+    end
+  end
+
+  desc "List users"
+  task :list => :environment do
+    users = User.all.map { |u| {username: u.username, status: u.active? ? 'active' : 'archived' } }
+    tp users
+  end
+
+  desc "Show user status"
+  task :status, [:username] => :environment do |task, args|
+    arguments = args.to_h
+    user = User.find_by(username: arguments[:username])
+    tp user.map { |u| { username: u.username, status: u.active? ? 'active' : 'archived' } }
+  end
 end
 
 def create(username)
@@ -54,4 +75,19 @@ def archive(username)
   end
 
   return user.archive
+end
+
+def activate(username)
+  user = User.find_by(username: username)
+  unless user
+    puts "User not found"
+    return
+  end
+
+  if user.active?
+    puts "User is already active"
+    return
+  end
+
+  return user.activate
 end

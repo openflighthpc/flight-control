@@ -23,9 +23,17 @@ class User < ApplicationRecord
     archived_at&.<= Time.current
   end
 
+  def active?
+    !archived?
+  end
+
   # User#archive takes an argument in case we want
   # to schedule an archival date
   def archive(time: Time.current)
     update(archived_at: time)
+  end
+
+  def activate
+    update(archived_at: nil)
   end
 end
