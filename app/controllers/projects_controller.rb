@@ -1,7 +1,11 @@
 class ProjectsController < ApplicationController
   def costs_breakdown
-    @nav_view = "costs"
-    get_costs_data
+    if project_policy.show?
+      @nav_view = "costs"
+      get_costs_data
+    else
+      render file: File.join(Rails.root, 'public/403.html'), status: 403
+    end
   end
 
   def billing_management
@@ -50,4 +54,11 @@ class ProjectsController < ApplicationController
     @current_instances.select! { |group, instances| @datasets.include?(group) }
     @current_instances = original if @current_instances.empty?
   end
+
+  private
+
+  def project_policy
+    @project_policy ||= ProjectPolicy.new(user: current_user, project: get_project)
+  end
+  helper_method :project_policy
 end

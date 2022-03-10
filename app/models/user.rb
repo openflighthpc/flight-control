@@ -2,9 +2,17 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :rememberable, :validatable
 
+  has_many :user_roles
+  alias :roles :user_roles
+
   validates :username,
     presence: true,
     uniqueness: true
+
+  validates :admin,
+    inclusion: { within: [true, false] }
+
+  before_save :default_values
 
   # Not all users have an email
   def email_required?
@@ -15,10 +23,13 @@ class User < ApplicationRecord
     false
   end
 
+  # Override base Devise method to include an archived? check
   def active_for_authentication?
     super && !archived?
   end
 
+  # Use of Time.current should be consistent. When time zones are set,
+  # it uses the given time zone. Otherwise, it returns Time.now.
   def archived?
     archived_at&.<= Time.current
   end
@@ -35,5 +46,19 @@ class User < ApplicationRecord
 
   def activate
     update(archived_at: nil)
+  end
+
+  def projects
+    Project.where(id: user_roles.pluck(&:project_id))
+  end
+
+  def has_role_for?(project)
+    user_roles.exists?(project_id: project)
+  end
+
+  private
+
+  def default_values
+    self.admin = false if self.admin.nil?
   end
 end
