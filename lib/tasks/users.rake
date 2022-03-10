@@ -204,6 +204,31 @@ namespace :users do
       puts "Error changing user admin status:\n #{user.errors.full_messages.join("\n")}"
     end
   end
+
+  desc "Set admin status of user"
+  task :set_admin_status, [:username, :bool] => :environment do |task, args|
+    arguments = args.to_h
+
+    user = set_admin_status(arguments[:username], arguments[:bool])
+    if user
+      puts "User \"#{arguments[:username]}\" admin status is now '#{arguments[:bool]}'"
+    else
+      puts "Error changing user admin status:\n #{user.errors.full_messages.join("\n")}"
+    end
+  end
+end
+
+def set_admin_status(username, bool)
+  user = User.find_by(username: username)
+
+  unless user
+    puts "User not found"
+    return
+  end
+
+  user.admin = bool
+
+  return user
 end
 
 def assign_role(user, project, role)
@@ -227,7 +252,11 @@ def create(username, pass=nil, admin=false)
   pass ||= SecureRandom.base58(10)
 
   return {
+<<<<<<< HEAD
     user: User.create(username: username, password: pass, password_confirmation: pass, admin: admin),
+=======
+    user: User.create(username: username, password: pass, password_confirmation: pass, admin: false),
+>>>>>>> 60fff92 (Create ProjectPolicy class and add tasks for admining a user)
     pass: pass
   }
 end
