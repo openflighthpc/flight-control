@@ -218,6 +218,10 @@ namespace :users do
   end
 end
 
+def assign_role(user, project, role)
+  return UserRole.create(user: user, project: project, role: role)
+end
+
 def set_admin_status(username, bool)
   user = User.find_by(username: username)
 
