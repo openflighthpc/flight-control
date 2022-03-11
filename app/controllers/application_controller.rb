@@ -4,7 +4,7 @@ class ApplicationController < ActionController::Base
 
   def get_project
     @project = Project.find_by_name(params['project'])
-    @project ||= Project.visualiser.first
+    @project ||= current_user.projects.visualiser.first
   end
 
   def format_errors(model)

@@ -1,6 +1,8 @@
 class ProjectsController < ApplicationController
   def costs_breakdown
-    if project_policy.show?
+    if !get_project
+      render "projects/no_project"
+    elsif project_policy.show?
       @nav_view = "costs"
       get_costs_data
     else
