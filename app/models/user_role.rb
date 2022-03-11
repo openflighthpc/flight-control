@@ -12,6 +12,9 @@ class UserRole < ApplicationRecord
   end
 
   validates :role,
+    uniqueness: { scope: [:project_id, :user_id] }
+
+  validates :role,
     presence: true,
     inclusion: { within: ROLES }
 end

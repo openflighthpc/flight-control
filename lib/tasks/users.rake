@@ -1,6 +1,65 @@
 require 'securerandom'
 
 namespace :users do
+  namespace :roles do
+    desc "Assign a role"
+    task :assign, [:username, :project, :role] => :environment do |task, args|
+      arguments = args.to_h
+
+      user = User.find_by(username: arguments[:username])
+      project = Project.find_by(name: arguments[:project])
+
+      unless user
+        puts "User #{arguments[:username]} not found."
+        next
+      end
+
+      unless project
+        puts "Project #{arguments[:project]} not found."
+        next
+      end
+
+      role = assign_role(user, project, arguments[:role])
+
+      if role.valid?
+        puts "User #{user.username} now has '#{role.role}' role for project #{project.name}"
+      else
+        puts "Error creating user role:\n #{role.errors.full_messages.join("\n")}"
+      end
+    end
+
+    desc "Revoke a role"
+    task :revoke, [:username, :project, :role] => :environment do |task, args|
+      arguments = args.to_h
+
+      user = User.find_by(username: arguments[:username])
+      project = Project.find_by(name: arguments[:project])
+
+      unless user
+        puts "User #{arguments[:username]} not found."
+        next
+      end
+
+      unless project
+        puts "Project #{arguments[:project]} not found."
+        next
+      end
+
+      role = UserRole.find_by(user: user, project: project, role: arguments[:role])
+
+      unless role
+        puts "Given role does not exist"
+        next
+      end
+
+      if role.destroy
+        puts "Role revoked."
+      else
+        "Error revoking role:\n #{role.errors.full_messages}"
+      end
+    end
+  end
+
   desc "Create a local user entity"
   task :create, [:username, :password] => :environment do |task, args|
     arguments = args.to_h
@@ -81,6 +140,10 @@ namespace :users do
       puts "Error changing user admin status:\n #{user.errors.full_messages.join("\n")}"
     end
   end
+end
+
+def assign_role(user, project, role)
+  return UserRole.create(user: user, project: project, role: role)
 end
 
 def set_admin_status(username, bool)
