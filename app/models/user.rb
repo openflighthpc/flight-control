@@ -52,8 +52,8 @@ class User < ApplicationRecord
     Project.where(id: user_roles.pluck(&:project_id))
   end
 
-  def has_role_for?(project)
-    user_roles.exists?(project_id: project)
+  def has_role_for?(project, role=nil)
+    user_roles.exists?({project_id: project, role: role}.compact)
   end
 
   private
