@@ -2,11 +2,10 @@ class ProjectsController < ApplicationController
   def costs_breakdown
     if !get_project
       render "projects/no_project"
-    elsif project_policy.show?
+    else
+      authorize get_project, :show?, policy_class: ProjectPolicy
       @nav_view = "costs"
       get_costs_data
-    else
-      render file: File.join(Rails.root, 'public/403.html'), status: 403
     end
   end
 
@@ -56,11 +55,4 @@ class ProjectsController < ApplicationController
     @current_instances.select! { |group, instances| @datasets.include?(group) }
     @current_instances = original if @current_instances.empty?
   end
-
-  private
-
-  def project_policy
-    @project_policy ||= ProjectPolicy.new(user: current_user, project: get_project)
-  end
-  helper_method :project_policy
 end

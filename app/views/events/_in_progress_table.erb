@@ -3,7 +3,10 @@
     <div class="col-sm-2"></div>
     <div class="col-sm-8">
       <h4 class="mr-auto p-2 audit-logs-title text-center">
-        In Progress <a href="/events/new?project=<%= @project.name %>" class="btn btn-warning">+ Event</a>
+        In Progress
+        <% if ProjectPolicy.new(current_user, @project).create_event? %>
+          <a href="/events/new?project=<%= @project.name %>" class="btn btn-warning">+ Event</a>
+        <% end %>
       </h4>
     </div>
   </div>

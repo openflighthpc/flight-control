@@ -20,7 +20,7 @@ class EventsController < ApplicationController
   end
 
   def new
-    get_project
+    authorize get_project, :create_event?, policy_class: ProjectPolicy
     @current_instances = @project.latest_instances
     cost_plotter = CostsPlotter.new(@project)
     start_date = cost_plotter.start_of_billing_interval(Date.today)
@@ -36,6 +36,7 @@ class EventsController < ApplicationController
     if !@project
       flash[:danger] = "Project not found"
     else
+      authorize get_project, :create_event?, policy_class: ProjectPolicy
       parameters.delete(:project)
       request = @project.create_change_request(parameters)
       if request.valid?

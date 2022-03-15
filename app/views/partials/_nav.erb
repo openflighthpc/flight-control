@@ -5,10 +5,12 @@
     </li>
     <li class="nav-item">
       <%= link_to "Costs Breakdown", costs_breakdown_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "costs"}" %>
-    </li>
-    <li class="nav-item">
-      <%= link_to "Create Event", events_new_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "create event"}" %>
-    </li>
+      </li>
+    <% if ProjectPolicy.new(current_user, @project).create_event? %>
+      <li class="nav-item">
+        <%= link_to "Create Event", events_new_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "create event"}" %>
+      </li>
+    <% end %>
     <li class="nav-item">
       <%= link_to "Manage Events", events_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "manage events"}" %>
     </li>
