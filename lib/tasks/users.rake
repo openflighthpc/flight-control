@@ -119,7 +119,11 @@ namespace :users do
 
   desc "List users"
   task :list => :environment do
-    tp User.all, :username, :active?
+    tp User.all,
+      "username",
+      :active?,
+      {"projects.name" => {display_name: "projects"}},
+      {"user_roles.role" => {display_name: "roles"}}
   end
 
   desc "Show user status"
