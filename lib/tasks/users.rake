@@ -67,8 +67,9 @@ namespace :users do
   desc "Show user status"
   task :status, [:username] => :environment do |task, args|
     arguments = args.to_h
-    user = User.find_by(username: arguments[:username])
-    tp user.map { |u| { username: u.username, status: u.active? ? 'active' : 'archived' } }
+    user = [User.find_by(username: arguments[:username])]
+    user = user.map { |u| { username: u.username, status: u.active? ? 'active' : 'archived' } }
+    tp user
   end
 end
 
