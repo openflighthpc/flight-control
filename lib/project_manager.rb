@@ -292,7 +292,11 @@ class ProjectManager
         puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
       end
     end
-    attributes[:slack_channel] = get_non_blank("Slack Channel", "Slack Channel")
+    attributes[:slack_channel] = get_non_blank("Slack Channel")
+    attributes[:monitor_active] = get_non_blank("Monitor active")
+    if attributes[:monitor_active]
+      attributes[:utilisation_threshold] = get_non_blank("Utilisation threshold")
+    end
 
     if attributes[:platform].downcase == "aws"
       attributes = add_aws_attributes(attributes)

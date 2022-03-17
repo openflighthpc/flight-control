@@ -44,8 +44,8 @@ namespace :projects do
       if !project
         puts "No project found with that name"
         return
-      elsif !project.monitor_active?
-        puts "Monitor disabled for this project"
+      elsif !project.monitor_currently_active?
+        puts "Monitor not currently active for this project"
       else
         project.check_and_switch_off_idle_nodes(true)
       end
@@ -55,7 +55,7 @@ namespace :projects do
     task :all => :environment do |task|
       Project.active.each do |p|
         begin
-          next if !p.monitor_active?
+          next if !p.monitor_currently_active?
         rescue Errno::ENOENT => e
           puts "Error monitoring #{p.name}: #{e.message}"
           next

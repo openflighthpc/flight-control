@@ -9,7 +9,7 @@ class AwsMonitor
   end
 
   def check_and_switch_off(slack=false)
-    return if !@project.utilisation_threshold || !@project.monitor_active
+    return if !@project.utilisation_threshold || !@project.monitor_currently_active?
 
     @loggers = {}
     node_usage = get_nodes_usage

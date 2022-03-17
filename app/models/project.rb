@@ -338,6 +338,11 @@ class Project < ApplicationRecord
     # platform specific, so none in this superclass
   end
 
+  def monitor_currently_active?
+    monitor_active && (!override_monitor_until ||
+    override_monitor_until <= Time.now)
+  end
+
   def costs_plotter
     @costs_plotter ||= CostsPlotter.new(self)
   end
