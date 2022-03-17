@@ -2,10 +2,10 @@ require 'securerandom'
 
 namespace :users do
   desc "Create a local user entity"
-  task :create, [:username] => :environment do |task, args|
+  task :create, [:username, :password] => :environment do |task, args|
     arguments = args.to_h
 
-    result = create(arguments[:username])
+    result = create(arguments)
 
     if result[:user].valid?
       puts <<~OUT
@@ -53,8 +53,9 @@ namespace :users do
   end
 end
 
-def create(username)
-  pass = SecureRandom.base58(10)
+def create(args)
+  username = args[:username]
+  pass = args[:password] || SecureRandom.base58(10)
 
   return {
     user: User.create(username: username, password: pass, password_confirmation: pass),
