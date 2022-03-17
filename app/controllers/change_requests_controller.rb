@@ -146,6 +146,7 @@ class ChangeRequestsController < ApplicationController
       :type,
       :end_date,
       :description,
+      :monitor_override_hours,
       nodes: {}
     )
     filtered = permitted.transform_values do |value|

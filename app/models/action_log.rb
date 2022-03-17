@@ -97,7 +97,7 @@ class ActionLog < ApplicationRecord
       formatted_timestamp: formatted_timestamp,
       details: card_description,
       simplified_details: simplified_description,
-      username: "Someone",
+      username: user ? user.username : "-",
       automated: automated?,
       status: status
     }

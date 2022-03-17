@@ -46,6 +46,8 @@ class ChangeRequest < ApplicationRecord
       details.each { |instance, count| message << "#{instance}: #{count} node#{"s" if count > 1 || count == 0}\n" }
     end
     message << "\n*Scheduled time*: #{date_time}\n"
+    message << "*Description*: #{description}\n" if description
+    message << "*Monitor override*: #{monitor_override_hours} hours\n" if monitor_override_hours
     message << additional_field_details(true)
     message = opening << message if with_opening
     message

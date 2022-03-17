@@ -1,6 +1,6 @@
 class ChangeRequestAuditLog < ApplicationRecord
-  AUDITED_ATTRIBUTES=%w[counts time date type monitor_override status weekdays formatted_days end_date]
-  PRETTIFIED_ATTRIBUTES={"time" => "Start time", "date" => "Start date", "monitor_override" => "Override monitor for",
+  AUDITED_ATTRIBUTES=%w[counts time date type monitor_override_hours status weekdays formatted_days end_date]
+  PRETTIFIED_ATTRIBUTES={"time" => "Start time", "date" => "Start date", "monitor_override_hours" => "Override monitor for",
                          "formatted_days" => "Days", "end_date" => "End date"
                         }
   UNSHOWN_ATTRIBUTES=%w[weekdays type]

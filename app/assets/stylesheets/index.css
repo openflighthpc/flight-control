@@ -147,7 +147,7 @@ input[type=date] {
 }
 
 #scheduled-description {
-  width: 18.5rem;
+  width: 15rem;
 }
 
 #wizard-choose-extras {
@@ -184,7 +184,6 @@ input[type=date] {
   text-decoration: none
 }
 
-<<<<<<< HEAD
 .login-input {
   width: 12rem !important;
 }
@@ -205,8 +204,16 @@ input[type=date] {
 .project-link {
   border-radius: 0 !important;
 }
-=======
-.edit-button {
-  margin-left: 0.35rem;
+
+.extras-input {
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
->>>>>>> updated tables, added initial cancellation route and controls
+
+#description-form {
+  margin-right: 5rem;
+}
+
+.extras-section {
+  margin-top: 1rem;
+}

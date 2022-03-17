@@ -431,7 +431,6 @@ class Project < ApplicationRecord
     change
   end
 
-<<<<<<< HEAD
   def update_change_request(request, user, params)
     return request, false if !request.editable?
     
