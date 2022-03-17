@@ -37,6 +37,18 @@ class InstanceLog < ApplicationRecord
     on? ? daily_compute_cost : 0.0
   end
 
+  def customer_facing_type
+    if !@customer_facing
+      @customer_facing = InstanceMapping.customer_facing_type(platform, instance_type)
+    end
+    @customer_facing
+  end
+
+  # JS doesn't work with instance types including '.'
+  def front_end_instance_type
+    instance_type.gsub(".", "_")
+  end
+
   def has_mapping?
     !InstanceMapping.instance_mappings[platform][instance_type].nil?
   end

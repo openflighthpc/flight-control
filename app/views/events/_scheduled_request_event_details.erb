@@ -1,0 +1,16 @@
+<% locals[:compute_groups].each do |group| %>
+  <td>
+    <% if locals[:schedule].counts[group] %>
+      <% if locals[:schedule].switch_all_on?(group) %>
+        All on
+      <% else %>
+        <% locals[:schedule].counts[group].each do |type, count| %>
+          <%= "#{count} x #{InstanceMapping.customer_facing_type(@project.platform, type)}" %>
+          <br>
+        <% end %>
+      <% end %>
+    <% else %>
+      -
+    <% end %>
+  </td>
+<% end %>

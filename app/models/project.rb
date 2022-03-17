@@ -97,9 +97,13 @@ class Project < ApplicationRecord
     @combined_requests
   end
 
-  def pending_one_off_and_repeat_requests_on(date)
+  def pending_one_off_and_repeat_requests_on(date, groups=nil)
     pending = pending_one_off_change_requests.where(date: date)
-    repeated = pending_repeated_requests.select { |repeat| repeat.action_on_date?(date) }
+    pending = pending.to_a.select { |request| request.included_in_groups?(groups) } if groups
+    repeated = pending_repeated_requests.select do |repeat|
+      repeat.action_on_date?(date) && (!groups ||
+      repeat.included_in_groups?(groups))
+    end
     repeated_children = repeated.map { |repeat| repeat.individual_request_on_date(date) }
     pending.to_a.concat(repeated_children).compact
   end
@@ -115,6 +119,54 @@ class Project < ApplicationRecord
         results[date][time] = true
       else
         results[date] = {time => true }
+      end
+    end
+    results
+  end
+
+  # In future this will include over budget switch offs
+  def events(groups=nil)
+    events = pending_one_off_and_repeat_requests
+    events = events.select { |event| event.included_in_groups?(groups) } if groups
+    events
+  end
+
+  def events_on(date, groups=nil)
+    pending_one_off_and_repeat_requests_on(date, groups)
+  end
+
+  def events_by_date(chosen_events=events)
+    chosen_events.sort_by {|e| [e.date, e.time]}.group_by {|e| e.date}
+  end
+
+  # within next 5 mins
+  def upcoming_events(groups=nil)
+    today_events = events_on(Date.today.to_s, groups)
+    five_mins_from_now = Time.now + 5.minutes
+    today_events.select { |event| event.date_time <= five_mins_from_now }
+  end
+
+  def upcoming_events_by_date(groups=nil)
+    events_by_date(upcoming_events(groups))
+  end
+
+  # after next 5 mins
+  def future_events(groups=nil)
+    five_mins_from_now = Time.now + 5.minutes
+    future = events(groups)
+    future.select { |event| event.date_time > five_mins_from_now }
+  end
+
+  def future_events_by_date(groups=nil)
+    events_by_date(future_events(groups))
+  end
+
+  def events_by_id(events)
+    results = {}
+    events.each do |date, events|
+      results[date] = {}
+      events.each do |event|
+        results[date][event.front_end_id] = event
       end
     end
     results
@@ -392,6 +444,23 @@ class Project < ApplicationRecord
 
   def actual_with_pending_counts
     InstanceTracker.new(self).actual_with_pending_counts
+  end
+
+  def current_events_data(groups=nil)
+    {
+      states: InstanceTracker.new(self).actual_counts(groups, true),
+      in_progress: pending_action_logs_by_id(groups),
+      upcoming: events_by_id(upcoming_events_by_date(groups)),
+      future: events_by_id(future_events_by_date(groups))
+    }
+  end
+
+  def pending_action_logs_by_id(groups=nil)
+    results = {}
+    pending_action_logs.each do |log|
+      results[log.id] = log if !groups || groups.include?(log.compute_group)
+    end
+    results
   end
 
   def send_slack_message(msg)

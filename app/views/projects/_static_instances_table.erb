@@ -1,4 +1,4 @@
-  <% pending = @project.pending_actions? %>
+  <% pending = locals[:show_pending] && @project.pending_actions? %>
 <div class="row">
   <div class="col-sm-2"></div>
   <div class="col-sm-8">
@@ -41,15 +41,15 @@
               </td>
               <td class="text-center"><%= instance.daily_compute_cost %>c.u.</td>
               <td class="text-center border-left">
-                <div id="<%= "#{group}-#{instance.instance_type}-on" %>"><%= on %></div>
+                <div id="<%= "#{group}-#{instance.front_end_instance_type}-on" %>"><%= on %></div>
               </td>
               <% if pending %>
                 <td class="text-center"><%= instance.pending_on %></td>
               <% end %>
               <td class="text-center">
-                <div id="<%= "#{group}-#{instance.instance_type}-total" %>"
-                     data-cost-each="<%= instance.pending_total_daily_compute_cost %>">
-                  <%= instance.pending_total_daily_compute_cost %>c.u.
+                <div id="<%= "#{group}-#{instance.front_end_instance_type}-total" %>"
+                  data-cost-each="<%= instance.daily_compute_cost %>">
+                  <%= pending ? instance.pending_total_daily_compute_cost : instance.total_daily_compute_cost %>c.u.
                 </div>
               </td>
             </tr>

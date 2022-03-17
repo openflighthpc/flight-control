@@ -67,6 +67,10 @@ class RepeatedChangeRequest < ChangeRequest
     details
   end
 
+  def front_end_id
+    "#{id}-#{date}"
+  end
+
   private
 
   def end_date_not_before_start

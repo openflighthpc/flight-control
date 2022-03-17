@@ -1,0 +1,33 @@
+<% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'manage_events'%>
+<% end %>
+
+<main class="col-md-12 ml-sm-auto col-lg-12 px-4" role="main">
+  <%= render '/partials/nav.erb' %>
+  <div class="row session-alerts">
+    <div class="col-sm-3"></div>
+    <div class="col-sm-6">
+      <%= render 'partials/flashes' %>
+    </div>
+  </div>
+  <div class="mt-4 text-center mb-4">
+    <h2><%= @project.name %> - Manage Events</h2>
+  </div>
+  <div class="container mt-5">
+    <%= render '/events/manage_events_filter' %>
+    <%= render '/projects/static_instances_table', locals: { show_pending: false } %>
+    <div class="row">
+      <div class="col-sm-2"></div>
+      <div class="col-sm-8">
+        <h3> Schedule </h3>
+      </div>
+    </div>
+    <%= render '/events/in_progress_table' %>
+    <%= render '/events/future_events_table', locals: {requests: @upcoming, type: "upcoming", title: "Upcoming (next 5 minutes)"} %>
+    <%= render '/events/future_events_table', locals: {requests: @future_events, type: "future", title: "Future"} %>
+  </div>
+  <div id="project-name" data-project="<%= @project.name %>"></div>
+</main>
+<script>
+  let groups = <%= raw(@compute_groups.to_json) %>;
+</script>

@@ -164,3 +164,22 @@ input[type=date] {
   margin-top: 2rem;
   margin-left: 4rem;
 }
+
+.events-table-header {
+  border: 0.08rem solid;
+  border-right-width:  0.05rem;
+}
+
+.events-table-explainer {
+  border-bottom: 0 !important;
+  padding-bottom: 0.075rem !important;
+}
+
+.events-sub-header {
+  border-top: 0 !important;
+}
+
+#timezone-tooltip {
+  color:  white;
+  text-decoration: none
+}

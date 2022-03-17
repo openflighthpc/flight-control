@@ -26,7 +26,7 @@ class InstanceMapping < ApplicationRecord
   end
 
   def self.customer_facing_type(platform, instance_type)
-    type = instance_mappings[platform][instance_type]
-    type ||= "Compute (Other)"  
+    type = self.instance_mappings[platform][instance_type]
+    type ||= "Compute (Other)"
   end
 end

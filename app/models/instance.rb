@@ -121,6 +121,11 @@ class Instance
     @details != {}
   end
 
+  # JS doesn't work with instance types including '.'
+  def front_end_instance_type
+    instance_type.gsub(".", "_")
+  end
+
   def ==(other)
     self.instance_type == other.instance_type && self.region == other.region
   end
