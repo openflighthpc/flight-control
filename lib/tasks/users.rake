@@ -5,7 +5,7 @@ namespace :users do
   task :create, [:username, :password] => :environment do |task, args|
     arguments = args.to_h
 
-    result = create(arguments)
+    result = create(arguments[:username], arguments[:password])
 
     if result[:user].valid?
       puts <<~OUT
@@ -16,6 +16,25 @@ namespace :users do
     else
       puts <<~OUT
       Error when creating user:
+      #{result[:user].errors.full_messages.join('\n')}
+      OUT
+    end
+  end
+
+  desc "Reset a user's password"
+  task :reset_pass, [:username, :password] => :environment  do |task, args|
+    arguments = args.to_h
+
+    result = reset_pass(arguments[:username], arguments[:password])
+
+    if result[:user]&.valid?
+      puts <<~OUT
+      User \"#{arguments[:username]}\" password reset.
+      Password: #{result[:password]}
+      OUT
+    elsif !result[:user].nil?
+      puts <<~OUT
+      Error when updating password:
       #{result[:user].errors.full_messages.join('\n')}
       OUT
     end
@@ -53,9 +72,8 @@ namespace :users do
   end
 end
 
-def create(args)
-  username = args[:username]
-  pass = args[:password] || SecureRandom.base58(10)
+def create(username, password=nil)
+  pass ||= SecureRandom.base58(10)
 
   return {
     user: User.create(username: username, password: pass, password_confirmation: pass),
@@ -67,7 +85,7 @@ def archive(username)
   user = User.find_by(username: username)
   unless user
     puts "User not found"
-    return
+    return {user: nil}
   end
 
   if user.archived?
@@ -76,6 +94,24 @@ def archive(username)
   end
 
   return user.archive
+end
+
+def reset_pass(username, password=nil)
+  password ||= SecureRandom.base58(10)
+  user = User.find_by(username: username)
+
+  unless user
+    puts "User not found"
+    return {}
+  end
+
+  user.password = password
+  user.save
+
+  return {
+    user: user,
+    password: password
+  }
 end
 
 def activate(username)
