@@ -183,3 +183,7 @@ input[type=date] {
   color:  white;
   text-decoration: none
 }
+
+.login-input {
+  width: 12rem !important;
+}
