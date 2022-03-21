@@ -119,7 +119,13 @@ namespace :users do
 
   desc "List users"
   task :list => :environment do
-    tp User.all,
+    puts "Admin users:\n\n"
+
+    tp User.where(admin: true), :username, :active?
+
+    puts "\nNon-admin users:\n\n"
+
+    tp User.where(admin: false),
       "username",
       :active?,
       {"projects.name" => {display_name: "projects"}},
