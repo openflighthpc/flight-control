@@ -1,10 +1,13 @@
 class ApplicationController < ActionController::Base
+  include Pundit::Authorization
   protect_from_forgery
   before_action :authenticate_user!
 
+  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+
   def get_project
     @project = Project.find_by_name(params['project'])
-    @project ||= Project.visualiser.first
+    @project ||= current_user.projects.visualiser.first
   end
 
   def format_errors(model)
@@ -15,5 +18,12 @@ class ApplicationController < ActionController::Base
 
   def format_errors_field(field)
     field.to_s.split('.').map { |f| f.singularize.humanize }.join(' ')
+  end
+
+  private
+
+  def user_not_authorized
+    flash[:alert] = "You are not authorised to perform this action."
+    redirect_to(request.referrer || authenticated_root_path)
   end
 end

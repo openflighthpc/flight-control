@@ -19,6 +19,8 @@ class Project < ApplicationRecord
   has_many :repeated_change_requests
   has_many :balances
   has_many :budget_policies
+  has_many :user_roles
+
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
   validates :name, presence: true, uniqueness: true
   validates :name, :format => { with: /\A[a-zA-Z]+[0-9a-zA-Z_-]*[0-9a-zA-Z]+\z/,

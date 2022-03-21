@@ -1,7 +1,12 @@
 class ProjectsController < ApplicationController
   def costs_breakdown
-    @nav_view = "costs"
-    get_costs_data
+    if !get_project
+      render "projects/no_project"
+    else
+      authorize get_project, :show?, policy_class: ProjectPolicy
+      @nav_view = "costs"
+      get_costs_data
+    end
   end
 
   def billing_management

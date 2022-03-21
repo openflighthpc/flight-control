@@ -1,6 +1,97 @@
 require 'securerandom'
 
 namespace :users do
+  namespace :roles do
+    desc "Assign a role"
+    task :assign, [:username, :project, :role] => :environment do |task, args|
+      arguments = args.to_h
+
+      user = User.find_by(username: arguments[:username])
+      project = Project.find_by(name: arguments[:project])
+
+      unless user
+        puts "User #{arguments[:username]} not found."
+        next
+      end
+
+      unless project
+        puts "Project #{arguments[:project]} not found."
+        next
+      end
+
+      role = assign_role(user, project, arguments[:role])
+
+      if role.valid?
+        puts "User #{user.username} now has '#{role.role}' role for project #{project.name}"
+      else
+        puts "Error creating user role:\n #{role.errors.full_messages.join("\n")}"
+      end
+    end
+
+    desc "Update a user's role"
+    task :update, [:username, :project, :role] => :environment do |task, args|
+      arguments = args.to_h
+
+      user = User.find_by(username: arguments[:username])
+      project = Project.find_by(name: arguments[:project])
+
+      unless user
+        puts "User #{arguments[:username]} not found."
+        next
+      end
+
+      unless project
+        puts "Project #{arguments[:project]} not found."
+        next
+      end
+
+      current_role = UserRole.find_by(user: user, project: project)
+      if !current_role
+        puts "User currently does not have a role for this project."
+        next
+      end
+      current_role.role = arguments[:role]
+
+      if current_role.save
+        puts "User #{user.username} now has '#{current_role.role}' role for project #{project.name}"
+      else
+        puts "Error creating user role:\n #{current_role.errors.full_messages.join("\n")}"
+      end
+    end
+
+
+    desc "Revoke a role"
+    task :revoke, [:username, :project, :role] => :environment do |task, args|
+      arguments = args.to_h
+
+      user = User.find_by(username: arguments[:username])
+      project = Project.find_by(name: arguments[:project])
+
+      unless user
+        puts "User #{arguments[:username]} not found."
+        next
+      end
+
+      unless project
+        puts "Project #{arguments[:project]} not found."
+        next
+      end
+
+      role = UserRole.find_by(user: user, project: project, role: arguments[:role])
+
+      unless role
+        puts "Given role does not exist"
+        next
+      end
+
+      if role.destroy
+        puts "Role revoked."
+      else
+        "Error revoking role:\n #{role.errors.full_messages}"
+      end
+    end
+  end
+
   desc "Create a local user entity"
   task :create, [:username, :password] => :environment do |task, args|
     arguments = args.to_h
@@ -16,13 +107,33 @@ namespace :users do
     else
       puts <<~OUT
       Error when creating user:
-      #{result[:user].errors.full_messages.join('\n')}
+      #{result[:user].errors.full_messages.join("\n")}
+      OUT
+    end
+  end
+
+  desc "Create an admin user"
+  task :create_admin, [:username, :password] => :environment do |task, args|
+    arguments = args.to_h
+
+    result = create(arguments[:username], arguments[:password], true)
+
+    if result[:user].valid?
+      puts <<~OUT
+      Admin user created:
+      Name: #{arguments[:username]}
+      Password: #{result[:pass]}
+      OUT
+    else
+      puts <<~OUT
+      Error when creating user:
+      #{result[:user].errors.full_messages.join("\n")}
       OUT
     end
   end
 
   desc "Reset a user's password"
-  task :reset_pass, [:username, :password] => :environment  do |task, args|
+  task :reset_pass, [:username, :password] => :environment do |task, args|
     arguments = args.to_h
 
     result = reset_pass(arguments[:username], arguments[:password])
@@ -60,22 +171,62 @@ namespace :users do
 
   desc "List users"
   task :list => :environment do
-    tp User.all, :username, :active?
+    puts "Admin users:\n\n"
+
+    tp User.where(admin: true), :username, :active?
+
+    puts "\nNon-admin users:\n\n"
+
+    tp User.where(admin: false),
+      "username",
+      :active?,
+      {"projects.name" => {display_name: "projects"}},
+      {"user_roles.role" => {display_name: "roles"}}
   end
 
   desc "Show user status"
   task :status, [:username] => :environment do |task, args|
     arguments = args.to_h
     user = [User.find_by(username: arguments[:username])]
-    tp user, :username, :active?
+    tp user, :username, :active?, :admin?
+  end
+
+  desc "Set admin status of user"
+  task :set_admin_status, [:username, :bool] => :environment do |task, args|
+    arguments = args.to_h
+
+    user = set_admin_status(arguments[:username], arguments[:bool])
+    if user.valid?
+      user.save
+      puts "User \"#{arguments[:username]}\" admin status is now '#{user.admin?}'"
+    else
+      puts "Error changing user admin status:\n #{user.errors.full_messages.join("\n")}"
+    end
   end
 end
 
-def create(username, pass=nil)
+def assign_role(user, project, role)
+  return UserRole.create(user: user, project: project, role: role)
+end
+
+def set_admin_status(username, bool)
+  user = User.find_by(username: username)
+
+  unless user
+    puts "User not found"
+    return
+  end
+
+  user.admin = bool == 'true'
+
+  return user
+end
+
+def create(username, pass=nil, admin=false)
   pass ||= SecureRandom.base58(10)
 
   return {
-    user: User.create(username: username, password: pass, password_confirmation: pass),
+    user: User.create(username: username, password: pass, password_confirmation: pass, admin: admin),
     pass: pass
   }
 end
