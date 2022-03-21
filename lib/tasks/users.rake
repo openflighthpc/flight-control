@@ -46,6 +46,10 @@ namespace :users do
       end
 
       current_role = UserRole.find_by(user: user, project: project)
+      if !current_role
+        puts "User currently does not have a role for this project."
+        next
+      end
       current_role.role = arguments[:role]
 
       if current_role.save
