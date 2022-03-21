@@ -73,7 +73,7 @@ namespace :users do
   end
 end
 
-def create(username, password=nil)
+def create(username, pass=nil)
   pass ||= SecureRandom.base58(10)
 
   return {
