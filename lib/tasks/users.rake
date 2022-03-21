@@ -256,11 +256,7 @@ def create(username, pass=nil, admin=false)
   pass ||= SecureRandom.base58(10)
 
   return {
-<<<<<<< HEAD
     user: User.create(username: username, password: pass, password_confirmation: pass, admin: admin),
-=======
-    user: User.create(username: username, password: pass, password_confirmation: pass, admin: false),
->>>>>>> 60fff92 (Create ProjectPolicy class and add tasks for admining a user)
     pass: pass
   }
 end
