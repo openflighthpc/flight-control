@@ -29,7 +29,7 @@ class User < ApplicationRecord
 
   # User#archive takes an argument in case we want
   # to schedule an archival date
-  def archive(time: Time.current)
+  def archive(time=Time.current)
     update(archived_at: time)
   end
 
