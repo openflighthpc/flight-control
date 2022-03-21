@@ -60,16 +60,14 @@ namespace :users do
 
   desc "List users"
   task :list => :environment do
-    users = User.all.map { |u| {username: u.username, status: u.active? ? 'active' : 'archived' } }
-    tp users
+    tp User.all, :username, :active?
   end
 
   desc "Show user status"
   task :status, [:username] => :environment do |task, args|
     arguments = args.to_h
     user = [User.find_by(username: arguments[:username])]
-    user = user.map { |u| { username: u.username, status: u.active? ? 'active' : 'archived' } }
-    tp user
+    tp user, :username, :active?
   end
 end
 
