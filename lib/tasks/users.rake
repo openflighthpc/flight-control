@@ -93,10 +93,10 @@ namespace :users do
   end
 
   desc "Create a local user entity"
-  task :create, [:username, :password, :admin] => :environment do |task, args|
+  task :create, [:username, :password] => :environment do |task, args|
     arguments = args.to_h
 
-    result = create(arguments[:username], arguments[:password], arguments[:admin])
+    result = create(arguments[:username], arguments[:password])
 
     if result[:user].valid?
       puts <<~OUT
