@@ -1,5 +1,5 @@
 class UserRole < ApplicationRecord
-  ROLES = %w( standard viewer ).map(&:freeze).freeze
+  ROLES = %w( default viewer ).map(&:freeze).freeze
   ROLES.each do |r|
     const_set r.upcase, r
   end
