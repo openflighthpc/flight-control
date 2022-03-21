@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   def get_project
-    @project = Project.find_by_name(params['project'])
+    @project = current_user.projects.find_by_name(params['project'])
     @project ||= current_user.projects.visualiser.first
   end
 

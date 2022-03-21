@@ -1,4 +1,16 @@
 class ProjectPolicy < ApplicationPolicy
+  def billing_management?
+    show?
+  end
+
+  def data_check?
+    show?
+  end
+
+  def costs_breakdown?
+    show?
+  end
+
   def show?
     return false if user.nil?
     return true if user.admin?
