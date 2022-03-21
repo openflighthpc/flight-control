@@ -28,6 +28,34 @@ namespace :users do
       end
     end
 
+    desc "Update a user's role"
+    task :update, [:username, :project, :role] => :environment do |task, args|
+      arguments = args.to_h
+
+      user = User.find_by(username: arguments[:username])
+      project = Project.find_by(name: arguments[:project])
+
+      unless user
+        puts "User #{arguments[:username]} not found."
+        next
+      end
+
+      unless project
+        puts "Project #{arguments[:project]} not found."
+        next
+      end
+
+      current_role = UserRole.find_by(user: user, project: project)
+      current_role.role = arguments[:role]
+
+      if current_role.save
+        puts "User #{user.username} now has '#{current_role.role}' role for project #{project.name}"
+      else
+        puts "Error creating user role:\n #{current_role.errors.full_messages.join("\n")}"
+      end
+    end
+
+
     desc "Revoke a role"
     task :revoke, [:username, :project, :role] => :environment do |task, args|
       arguments = args.to_h
