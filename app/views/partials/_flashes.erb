@@ -1,6 +1,6 @@
-<% flash.keys.each do |type| %>
-  <div data-alert class="alert alert-<%= type %> mt-2 pr-2 alert-dismissable fade show" role="alert">
-    <%= flash[type].html_safe %>
+<% flash.each do |type, msg| %>
+  <div data-alert class="alert alert-<%= flash_class(type) %> mt-2 m-2 alert-dismissable fade show" role="alert">
+    <%= msg.html_safe %>
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>

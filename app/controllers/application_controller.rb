@@ -1,4 +1,7 @@
 class ApplicationController < ActionController::Base
+  protect_from_forgery
+  before_action :authenticate_user!
+
   def get_project
     @project = Project.find_by_name(params['project'])
     @project ||= Project.visualiser.first
