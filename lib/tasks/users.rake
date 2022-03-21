@@ -144,8 +144,9 @@ namespace :users do
     arguments = args.to_h
 
     user = set_admin_status(arguments[:username], arguments[:bool])
-    if user
-      puts "User \"#{arguments[:username]}\" admin status is now '#{arguments[:bool]}'"
+    if user.valid?
+      user.save
+      puts "User \"#{arguments[:username]}\" admin status is now '#{user.admin?}'"
     else
       puts "Error changing user admin status:\n #{user.errors.full_messages.join("\n")}"
     end
@@ -164,7 +165,7 @@ def set_admin_status(username, bool)
     return
   end
 
-  user.admin = bool
+  user.admin = bool == 'true'
 
   return user
 end
