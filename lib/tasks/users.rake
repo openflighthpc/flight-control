@@ -61,10 +61,10 @@ namespace :users do
   end
 
   desc "Create a local user entity"
-  task :create, [:username, :password] => :environment do |task, args|
+  task :create, [:username, :password, :admin] => :environment do |task, args|
     arguments = args.to_h
 
-    result = create(arguments[:username], arguments[:password])
+    result = create(arguments[:username], arguments[:password], arguments[:admin])
 
     if result[:user].valid?
       puts <<~OUT
@@ -80,8 +80,28 @@ namespace :users do
     end
   end
 
+  desc "Create an admin user"
+  task :create_admin, [:username, :password] => :environment do |task, args|
+    arguments = args.to_h
+
+    result = create(arguments[:username], arguments[:password], true)
+
+    if result[:user].valid?
+      puts <<~OUT
+      Admin user created:
+      Name: #{arguments[:username]}
+      Password: #{result[:pass]}
+      OUT
+    else
+      puts <<~OUT
+      Error when creating user:
+      #{result[:user].errors.full_messages.join("\n")}
+      OUT
+    end
+  end
+
   desc "Reset a user's password"
-  task :reset_pass, [:username, :password] => :environment  do |task, args|
+  task :reset_pass, [:username, :password] => :environment do |task, args|
     arguments = args.to_h
 
     result = reset_pass(arguments[:username], arguments[:password])
@@ -136,7 +156,7 @@ namespace :users do
   task :status, [:username] => :environment do |task, args|
     arguments = args.to_h
     user = [User.find_by(username: arguments[:username])]
-    tp user, :username, :active?
+    tp user, :username, :active?, :admin?
   end
 
   desc "Set admin status of user"
@@ -170,11 +190,11 @@ def set_admin_status(username, bool)
   return user
 end
 
-def create(username, pass=nil)
+def create(username, pass=nil, admin=false)
   pass ||= SecureRandom.base58(10)
 
   return {
-    user: User.create(username: username, password: pass, password_confirmation: pass, admin: false),
+    user: User.create(username: username, password: pass, password_confirmation: pass, admin: admin),
     pass: pass
   }
 end
