@@ -416,7 +416,7 @@ class Project < ApplicationRecord
     change
   end
 
-  def update_change_request(request, params)
+  def update_change_request(request, user, params)
     return request, false if !request.editable?
     
     # user = params.delete("user")
@@ -432,32 +432,32 @@ class Project < ApplicationRecord
       request = request.becomes(params["type"].constantize)
       success = request.save
       if success
-        msg = "Scheduled request at #{original_date_time} for project *#{self.name}* updated by #{"Someone"}. Now: \n"
+        msg = "Scheduled request at #{original_date_time} for project *#{self.name}* updated by #{user.username}. Now: \n"
         msg << request.formatted_changes(false)
         request.reload
         new_attributes = request.attributes
         new_attributes["formatted_days"] = request.formatted_days
 
-        create_change_request_log(request.id, original_attributes, new_attributes)
+        create_change_request_log(request.id, user.id, original_attributes, new_attributes)
         send_slack_message(msg)
       end
     end
     return request, success
   end
 
-  def create_change_request_log(request_id, original_attributes, new_attributes)
-    log = ChangeRequestAuditLog.create(project_id: self.id, change_request_id: request_id, 
-                                       original_attributes: original_attributes,
+  def create_change_request_log(request_id, user_id, original_attributes, new_attributes)
+    log = ChangeRequestAuditLog.create(project_id: self.id, change_request_id: request_id,
+                                       user_id: user_id, original_attributes: original_attributes,
                                        new_attributes: new_attributes, date: Date.today)
   end
 
-  def cancel_change_request(request)
+  def cancel_change_request(request, user)
     original_status = request.status
     success = request.cancel
     if success
       desc = request.description ? " '#{request.description}' " : " "
-      msg = "Scheduled request#{desc}at #{request.date_time} for project *#{request.project.name}* cancelled by #{'Someone'}"
-      create_change_request_log(request.id, {"status" => original_status}, {"status" => request.status})
+      msg = "Scheduled request#{desc}at #{request.date_time} for project *#{request.project.name}* cancelled by #{user.username}"
+      create_change_request_log(request.id, user.id, {"status" => original_status}, {"status" => request.status})
       send_slack_message(msg)
     end
     success

@@ -31,7 +31,7 @@
             >
               <td><%= log.formatted_timestamp %></td>
               <td><%= "1 #{log.compute_group} #{log.customer_facing_type} #{log.action}" %><%= log.detail_tooltip.html_safe %></td>
-              <td><%= "Someone" %></td>
+              <td><%= log.user.username %></td>
               <td><%= log.status %></td>
             </tr>
           <% end %>

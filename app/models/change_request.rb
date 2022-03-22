@@ -2,10 +2,11 @@ include ActionView::Helpers::SanitizeHelper
 
 class ChangeRequest < ApplicationRecord
   belongs_to :project
+  belongs_to :user
   has_many :action_logs
   has_many :change_request_audit_logs
   before_save :clean_description
-  validates :project_id, :counts, :date, :counts_criteria, :time, :status, :type, presence: true
+  validates :project_id, :user_id, :counts, :date, :counts_criteria, :time, :status, :type, presence: true
   validate :time_in_future, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :only_one_at_time, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :includes_counts, if: Proc.new { |s| !s.persisted? || s.counts_changed? }
@@ -39,7 +40,7 @@ class ChangeRequest < ApplicationRecord
 
   def formatted_changes(with_opening=true)
     message = ""
-    opening ="#{"Someone"} requested the following scheduled #{counts_criteria} counts for *#{self.project.name}*:\n"
+    opening = "#{user.username} requested the following scheduled #{counts_criteria} counts for *#{self.project.name}*:\n"
     counts.each do |group, details|
       message << "*#{group}*\n"
       details.each { |instance, count| message << "#{instance}: #{count} node#{"s" if count > 1 || count == 0}\n" }
@@ -183,7 +184,7 @@ class ChangeRequest < ApplicationRecord
     request = self
     {
       type: "scheduled_request",
-      username: "Someone",
+      username: request.user.username,
       date: request.date,
       time: request.time,
       timestamp: request.created_at,

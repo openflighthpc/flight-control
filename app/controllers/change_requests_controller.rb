@@ -65,6 +65,7 @@ class ChangeRequestsController < ApplicationController
     else
       authorize ChangeRequest.new(project: @project)
       parameters.delete(:project)
+      parameters[:user_id] = current_user.id
       request = @project.create_change_request(parameters)
       if request.valid?
         flash[:success] = "Request created"
@@ -93,7 +94,7 @@ class ChangeRequestsController < ApplicationController
         else
           parameters.delete(:project)
           parameters.delete(:timeframe)
-          request, success = @project.update_change_request(request, parameters)
+          request, success = @project.update_change_request(request, current_user, parameters)
           if success
             flash[:success] = "Request updated"
           else
@@ -116,7 +117,7 @@ class ChangeRequestsController < ApplicationController
       flash[:danger] = "Request not found"
     else
       authorize request, policy_class: ChangeRequestPolicy
-      success = @project.cancel_change_request(request)
+      success = @project.cancel_change_request(request, current_user)
       if success
         flash[:success] = "Request cancelled"
       else

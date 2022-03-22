@@ -6,7 +6,8 @@ class ChangeRequestAuditLog < ApplicationRecord
   UNSHOWN_ATTRIBUTES=%w[weekdays type]
   belongs_to :project
   belongs_to :change_request
-  validates :project_id, :change_request_id, :updates, :date, presence: true
+  belongs_to :user
+  validates :project_id, :user_id, :change_request_id, :updates, :date, presence: true
   validate :includes_change, on: :create
   default_scope { order(:created_at) }
 

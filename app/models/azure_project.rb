@@ -59,7 +59,8 @@ class AzureProject < Project
         else
           by_resource_group[action][instance.resource_group] = [instance.instance_name]
         end
-        action_log = ActionLog.new(project_id: self.id, action: action, reason: "Change request",
+        action_log = ActionLog.new(project_id: self.id, user_id: change.user_id, 
+                                   action: action, reason: "Change request",
                                    instance_id: instance.instance_id,
                                    change_request_id: change.actual_or_parent_id)
         action_log.save!
