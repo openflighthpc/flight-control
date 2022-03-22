@@ -191,3 +191,12 @@ input[type=date] {
 .edit-button {
   margin-left: 0.35rem;
 }
+
+#project-nav {
+  min-height: calc(100vh - 5rem);
+  padding-right: 0;
+  padding-top: 2rem;
+  border-right: solid;
+  border-right-width: 0.09rem;
+  border-right-color: lightgrey;
+}

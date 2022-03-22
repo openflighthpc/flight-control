@@ -4,10 +4,13 @@ class ChangeRequestPolicy < ApplicationPolicy
   end
 
   def create?
-    user && (user.admin? || user.has_role_for?(record.project, 'default'))
+    !record.project.archived? && user && (user.admin? || user.has_role_for?(record.project, 'default'))
   end
 
-  alias_method :manage?, :show?
+  def manage?
+    !record.project.archived? && show?
+  end
+
   alias_method :latest?, :show?
   alias_method :new?, :create?
   alias_method :costs_forecast?, :create?

@@ -13,8 +13,10 @@
       </li>
     <% end %>
     </li>
-    <li class="nav-item">
-      <%= link_to "Manage Events", events_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "manage events"}" %>
-    </li>
+    <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).manage? %>
+      <li class="nav-item">
+        <%= link_to "Manage Events", events_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "manage events"}" %>
+      </li>
+    <% end %>
   </ul>
 <% end %>
