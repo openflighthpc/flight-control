@@ -200,3 +200,7 @@ input[type=date] {
   border-right-width: 0.09rem;
   border-right-color: lightgrey;
 }
+
+.project-link {
+  border-radius: 0 !important;
+}
