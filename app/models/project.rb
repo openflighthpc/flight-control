@@ -492,6 +492,13 @@ class Project < ApplicationRecord
     puts "No scheduled requests due for project #{self.name}." if !any && text
   end
 
+  def action_change_request(request)
+    if request.monitor_override_hours
+      self.override_monitor_until = request.date_time + request.monitor_override_hours.hours
+      self.save
+    end
+  end
+
   def update_instance_statuses(actions)
     actions.each do |action, details|
       next if details.empty?

@@ -45,7 +45,10 @@ class AwsProject < Project
     @instance_details_recorder ||= AwsInstanceDetailsRecorder.new(self)
   end
 
+  # This could perhaps be merged into a superclass method, if some extra
+  # logic added to instances to return region for aws and compute group for azure
   def action_change_request(change)
+    super
     instances_to_change = change.instances_to_change_with_pending
     instance_ids = {on: {}, off: {}}
     instances_to_change.each do |action, instances|
