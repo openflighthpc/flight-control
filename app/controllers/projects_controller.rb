@@ -1,7 +1,6 @@
 class ProjectsController < ApplicationController
   def costs_breakdown
     get_project
-    puts "goats"
     if !@project
       no_project_redirect
     else
@@ -32,7 +31,7 @@ class ProjectsController < ApplicationController
     if !@project
       no_project_redirect
     else
-      authorize @project
+      authorize @project, policy_class: ProjectPolicy
       timestamp = Time.parse(params['timestamp'])
       render json: {changed: @project.data_changed?(timestamp)}
     end

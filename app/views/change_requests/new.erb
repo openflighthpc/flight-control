@@ -23,10 +23,10 @@
         <% else %>
           <form action='/events' method='post' id='create-event-form'>
         <% end %>
-          <%= render '/events/choose_counts' %>
-          <%= render '/events/choose_when' %>
-          <%= render '/events/choose_extras' %>
-          <%= render '/events/review' %>
+          <%= render '/change_requests/choose_counts' %>
+          <%= render '/change_requests/choose_when' %>
+          <%= render '/change_requests/choose_extras' %>
+          <%= render '/change_requests/review' %>
           <div class="row justify-content-between" id="wizard-footer">
             <div>
               <a class="btn btn-info" id="wizard-back-button" style="visibility: hidden"

@@ -194,9 +194,12 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   //   html += `${details.monitor} hour${details.monitor > 1 ? "s" : ""}`;
   // }
   html += `<td>${details.description ? details.description : '-'}</td>`
-  html += `<td>`;
-  html += createRequestButtons(details)
-  html += "</td></tr>";
+  if($('#edit-column').length > 0) {
+    html += `<td>`;
+    html += createRequestButtons(details)
+    html += "</td>";
+  }
+  html += "</tr>";
   return html;
 }
 

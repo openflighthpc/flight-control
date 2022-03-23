@@ -1,6 +1,7 @@
-class EventsController < ApplicationController
+class ChangeRequestsController < ApplicationController
   def manage
     get_project
+    authorize ChangeRequest.new(project: @project)
     @compute_groups = @project.front_end_compute_groups.keys
     @filtered_groups = params[:groups]
     @current_instances = @project.latest_instances
@@ -12,15 +13,18 @@ class EventsController < ApplicationController
     @future_events = @project.future_events_by_date(@filtered_groups)
     filter_records if @filtered_groups
     @nav_view = "manage events"
+    @editor = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create?
   end
 
   def latest
     get_project
+    authorize ChangeRequest.new(project: @project)
     render json: @project.current_events_data(params[:groups]).to_json({original: false})
   end
 
   def new
-    authorize get_project, :create_event?, policy_class: ProjectPolicy
+    get_project
+    authorize ChangeRequest.new(project: @project)
     @current_instances = @project.latest_instances
     cost_plotter = CostsPlotter.new(@project)
     start_date = cost_plotter.start_of_billing_interval(Date.today)
@@ -35,10 +39,13 @@ class EventsController < ApplicationController
     @request = ChangeRequest.find_by_id(params[:id])
     if !@request
       flash[:danger] = "Request not found"
-    elsif !@request.editable?
-      flash[:danger] = "Cannot edit that request"
-      redirect_to events_path
-      return
+    else
+      authorize @request, policy_class: ChangeRequestPolicy
+      if !@request.editable?
+        flash[:danger] = "Cannot edit that request"
+        redirect_to events_path
+        return
+      end
     end
     @current_instances = @project.latest_instances
     cost_plotter = CostsPlotter.new(@project)
@@ -56,7 +63,7 @@ class EventsController < ApplicationController
     if !@project
       flash[:danger] = "Project not found"
     else
-      authorize get_project, :create_event?, policy_class: ProjectPolicy
+      authorize ChangeRequest.new(project: @project)
       parameters.delete(:project)
       request = @project.create_change_request(parameters)
       if request.valid?
@@ -76,6 +83,7 @@ class EventsController < ApplicationController
     if !request
       flash[:danger] = "Request not found"
     else
+      authorize request, policy_class: ChangeRequestPolicy
       target = event_edit_path(request, project: @project.name)
       if request.id != parameters[:id].to_i
         flash[:danger] = "Ids do not match"
@@ -107,6 +115,7 @@ class EventsController < ApplicationController
     if !request
       flash[:danger] = "Request not found"
     else
+      authorize request, policy_class: ChangeRequestPolicy
       success = @project.cancel_change_request(request)
       if success
         flash[:success] = "Request cancelled"
@@ -120,6 +129,7 @@ class EventsController < ApplicationController
   def costs_forecast
     parameters = filtered_change_request_params
     @project = Project.find_by_name(parameters[:project])
+    authorize ChangeRequest.new(project: @project)
     render json: @project.change_request_cumulative_costs(parameters)
   end
 
