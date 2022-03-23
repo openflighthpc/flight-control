@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
-         :rememberable, :validatable
+         :sso_authenticatable, :rememberable, :validatable
 
   has_many :change_requests
   has_many :change_request_audit_logs
