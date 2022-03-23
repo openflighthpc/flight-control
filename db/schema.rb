@@ -186,6 +186,8 @@ ActiveRecord::Schema.define(version: 2022_03_23_163905) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "admin", default: false
+    t.uuid "flight_id"
+    t.datetime "jwt_iat"
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true

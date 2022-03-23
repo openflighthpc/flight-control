@@ -15,6 +15,9 @@ class User < ApplicationRecord
   validates :admin,
     inclusion: { within: [true, false] }
 
+  validates :flight_id,
+    uniqueness: true
+
   before_save :default_values
 
   # Not all users have an email
