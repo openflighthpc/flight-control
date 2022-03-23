@@ -56,7 +56,7 @@ class AzureProject < Project
 
   # This could perhaps be merged into a superclass method, if some extra
   # logic added to instances to return region for aws and compute group for azure
-  def action_change_request(change)
+  def action_change_request(change, slack=false, text=false)
     super
     instances_to_change = change.instances_to_change_with_pending
     by_resource_group = {on: {}, off: {}}

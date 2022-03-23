@@ -10,7 +10,7 @@ class ConfigLog < ActiveRecord::Base
   validate :override_null_or_valid_time, on: :create
 
   def details=(details)
-    existing_override = project.override_monitor_until if project.override_active?
+    existing_override = project.override_monitor_until if project.override_monitor_until
     new_override = details["override_monitor_until"]
     new_override = nil if new_override == ""
     if new_override != nil && valid_time?(new_override)
@@ -19,7 +19,7 @@ class ConfigLog < ActiveRecord::Base
     monitor_details = {from: existing_override, to: new_override}
     # will change once more than monitor able to change
     full_details = {override_monitor_until: monitor_details}
-    self.config_changes = full_details.to_json
+    self.config_changes = full_details
   end
 
   def formatted_timestamp
@@ -37,7 +37,7 @@ class ConfigLog < ActiveRecord::Base
       if details["to"] != details["from"]
         details["to"] = "none" if details["to"].blank?
         attribute = "*#{attribute.gsub("_", " ").capitalize}*"
-        message << "#{attribute}: #{details["to"]}#{unit}\n"
+        message << "#{attribute}: #{details["to"]}\n"
       end
     end
     message
@@ -110,15 +110,15 @@ class ConfigLog < ActiveRecord::Base
   end
 
   def override_null_or_valid_time
-    if congif_changes["override_monitor_until"]
-      override = congif_changes["override_monitor_until"]["to"]
+    if config_changes["override_monitor_until"]
+      override = config_changes["override_monitor_until"]["to"]
       errors.add(:override, "is an invalid time") if override && !valid_time?(override)
     end
   end
 
   def threshold_null_or_in_range
-    if congif_changes["utilisation_threshold"]
-      utilisation_threshold = congif_changes["utilisation_threshold"]["to"].to_i
+    if config_changes["utilisation_threshold"]
+      utilisation_threshold = config_changes["utilisation_threshold"]["to"].to_i
       if !(1..10).include?(utilisation_threshold)
         errors.add(:threshold, "Must be between 1 and 10 (inclusive)")
       end

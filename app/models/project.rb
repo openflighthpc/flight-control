@@ -486,17 +486,36 @@ class Project < ApplicationRecord
         send_slack_message(msg) if slack
         puts msg if text
         request.start
-        action_change_request(request)
+        action_change_request(request, slack, text)
       end
     end
     puts "No scheduled requests due for project #{self.name}." if !any && text
   end
 
-  def action_change_request(request)
+  def action_change_request(request, slack=false, text=false)
     if request.monitor_override_hours
-      self.override_monitor_until = request.date_time + request.monitor_override_hours.hours
-      self.save
+      details = {"override_monitor_until" => request.monitor_end_time.to_s}
+      submit_config_change(details, request.user, true, request.actual_or_parent_id, slack, text)
     end
+  end
+
+  def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
+    change = ConfigLog.new(details: details, user_id: user.id, project_id: id, automated: automated,
+                           change_request_id: request_id)
+    success = change.save
+
+    if success
+      # Will need updating when possible to change compute group priorities,
+      # as these in a yaml file, not db fields
+      change.config_changes.each do |attribute, value|
+        self.assign_attributes({attribute => value["to"]})
+      end
+      self.save
+      msg = change.formatted_changes
+      send_slack_message(msg) if slack
+      puts msg if text
+    end
+    change
   end
 
   def update_instance_statuses(actions)

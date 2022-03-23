@@ -38,6 +38,10 @@ class ChangeRequest < ApplicationRecord
     InstanceMapping.customer_facing_type(project.platform, type)
   end
 
+  def monitor_end_time
+    monitor_override_hours ? date_time + monitor_override_hours.hours : nil
+  end
+
   def formatted_changes(with_opening=true)
     message = ""
     opening = "#{user.username} requested the following scheduled #{counts_criteria} counts for *#{self.project.name}*:\n"
