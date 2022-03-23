@@ -1,3 +1,5 @@
+require 'json_web_token'
+
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :sso_authenticatable, :rememberable, :validatable
@@ -19,6 +21,31 @@ class User < ApplicationRecord
     uniqueness: true
 
   before_save :default_values
+
+  def self.from_jwt_token(token, jwt_decode_options={})
+    claims = ::JsonWebToken.decode(token, jwt_decode_options)
+    # Attempt to find user by `flight_id`
+    user = find_by(flight_id: claims.fetch('flight_id'))
+    if user.present?
+      # Do something?
+    else
+      # No user with given `flight_id`. This is most likely the first
+      # time that a user is accessing Flight Control. Use their email
+      # address and set `flight_id`.
+      user = User.new(
+        username: claims.fetch('username'),
+        email: claims.fetch('email'),
+        flight_id: claims.fetch('flight_id'),
+        password: SecureRandom.base58(20)
+      )
+
+      if user.save
+        return user
+      else
+        raise user.errors.full_messages.to_s
+      end
+    end
+  end
 
   # Not all users have an email
   def email_required?

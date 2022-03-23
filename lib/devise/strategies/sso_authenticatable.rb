@@ -20,9 +20,11 @@ module Devise::Strategies
       res = Net::HTTP.start(uri.hostname, port) do |http|
         http.request(req)
       end
-      raise res.body.to_s
 
-      fail! res.to_s.html_safe
+      res = JSON.parse(res.body)
+
+      user = User.from_jwt_token(res['user']['authentication_token'])
+      success!(user)
     end
   end
 end
