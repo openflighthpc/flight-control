@@ -7,7 +7,7 @@ class User < ApplicationRecord
   has_many :change_requests
   has_many :change_request_audit_logs
   has_many :action_logs
-  has_many :user_roles
+  has_many :user_roles, dependent: :delete_all
   alias :roles :user_roles
 
   validates :username,

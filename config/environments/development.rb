@@ -61,7 +61,7 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   # Flight SSO integration details
-  # config.sso_cookie_name = 
+  config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME', 'flight_sso_dev')
   config.sso_path = {
     "host" => "http://localhost/sign-in",
     "port" => "4000"
