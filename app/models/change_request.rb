@@ -50,8 +50,6 @@ class ChangeRequest < ApplicationRecord
       details.each { |instance, count| message << "#{instance}: #{count} node#{"s" if count > 1 || count == 0}\n" }
     end
     message << "\n*Scheduled time*: #{date_time}\n"
-    message << "*Description*: #{description}\n" if description
-    message << "*Monitor override*: #{monitor_override_hours} hours\n" if monitor_override_hours
     message << additional_field_details(true)
     message = opening << message if with_opening
     message
@@ -101,15 +99,22 @@ class ChangeRequest < ApplicationRecord
   end
 
   def additional_field_details(slack=false)
+    additional = ""
     if description
       if slack
-        "*Description*: #{description}\n"
+        additional << "*Description*: #{description}\n"
       else
-        "<strong>Description</strong>: #{description}<br>"
+        additional <<"<strong>Description</strong>: #{description}<br>"
       end
-    else
-      ""
     end
+    if monitor_override_hours
+      if slack
+        additional << "*Override CPU monitor for*: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}\n"
+      else
+        additional <<"<strong>Override CPU monitor for</strong>:#{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}<br>"
+      end
+    end
+    additional
   end
 
   def formatted_timestamp
@@ -202,7 +207,8 @@ class ChangeRequest < ApplicationRecord
       counts_criteria: counts_criteria.capitalize,
       frontend_id: front_end_id,
       description: description,
-      link: self.link,
+      monitor_override_hours: monitor_override_hours,
+      link: link,
       updated_at: updated_at.to_s
     }
   end

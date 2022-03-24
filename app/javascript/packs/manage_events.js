@@ -193,6 +193,9 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   // } else {
   //   html += `${details.monitor} hour${details.monitor > 1 ? "s" : ""}`;
   // }
+  let override = details.monitor_override_hours;
+  if (override) override = `${override} hour${ override > 1 ? 's' : '' }`;
+  html += `<td>${override ? override : '-'}</td>`;
   html += `<td>${details.description ? details.description : '-'}</td>`
   if($('#edit-column').length > 0) {
     html += `<td>`;

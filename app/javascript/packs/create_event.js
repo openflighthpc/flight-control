@@ -262,7 +262,9 @@ window.updateRequestSummary = function() {
       text += `<strong>Until:</strong> ${$('#end-date').val()}<br>`;
     }
     let description = $('#scheduled-description').val().replace(/<\/?[^>]+(>|$)/g, "");
-    if(description != "") text += `<strong>Description</strong>: ${description}`;
+    if(description != "") text += `<strong>Description</strong>: ${description}<br>`;
+    let overrideHours = $('#override-hours').val();
+    if(overrideHours != "") text += `<strong>Override Hours</strong>: ${overrideHours}`;
   }
   summarySection.html(text);
 }
