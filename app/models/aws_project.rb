@@ -45,27 +45,9 @@ class AwsProject < Project
     @instance_details_recorder ||= AwsInstanceDetailsRecorder.new(self)
   end
 
-  # This could perhaps be merged into a superclass method, if some extra
-  # logic added to instances to return region for aws and compute group for azure
-  def action_change_request(change, slack=false, text=false)
-    super
-    instances_to_change = change.instances_to_change_with_pending
-    instance_ids = {on: {}, off: {}}
-    instances_to_change.each do |action, instances|
-      instances.each do |instance|
-        if instance_ids[action].has_key?(instance.region)
-          instance_ids[action][instance.region] << instance.instance_id
-        else
-          instance_ids[action][instance.region] = [instance.instance_id]
-        end
-        action_log = ActionLog.new(project_id: self.id, user_id: change.user_id,
-                                   action: action, reason: "Change request",
-                                   instance_id: instance.instance_id,
-                                   change_request_id: change.actual_or_parent_id)
-        action_log.save!
-      end
-    end
-    update_instance_statuses(instance_ids)
+  # How instances must be grouped for SDK queries, e.g. switch ons/offs
+  def instance_grouping
+    "region"
   end
 
   private

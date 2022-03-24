@@ -482,10 +482,6 @@ class Project < ApplicationRecord
     pending_one_off_and_repeat_requests.each do |request|
       if request.due?
         any = true
-        msg = request.formatted_actions
-        send_slack_message(msg) if slack
-        puts msg if text
-        request.start
         action_change_request(request, slack, text)
       end
     end
@@ -497,6 +493,31 @@ class Project < ApplicationRecord
       details = {"override_monitor_until" => request.monitor_end_time.to_s}
       submit_config_change(details, request.user, true, request.actual_or_parent_id, slack, text)
     end
+    msg = request.formatted_actions
+    send_slack_message(msg) if slack
+    puts msg if text
+    request.start
+
+    instances_to_change = request.instances_to_change_with_pending
+    instance_ids = {on: {}, off: {}}
+    instances_to_change.each do |action, instances|
+      instances.each do |instance|
+        # Platforms expect instances to be grouped by different criteria
+        # for efficient SDK/API queries
+        grouping = instance.send(instance_grouping)
+        if instance_ids[action].has_key?(grouping)
+          instance_ids[action][grouping] << instance.instance_id
+        else
+          instance_ids[action][grouping] = [instance.instance_id]
+        end
+        action_log = ActionLog.new(project_id: id, user_id: request.user_id,
+                                   action: action, reason: "Change request",
+                                   instance_id: instance.instance_id,
+                                   change_request_id: request.actual_or_parent_id)
+        action_log.save!
+      end
+    end
+    update_instance_statuses(instance_ids)
   end
 
   def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)

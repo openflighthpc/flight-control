@@ -54,27 +54,8 @@ class AzureProject < Project
     super(start_date, end_date, rerun, verbose, text)
   end
 
-  # This could perhaps be merged into a superclass method, if some extra
-  # logic added to instances to return region for aws and compute group for azure
-  def action_change_request(change, slack=false, text=false)
-    super
-    instances_to_change = change.instances_to_change_with_pending
-    by_resource_group = {on: {}, off: {}}
-    instances_to_change.each do |action, instances|
-      instances.each do |instance|
-        if by_resource_group[action].has_key?(instance.resource_group)
-          by_resource_group[action][instance.resource_group] << instance.instance_name
-        else
-          by_resource_group[action][instance.resource_group] = [instance.instance_name]
-        end
-        action_log = ActionLog.new(project_id: self.id, user_id: change.user_id, 
-                                   action: action, reason: "Change request",
-                                   instance_id: instance.instance_id,
-                                   change_request_id: change.actual_or_parent_id)
-        action_log.save!
-      end
-    end
-    update_instance_statuses(by_resource_group)
+  def instance_grouping
+    "resource_group"
   end
 
   private
