@@ -21,10 +21,15 @@ module Devise::Strategies
         http.request(req)
       end
 
-      res = JSON.parse(res.body)
-
-      user = User.from_jwt_token(res['user']['authentication_token'])
-      success!(user)
+      begin
+        res = JSON.parse(res.body)
+        user = User.from_jwt_token(res['user']['authentication_token'])
+        cookie = Rails.application.config.sso_cookie_name
+        cookies[cookie.to_sym] = res['user']['authentication_token']
+        success!(user)
+      rescue JSON::ParserError
+        fail!(message = "Invalid Username or password.")
+      end
     end
   end
 end
