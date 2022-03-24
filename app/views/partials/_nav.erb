@@ -18,5 +18,8 @@
         <%= link_to "Manage Events", events_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "manage events"}" %>
       </li>
     <% end %>
+    <li class="nav-item">
+      <%= link_to "Policies", policies_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "policies"}" %>
+    </li>
   </ul>
 <% end %>

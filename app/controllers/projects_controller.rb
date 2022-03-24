@@ -7,7 +7,16 @@ class ProjectsController < ApplicationController
       authorize @project, policy_class: ProjectPolicy
       @nav_view = "costs"
       get_costs_data
-      puts "here"
+    end
+  end
+
+  def policy_page
+    get_project
+    if !@project
+      no_project_redirect
+    else
+      authorize @project, policy_class: ProjectPolicy
+      @nav_view = "policies"
     end
   end
 
