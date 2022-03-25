@@ -22,6 +22,11 @@ class RepeatedChangeRequest < ChangeRequest
     future_dates.include?(date)
   end
 
+  def next_date_time
+    dates = future_dates
+    Time.parse("#{dates[0].to_s} #{time}") if dates.any?
+  end
+
   def individual_request_on_date(date)
     return nil if !future_dates.include?(date)
 
@@ -50,6 +55,11 @@ class RepeatedChangeRequest < ChangeRequest
   end
 
   def editable?
+    (status == "started" || status == "pending") &&
+    next_date_time >= (Time.now + 5.minutes)
+  end
+
+  def cancellable?
     status == "started" || super
   end
 
@@ -64,7 +74,7 @@ class RepeatedChangeRequest < ChangeRequest
       details << "<br><strong>Repeat until</strong>: #{end_date}<br>"
       details << "<strong>On days</strong>: #{formatted_days}<br>"
     end
-    details
+    details << super(slack)
   end
 
   def front_end_id

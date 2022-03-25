@@ -238,9 +238,9 @@ By default this page shows data for the first active project. This can be change
 
 #### Costs Charts
 
-This page shows historic and estimated future costs in at risk compute units, based on cost logs and instance logs. These can be viewed in either a daily breakdown or cumulative chart, which can be moved between by selecting the relevant tab.
+This page shows historic and estimated future costs in at risk compute units, based on cost logs, instance logs and change requests. These can be viewed in either a daily breakdown or cumulative chart, which can be moved between by selecting the relevant tab.
 
-Compute forecasts for today and future days are based upon the current instance counts. For forecast days in the past (i.e. days between the last actual costs recorded and today) compute costs are estimated based on the instance counts on those days.
+Compute forecasts for today and future days are based upon the current instance counts, action logs and change requests. For forecast days in the past (i.e. days between the last actual costs recorded and today) compute costs are estimated based on the instance counts and action logs on those days.
 
 Non compute costs are based on the most recent recorded costs for that scope. For example, if core costs were last recorded as 10 compute units, all forecast days will estimate core costs to also be 10 compute units.
 
@@ -256,7 +256,7 @@ These groups and types shown in this table are determined by the project's confi
 
 #### New Data Alert and Refresh
 
-If new costs are recorded or instance counts change, this page will show an alert that when accepted refreshes the page, so this latest data can be shown. The application checks for new data every 30 seconds.
+If new costs are recorded, instance counts change or a change request is created/updated, this page will show an alert that when accepted refreshes the page, so this latest data can be shown. The application checks for new data every 30 seconds.
 
 ### Change Requests
 
@@ -273,6 +273,16 @@ Once all request details have been selected, a chart will be displayed with the 
 If this forecast will take the project over budget or over balance, the user will be preventing from submitting the request.
 
 Upon submission a slack message will be sent to the project's defined slack channel.
+
+#### Managing Requests
+
+A project's active requests can be viewed on the Manage Events page. This shows the current node counts (excluding pending counts), any switch ons and switch offs in progress, any change requests starting in the next 5 minutes, and any change requests starting after the next 5 minutes.
+
+This page updates automatically without needing to refresh, with data checked and updated every 30 seconds.
+
+These tables include links for editing or cancelling requests. Requests can be cancelled if they have not yet been actioned, and can be edited if taking place more than 5 minutes in the future (or for repeated requests, if their next action is more than 5 minutes in the future).
+
+When a request is canceled or updated, a slack message is sent and an accompanying `ChangeRequestAuditLog` is created recording the changes.
 
 #### Carrying out requests
 

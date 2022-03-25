@@ -1,6 +1,7 @@
 class ActionLog < ApplicationRecord
   before_create :set_defaults
   belongs_to :project
+  belongs_to :user, optional: true
   belongs_to :change_request, optional: true
   default_scope { order(:actioned_at) }
   validates :project_id, :reason, :instance_id, presence: true
@@ -12,7 +13,7 @@ class ActionLog < ApplicationRecord
       message: "must be 'on' or 'off'"
     }
   validate :valid_instance, on: :create
-  #validate :automated_or_user
+  validate :automated_or_user
 
   def instance_log
     if !@instance_log
@@ -159,9 +160,9 @@ class ActionLog < ApplicationRecord
     self.date = self.actioned_at.to_date
   end
 
-  # def automated_or_user
-  #   if !automated? && !user_id
-  #     errors.add(:user_id, "must not be blank if not an automated change")
-  #   end
-  # end
+  def automated_or_user
+    if !automated? && !user_id
+      errors.add(:user_id, "must not be blank if not an automated change")
+   end
+  end
 end

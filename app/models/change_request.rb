@@ -1,7 +1,12 @@
+include ActionView::Helpers::SanitizeHelper
+
 class ChangeRequest < ApplicationRecord
   belongs_to :project
+  belongs_to :user
   has_many :action_logs
-  validates :project_id, :counts, :date, :counts_criteria, :time, :status, :type, presence: true
+  has_many :change_request_audit_logs
+  before_save :clean_description
+  validates :project_id, :user_id, :counts, :date, :counts_criteria, :time, :status, :type, presence: true
   validate :time_in_future, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :only_one_at_time, if: Proc.new { |s| !s.persisted? || s.time_or_date_changed? }
   validate :includes_counts, if: Proc.new { |s| !s.persisted? || s.counts_changed? }
@@ -18,7 +23,7 @@ class ChangeRequest < ApplicationRecord
   end
 
   def update_counts
-    counts = formatted_counts
+    self.counts = formatted_counts
   end
 
   def date_time
@@ -35,7 +40,7 @@ class ChangeRequest < ApplicationRecord
 
   def formatted_changes(with_opening=true)
     message = ""
-    opening ="#{"Someone"} requested the following scheduled #{counts_criteria} counts for *#{self.project.name}*:\n"
+    opening = "#{user.username} requested the following scheduled #{counts_criteria} counts for *#{self.project.name}*:\n"
     counts.each do |group, details|
       message << "*#{group}*\n"
       details.each { |instance, count| message << "#{instance}: #{count} node#{"s" if count > 1 || count == 0}\n" }
@@ -90,7 +95,15 @@ class ChangeRequest < ApplicationRecord
   end
 
   def additional_field_details(slack=false)
-    ""
+    if description
+      if slack
+        "*Description*: #{description}\n"
+      else
+        "<strong>Description</strong>: #{description}<br>"
+      end
+    else
+      ""
+    end
   end
 
   def formatted_timestamp
@@ -158,24 +171,32 @@ class ChangeRequest < ApplicationRecord
     save!
   end
 
+  def cancel
+    if cancellable?
+      self.status = "cancelled"
+      save!
+    end
+  end
+
   # When we have change logs, we will want to show the original content,
   # but the current status
   def as_json(*options)
     request = self
     {
       type: "scheduled_request",
-      username: "Someone",
+      username: request.user.username,
       date: request.date,
       time: request.time,
       timestamp: request.created_at,
       formatted_timestamp: request.formatted_timestamp,
       details: request.card_description,
       descriptive_counts: descriptive_counts,
-      status: self.status,
+      status: status,
       editable: editable?,
       counts_criteria: counts_criteria.capitalize,
       frontend_id: front_end_id,
-      #link: self.link,
+      description: description,
+      link: self.link,
       updated_at: updated_at.to_s
     }
   end
@@ -193,12 +214,16 @@ class ChangeRequest < ApplicationRecord
   end
 
   def editable?
+    status == "pending" && date_time >= (Time.now + 5.minutes)
+  end
+
+  def cancellable?
     status == "pending"
   end
 
-  # def link
-  #   "/change_requests/#{self.id}?project=#{self.project.name}"
-  # end
+  def link
+    "/events/#{self.id}/edit?project=#{self.project.name}"
+  end
 
   def switch_all_on?(group_name)
     project_instances = project.latest_instances[group_name]
@@ -209,11 +234,20 @@ class ChangeRequest < ApplicationRecord
     !missing
   end
 
+  def switch_all_off?(group_name)
+    project_instances = project.latest_instances[group_name]
+    request_counts = counts[group_name]
+    request_counts.length == project_instances.length &&
+    request_counts.values.all?(0)
+  end
+
   def descriptive_counts
     results = {}
     counts.each do |group, instance_types|
       if switch_all_on?(group)
         results[group] = "All on"
+      elsif switch_all_off?(group)
+        results[group] = "All off"
       else
         customer_facing_types = instance_types.map do |k,v|
           [InstanceMapping.customer_facing_type(project.platform, k),v]
@@ -228,6 +262,8 @@ class ChangeRequest < ApplicationRecord
 
   def formatted_counts
     instances = {}
+    return instances if !@nodes
+
     @nodes.each do |id, count|
       if count != ""
         group = id.split("-")[0]
@@ -243,12 +279,18 @@ class ChangeRequest < ApplicationRecord
     instances
   end
 
+  def clean_description
+    if description
+      self.description = strip_tags(description)
+    end
+  end
+
   def includes_counts
     errors.add(:counts, "must include at least one node count") if counts.empty?
   end
 
   def time_in_future
-    errors.add(:time, "#{date_time }must be at least 5 mins in the future") if (date_time - 5.minutes) < Time.now
+    errors.add(:time, " must be at least 5 mins in the future") if (date_time - 5.minutes) < Time.now
   end
 
   def only_one_at_time

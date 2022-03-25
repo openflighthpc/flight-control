@@ -4,7 +4,7 @@
     <div class="col-sm-8">
       <h4 class="mr-auto p-2 audit-logs-title text-center">
         In Progress
-        <% if ProjectPolicy.new(current_user, @project).create_event? %>
+        <% if @editor %>
           <a href="/events/new?project=<%= @project.name %>" class="btn btn-warning">+ Event</a>
         <% end %>
       </h4>
@@ -31,7 +31,7 @@
             >
               <td><%= log.formatted_timestamp %></td>
               <td><%= "1 #{log.compute_group} #{log.customer_facing_type} #{log.action}" %><%= log.detail_tooltip.html_safe %></td>
-              <td><%= "Someone" %></td>
+              <td><%= log.user.username %></td>
               <td><%= log.status %></td>
             </tr>
           <% end %>

@@ -6,13 +6,17 @@
     <li class="nav-item">
       <%= link_to "Costs Breakdown", costs_breakdown_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "costs"}" %>
       </li>
-    <% if ProjectPolicy.new(current_user, @project).create_event? %>
+    <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create? %>
       <li class="nav-item">
-        <%= link_to "Create Event", events_new_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "create event"}" %>
+        <% title = @request ? "Edit Event" : "Create Event" %>
+        <%= link_to title, events_new_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "event wizard"}" %>
       </li>
     <% end %>
-    <li class="nav-item">
-      <%= link_to "Manage Events", events_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "manage events"}" %>
     </li>
+    <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).manage? %>
+      <li class="nav-item">
+        <%= link_to "Manage Events", events_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "manage events"}" %>
+      </li>
+    <% end %>
   </ul>
 <% end %>

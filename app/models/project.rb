@@ -113,7 +113,7 @@ class Project < ApplicationRecord
   def request_dates_and_times(exclude_request=nil)
     results = {}
     requests = pending_one_off_and_repeat_requests
-    requests.reject! { |request| request.id == exclude_request.id } if exclude_request
+    requests.reject! { |request| request.actual_or_parent_id == exclude_request.actual_or_parent_id } if exclude_request
     requests.pluck(:date, :time).each do |timing|
       date = timing[0]
       time = timing[1]
@@ -244,8 +244,9 @@ class Project < ApplicationRecord
     latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.exists?
     latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.exists?
     latest_action_log = action_logs.maximum("updated_at") if action_logs.exists?
-    if latest_cost_data || latest_instance_data || latest_action_log
-      latest = [latest_cost_data, latest_instance_data, latest_action_log].compact.max
+    latest_change_request = change_requests.maximum("updated_at") if change_requests.exists?
+    if latest_cost_data || latest_instance_data || latest_action_log || latest_change_request
+      latest = [latest_cost_data, latest_instance_data, latest_action_log, latest_change_request].compact.max
     else
       latest = Date.today.to_time
     end
@@ -403,11 +404,7 @@ class Project < ApplicationRecord
       params["time"] = (Time.now + 6.minutes).strftime("%H:%M")
     end
     params.delete("timeframe")
-    if params["weekdays"] && params["weekdays"] != ""
-      change = RepeatedChangeRequest.new(params)
-    else
-      change = OneOffChangeRequest.new(params)
-    end
+    change = params["type"].constantize.new(params)
   end
 
   def create_change_request(params)
@@ -417,6 +414,53 @@ class Project < ApplicationRecord
     msg = change.formatted_changes
     send_slack_message(msg) if success
     change
+  end
+
+  def update_change_request(request, user, params)
+    return request, false if !request.editable?
+    
+    # user = params.delete("user")
+    original_date_time = request.date_time
+    original_attributes = request.attributes
+    original_attributes["formatted_days"] = request.formatted_days
+    request.assign_attributes(params)
+    request.nodes = params["nodes"]
+    if !request.changed?
+      success = false
+    else
+      # allow change between one off and repeated request
+      request = request.becomes(params["type"].constantize)
+      success = request.save
+      if success
+        msg = "Scheduled request at #{original_date_time} for project *#{self.name}* updated by #{user.username}. Now: \n"
+        msg << request.formatted_changes(false)
+        request.reload
+        new_attributes = request.attributes
+        new_attributes["formatted_days"] = request.formatted_days
+
+        create_change_request_log(request.id, user.id, original_attributes, new_attributes)
+        send_slack_message(msg)
+      end
+    end
+    return request, success
+  end
+
+  def create_change_request_log(request_id, user_id, original_attributes, new_attributes)
+    log = ChangeRequestAuditLog.create(project_id: self.id, change_request_id: request_id,
+                                       user_id: user_id, original_attributes: original_attributes,
+                                       new_attributes: new_attributes, date: Date.today)
+  end
+
+  def cancel_change_request(request, user)
+    original_status = request.status
+    success = request.cancel
+    if success
+      desc = request.description ? " '#{request.description}' " : " "
+      msg = "Scheduled request#{desc}at #{request.date_time} for project *#{request.project.name}* cancelled by #{user.username}"
+      create_change_request_log(request.id, user.id, {"status" => original_status}, {"status" => request.status})
+      send_slack_message(msg)
+    end
+    success
   end
 
   def action_scheduled(slack, text)

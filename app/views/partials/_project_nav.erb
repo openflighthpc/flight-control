@@ -1,0 +1,40 @@
+<% if current_user && current_user.projects.any? %>
+  <% projects = current_user.projects.reorder(:name) %>
+  <nav class="col-md-2 bg-light sidebar" id="project-nav">
+    <div class="sidebar-sticky">
+      <div class="list-group">
+        <% if projects.any? { |p| !p.archived? } %>
+          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-2 text-muted">
+            <span>ACTIVE PROJECTS</span>
+          </h6>
+          <% projects.each do |project| %>
+            <% if !project.archived? %>
+              <a
+                class="list-group-item list-group-item-action project-link <%= 'active' if project.name == @project.name %>"
+                href="/?project=<%= project.name %>"
+              >
+                <%= project.name %>
+              </a>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <% if projects.any? { |p| p.archived? } %>
+          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-2 text-muted">
+            <span>ARCHIVED PROJECTS</span>
+          </h6>
+          <% projects.each do |project| %>
+            <% if project.archived? %>
+              <a
+                class="list-group-item list-group-item-action project-link <%= 'active' if project.name == @project.name %>"
+                href="/?project=<%= project.name %>"
+              >
+                <%= project.name %>
+              </a>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </nav>
+<% end %>

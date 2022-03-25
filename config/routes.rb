@@ -20,9 +20,12 @@ Rails.application.routes.draw do
   get '/json/data-check', to: 'projects#data_check'
 
   # Events (change requests and their resulting actions)
-  get '/events', to: 'events#manage'
-  get '/events/new', to: 'events#new'
-  get '/json/events/latest', to: 'events#latest'
-  get '/json/events/costs-forecast', to: 'events#costs_forecast'
-  post '/events/', to: 'events#create'
+  get '/events', to: 'change_requests#manage'
+  get '/events/new', to: 'change_requests#new'
+  get '/events/:id/edit', to: 'change_requests#edit', as: :event_edit
+  get '/json/events/latest', to: 'change_requests#latest'
+  get '/json/events/costs-forecast', to: 'change_requests#costs_forecast'
+  post '/events/', to: 'change_requests#create'
+  post '/events/:id/cancel', to: 'change_requests#cancel'
+  post '/events/:id/update', to: 'change_requests#update'
 end

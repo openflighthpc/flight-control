@@ -335,8 +335,13 @@ class CostsPlotter
 
     actions = @project.action_logs.where(date: date)
     scheduled_actions = @project.pending_one_off_and_repeat_requests_on(date.to_s)
-    if temp_change_request && temp_change_request.action_on_date?(date.to_s)
-      scheduled_actions = scheduled_actions << temp_change_request.individual_request_on_date(date.to_s)
+    if temp_change_request
+      if temp_change_request.actual_or_parent_id
+        scheduled_actions = scheduled_actions.select { |scheduled| scheduled.actual_or_parent_id != temp_change_request.actual_or_parent_id }
+      end
+      if temp_change_request.action_on_date?(date.to_s)
+        scheduled_actions = scheduled_actions << temp_change_request.individual_request_on_date(date.to_s)
+      end
     end
     scheuled_actions = scheduled_actions.select { |scheduled| scheduled.counts[group.to_s]} if group
     instance_logs = @project.instance_logs.where(date: date.to_s)

@@ -6,6 +6,11 @@ window.addEventListener('DOMContentLoaded', (event) => {
   $('.scheduled-input').change(validateTimings);
   $('#wizard-next-button').click(showNextSection);
   $('#wizard-back-button').click(showPreviousSection);
+  validateCounts();
+  // Prevent pressing enter in the description field submitting the form early
+  $('#create-event-form').on("keydown", function(event) {
+    return event.key != "Enter";
+  });
 });
 
 function toggleDateSelectors() {
@@ -124,7 +129,9 @@ function validateTimings() {
       let oneHourAhead = new Date();
       oneHourAhead.setHours(oneHourAhead.getHours() + 1);
       let fullDate = new Date(`${date} ${time}`);
-      if (weekdays === "" && fullDate < oneHourAhead) {
+      const existing = $('#request-id').length > 0;
+      const changedTime = existing && fullDate.getTime() != new Date($('#original-start').data('value')).getTime();
+      if ((!existing || changedTime) && fullDate < oneHourAhead) {
         nextButton.attr("disabled", true);
         nextButton.prop("title", "Must be at least one hour in the future");
         nextButton.addClass("disabled");
@@ -155,10 +162,13 @@ function updateWeekdays() {
       weekdays.push("0");
     }
   });
+  let type = $('#request-type');
   if(any) {
     $('#weekdays').val(weekdays.join(""));
+    type.val('RepeatedChangeRequest');
   } else {
     $('#weekdays').val(null);
+    type.val('OneOffChangeRequest');
   }
 }
 
@@ -251,7 +261,7 @@ window.updateRequestSummary = function() {
       text += `<strong>Repeat:</strong> ${readableWeekdays()}<br>`;
       text += `<strong>Until:</strong> ${$('#end-date').val()}<br>`;
     }
-    let description = $('#scheduled-description').val();
+    let description = $('#scheduled-description').val().replace(/<\/?[^>]+(>|$)/g, "");
     if(description != "") text += `<strong>Description</strong>: ${description}`;
   }
   summarySection.html(text);

@@ -171,7 +171,7 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
     html += `<td ${details.type === "budget_switch_off" ? "class='text-danger'" : ""}>`;
     let instances = details.descriptive_counts[group];
     if(instances != undefined) {
-      if(instances === "All on") {
+      if(instances === "All on" || instances === "All off") {
         html += instances;
       } else {
         Object.keys(instances).forEach(function(instance, index) {
@@ -193,8 +193,29 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   // } else {
   //   html += `${details.monitor} hour${details.monitor > 1 ? "s" : ""}`;
   // }
-  //html += `</td><td>`;
-  // if(details.type != "budget_switch_off") html += createRequestButtons(details)
+  html += `<td>${details.description ? details.description : '-'}</td>`
+  if($('#edit-column').length > 0) {
+    html += `<td>`;
+    html += createRequestButtons(details)
+    html += "</td>";
+  }
   html += "</tr>";
+  return html;
+}
+
+function createRequestButtons(details) {
+  const id = details.frontend_id.split("-")[0];
+  const project = $("[name='project']").val();
+  const token = $('meta[name="csrf-token"]').attr('content');
+  let html = `<form action='/events/${id}/cancel?project=${project}'`;
+  html += `method='post' id='cancel-scheduled-request-${id}'`;
+  html += `onsubmit='return confirm("Are you sure you want to cancel this request?");'>`;
+  html += `<input type="hidden" name="authenticity_token" value="${token}">`;
+  html += `</form> <button class="btn btn-sm btn-danger" form="cancel-scheduled-request-${id}">`;
+  html += ` Cancel </button>`;
+  if(details.editable) {
+    html += ' <button class="btn btn-sm btn-warning"';
+    html += `onclick="window.location.href='${details.link}'"> Edit </button>`
+  }
   return html;
 }

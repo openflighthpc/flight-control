@@ -6,7 +6,7 @@
     <div class="col-1"></div>
     <div class="col-5">
       <div class="form-check">
-        <input class="form-check-input when-radio" type="radio" name="timeframe" id="time-now" value="now" checked>
+        <input class="form-check-input when-radio" type="radio" name="timeframe" id="time-now" value="now" <%= 'checked' if !@request %>>
         <label class="form-check-label" for="time-now">
           Now (5 mins after submission)<a href="#" class="tool-tip" data-placement="top" title="Request will be carried out 5 minutes after submission." checked><sup>?</sup></a>
         </label>
@@ -14,14 +14,14 @@
     </div>
     <div class="col-5">
       <div class="form-check">
-        <input class="form-check-input when-radio" type="radio" name="timeframe" id="time-future" value="future">
+        <input class="form-check-input when-radio" type="radio" name="timeframe" id="time-future" value="future" <%= 'checked' if @request %>>
         <label class="form-check-label" for="time-future">
           On chosen date(s) and time<a href="#" class="tool-tip" data-placement="top" title="Request will be carried out on the specified date and time. Can also optionally be set to repeat."><sup>?</sup></a>
         </label>
       </div>
     </div>
   </div>
-  <div class="row select-when collapse" id="future-choice">
+  <div class="row select-when collapse<%= ' show' if @request %>" id="future-choice">
     <div class="col-1"></div>
     <div class="col-lg-5 col-md-11">
       <div class="text-center" id="event-start-title">
@@ -34,7 +34,12 @@
           Start Date:
         </div>
         <div class="col-7 request-timings">
-          <input type="date" class="form-control request-date-picker scheduled-input" id="scheduled-date" min='<%= Date.today() %>' name="date">
+          <input type="date"
+                 class="form-control request-date-picker scheduled-input"
+                 id="scheduled-date"
+                 min='<%= Date.today %>'
+                 <%= "value=#{@request.date}" if @request %>
+                 name="date">
         </div>
       </div>
       <div class="row form-inline mt-4 mb-4">
@@ -42,9 +47,16 @@
           Time:
         </div>
         <div class="col-7 request-timings">
-          <input type="time" class="form-control request-time-picker scheduled-input" id="scheduled-time" name="time">
+          <input type="time"
+                 class="form-control request-time-picker scheduled-input"
+                 id="scheduled-time"
+                 <%= "value=#{@request.time}" if @request %>
+                 name="time">
         </div>
       </div>
+      <% if @request %>
+        <div id="original-start" data-value='<%= @request.date_time.to_s %>'></div>
+      <% end %>
     </div>
     <div class="col-lg-6 col-md-11" id="request-repeat-details">
       <div class="text-center">
@@ -52,7 +64,7 @@
           <strong>Repetition (Optional)</strong>
         </p>
       </div>
-      <%= render '/events/repeat_details' %>
+      <%= render '/change_requests/repeat_details' %>
       <br>
     </div>
   </div>

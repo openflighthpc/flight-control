@@ -1,32 +1,43 @@
 class ProjectsController < ApplicationController
   def costs_breakdown
-    if !get_project
-      render "projects/no_project"
+    get_project
+    if !@project
+      no_project_redirect
     else
-      authorize get_project, :show?, policy_class: ProjectPolicy
+      authorize @project, policy_class: ProjectPolicy
       @nav_view = "costs"
       get_costs_data
+      puts "here"
     end
   end
 
   def billing_management
-    @nav_view = "billing"
     get_project
-    cost_plotter = CostsPlotter.new(@project)
-    @billing_cycles = cost_plotter.historic_cycle_details
-    @policy = @project.budget_policies.last
-    @billing_date = cost_plotter.billing_date
-    @latest_cycle_details = cost_plotter.latest_cycle_details
+    if !@project
+      no_project_redirect
+    else
+      @nav_view = "billing"
+      authorize @project, policy_class: ProjectPolicy
+      cost_plotter = CostsPlotter.new(@project)
+      @billing_cycles = cost_plotter.historic_cycle_details
+      @policy = @project.budget_policies.last
+      @billing_date = cost_plotter.billing_date
+      @latest_cycle_details = cost_plotter.latest_cycle_details
+    end
   end
 
   def data_check
     get_project
-    timestamp = Time.parse(params['timestamp'])
-    render json: {changed: @project.data_changed?(timestamp)}
+    if !@project
+      no_project_redirect
+    else
+      authorize @project, policy_class: ProjectPolicy
+      timestamp = Time.parse(params['timestamp'])
+      render json: {changed: @project.data_changed?(timestamp)}
+    end
   end
 
   def get_costs_data
-    get_project
     cost_plotter = CostsPlotter.new(@project)
     if params['start_date'] && params['start_date'] != ""
       @start_date = Date.parse(params['start_date'])
@@ -49,10 +60,16 @@ class ProjectsController < ApplicationController
     @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date)
   end
 
+  private
+
   # Only include filtered groups, or all if none selected
   def filter_current_instances
     original = @current_instances.clone
     @current_instances.select! { |group, instances| @datasets.include?(group) }
     @current_instances = original if @current_instances.empty?
+  end
+
+  def no_project_redirect
+    render "projects/no_project"
   end
 end

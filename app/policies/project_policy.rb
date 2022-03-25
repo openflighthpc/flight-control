@@ -1,13 +1,9 @@
 class ProjectPolicy < ApplicationPolicy
   def show?
-    return false if user.nil?
-    return true if user.admin?
-    return true if user.has_role_for?(record)
+    user && (user.admin? || user.has_role_for?(record))
   end
 
-  def create_event?
-    return false if user.nil?
-    return true if user.admin?
-    return true if user.has_role_for?(record, 'default')
-  end
+  alias_method :billing_management?, :show?
+  alias_method :data_check?, :show?
+  alias_method :costs_breakdown?, :show?
 end

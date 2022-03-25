@@ -2,6 +2,9 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :rememberable, :validatable
 
+  has_many :change_requests
+  has_many :change_request_audit_logs
+  has_many :action_logs
   has_many :user_roles
   alias :roles :user_roles
 
