@@ -24,12 +24,6 @@ class AwsMonitor
                            reason: 'Utilisation below configured threshold',
                            action: "off",
                            automated: true)
-          project.create_action_log({
-            instance_id: id,
-            reason: "Utilisation below configured threshold",
-            action: "off",
-            automated: true
-          })
           if slack
             msg = "Shutting down #{values[:name]} (20 min avg of max load is #{values[:average]}; this is " \
                   "lower than threshold of #{@project.utilisation_threshold})"
