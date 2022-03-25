@@ -32,9 +32,9 @@ class User < ApplicationRecord
       return user
     else
       # No user with given `flight_id`. This is most likely the first
-      # time that a user is accessing Flight Control. Use their email
-      # address and set `flight_id`.
-      user = User.new(
+      # time that a user is accessing Flight Control. Check if the user's
+      # email exists in the DB, and if not, create the user.
+      user = User.find_by_email(claims.fetch('email') || User.new(
         username: claims.fetch('username'),
         email: claims.fetch('email'),
         flight_id: claims.fetch('flight_id'),
@@ -56,6 +56,10 @@ class User < ApplicationRecord
 
   def email_changed?
     false
+  end
+
+  def sso?
+    flight_id.present?
   end
 
   # Override base Devise method to include an archived? check
