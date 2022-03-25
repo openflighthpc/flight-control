@@ -18,7 +18,9 @@ class User < ApplicationRecord
     inclusion: { within: [true, false] }
 
   validates :flight_id,
-    uniqueness: true
+    uniqueness: {
+      allow_blank: true
+    }
 
   before_save :default_values
 
