@@ -313,3 +313,7 @@ Included in `config/schedule` is a cron task running every 20 minutes, that chec
 These checks and switch offs can be disabled entirely by setting a project's `monitor_active` to `false` or `nil`. It can also be disabled temporarily by setting a value for the project's `override_monitor_until`, which must be a valid date & time.
 
 If nodes are switched off as part of this process a slack message is sent to the project's slack channel with details, and associated action logs created.
+
+### Project Policies
+
+Settings for a project's `utilisation_threshold`, `override_monitor_until` and `monitor_active` attributes can be set on the project's policies page. Only admins and users with a default role for the project can access and use this page.

@@ -15,12 +15,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
   $('.config-input').change(validateConfigChange);
   toggleOverrideInputs();
   $('#monitor-status-switch').change(disableMonitor);
-  // $('#config-change-form').submit(function() {
-  //   confirmMonitorDisable();
-  //   if(document.querySelectorAll(`[data-changed='yes']`).length > 0) {
-  //     updateOverrideDateTime();
-  //   }
-  // });
+  $('#config-change-form').submit(function() {
+    confirmMonitorDisable();
+    if(document.querySelectorAll(`[data-changed='yes']`).length > 0) {
+      updateOverrideDateTime();
+    }
+  });
   validateConfigChange();
 });
 
