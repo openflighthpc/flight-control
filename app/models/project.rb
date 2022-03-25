@@ -343,6 +343,11 @@ class Project < ApplicationRecord
     override_monitor_until <= Time.now)
   end
 
+  def monitor_override_active?
+    monitor_active && override_monitor_until &&
+    override_monitor_until > Time.now
+  end
+
   def costs_plotter
     @costs_plotter ||= CostsPlotter.new(self)
   end
