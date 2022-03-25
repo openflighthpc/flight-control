@@ -28,7 +28,7 @@ module Devise::Strategies
         cookies[cookie.to_sym] = res['user']['authentication_token']
         success!(user)
       rescue JSON::ParserError
-        fail!(message = "Invalid Username or password.")
+        fail(message = "Invalid Username or password.")
       end
     end
   end
