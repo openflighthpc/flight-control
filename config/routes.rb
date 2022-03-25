@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   get '/billing-management', to: 'projects#billing_management'
   get '/policies', to: 'projects#policy_page'
   get '/json/data-check', to: 'projects#data_check'
+  post '/config-update', to: 'projects#config_update'
 
   # Events (change requests and their resulting actions)
   get '/events', to: 'change_requests#manage'

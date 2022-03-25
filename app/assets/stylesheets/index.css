@@ -236,3 +236,7 @@ input[type=date] {
 .override-input {
   width: 5rem !important;
 }
+
+#policies-table td {
+  vertical-align:  middle;
+}

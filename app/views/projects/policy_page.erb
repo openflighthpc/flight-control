@@ -17,7 +17,7 @@
   </div>
   <div class="col-sm-10">
     <h4 id="power-down-policies-title"> Power-Down Policies</h4>
-    <form action='/config_change?project=<%= @project.name %>' method='post' id='config-change-form'>
+    <form action='/config-update?project=<%= @project.name %>' method='post' id='config-change-form'>
       <table class="table" id="policies-table">
         <thead>
           <tr>
@@ -109,7 +109,7 @@
                   <label class="custom-control-label" for="monitor-pause">Pause</label>
                 </div>
                 <% if @project.monitor_override_active? %>
-                  <% override_time = (Time.parse(@project.override_monitor_until) - Time.new).to_i %>
+                  <% override_time = (@project.override_monitor_until - Time.new).to_i %>
                   <% hours = (override_time / 3600).floor %>
                   <% minutes = ((override_time - (hours * 3600)) / 60).floor %>
                 <% end %>
@@ -152,6 +152,7 @@
           </tr>
         </tbody>
       </table>
+      <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
       <input type="submit" id="config-change-submit"
                  class="btn btn-warning ml-2 disabled"
                  value="Update" disabled>
