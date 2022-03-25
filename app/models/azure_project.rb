@@ -54,8 +54,14 @@ class AzureProject < Project
     super(start_date, end_date, rerun, verbose, text)
   end
 
+  # How instances must be grouped for SDK queries, e.g. switch ons/offs
   def instance_grouping
     "resource_group"
+  end
+
+  # What API (usually) expects
+  def instance_identifier
+    "instance_name"
   end
 
   private

@@ -50,6 +50,11 @@ class AwsProject < Project
     "region"
   end
 
+  # What identifier SDK (usually) expects
+  def instance_identifier
+    "instance_id"
+  end
+
   private
 
   def project_tag_if_tag_filter

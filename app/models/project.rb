@@ -499,16 +499,17 @@ class Project < ApplicationRecord
     request.start
 
     instances_to_change = request.instances_to_change_with_pending
-    instance_ids = {on: {}, off: {}}
+    instance_list = {on: {}, off: {}}
     instances_to_change.each do |action, instances|
       instances.each do |instance|
         # Platforms expect instances to be grouped by different criteria
-        # for efficient SDK/API queries
+        # for efficient SDK/API queries, and to use id or name
         grouping = instance.send(instance_grouping)
-        if instance_ids[action].has_key?(grouping)
-          instance_ids[action][grouping] << instance.instance_id
+        identifier = instance.send(instance_identifier)
+        if instance_list[action].has_key?(grouping)
+          instance_list[action][grouping] << identifier
         else
-          instance_ids[action][grouping] = [instance.instance_id]
+          instance_list[action][grouping] = [identifier]
         end
         action_log = ActionLog.new(project_id: id, user_id: request.user_id,
                                    action: action, reason: "Change request",
@@ -517,7 +518,7 @@ class Project < ApplicationRecord
         action_log.save!
       end
     end
-    update_instance_statuses(instance_ids)
+    update_instance_statuses(instance_list)
   end
 
   def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
