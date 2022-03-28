@@ -31,6 +31,10 @@ class ChangeRequestAuditLog < ApplicationRecord
     changed
   end
 
+  def includes_group?(group)
+    change_request.includes_group?(group)
+  end
+
   private
 
   def set_updates

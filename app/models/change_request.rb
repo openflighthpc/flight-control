@@ -135,7 +135,7 @@ class ChangeRequest < ApplicationRecord
 
   # Includes counts for any of the provided groups
   def included_in_groups?(groups)
-    groups.detect { |group| counts[group] }
+    groups.detect { |group| counts[group] && !counts[group].blank? }
   end
 
   def instances_to_change_with_pending

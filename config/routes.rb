@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   get '/costs-breakdown', to: 'projects#costs_breakdown'
   get '/billing-management', to: 'projects#billing_management'
   get '/policies', to: 'projects#policy_page'
+  get '/audit', to: 'projects#audit'
   get '/json/data-check', to: 'projects#data_check'
   post '/config-update', to: 'projects#config_update'
 

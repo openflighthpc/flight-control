@@ -5,7 +5,7 @@
     </li>
     <li class="nav-item">
       <%= link_to "Costs Breakdown", costs_breakdown_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "costs"}" %>
-      </li>
+    </li>
     <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create? %>
       <li class="nav-item">
         <% title = @request ? "Edit Event" : "Create Event" %>
@@ -21,6 +21,11 @@
     <% if ProjectPolicy.new(current_user, @project).policy_page? %>
       <li class="nav-item">
         <%= link_to "Policies", policies_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "policies"}" %>
+      </li>
+    <% end %>
+    <% if ProjectPolicy.new(current_user, @project).audit? %>
+      <li class="nav-item">
+        <%= link_to "Audit", audit_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "audit"}" %>
       </li>
     <% end %>
   </ul>

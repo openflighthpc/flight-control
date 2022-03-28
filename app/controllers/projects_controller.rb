@@ -20,6 +20,16 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def audit
+    get_project
+    if !@project
+      no_project_redirect
+    else
+      @list = AuditLogList.new(@project, params)
+      @nav_view = "Audit"
+    end
+  end
+
   def config_update
     get_project
     if !@project

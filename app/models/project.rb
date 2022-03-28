@@ -16,6 +16,7 @@ class Project < ApplicationRecord
   has_many :action_logs
   has_many :config_logs
   has_many :change_requests
+  has_many :change_request_audit_logs
   has_many :one_off_change_requests
   has_many :repeated_change_requests
   has_many :balances
