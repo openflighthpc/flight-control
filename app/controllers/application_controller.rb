@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
   protect_from_forgery
+  prepend_before_action :authenticate_user_from_jwt!
   before_action :authenticate_user!
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
@@ -21,6 +22,14 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  def authenticate_user_from_jwt!
+    token = cookies[Rails.application.config.sso_cookie_name.to_sym]
+    return if token.blank?
+    user = User.from_jwt_token(token)
+    return if !user
+    sign_in user
+  end
 
   def user_not_authorized
     flash[:alert] = "You are not authorised to perform this action."
