@@ -26,7 +26,7 @@ class ProjectsController < ApplicationController
       no_project_redirect
     else
       @list = AuditLogList.new(@project, params)
-      @nav_view = "Audit"
+      @nav_view = "audit"
     end
   end
 

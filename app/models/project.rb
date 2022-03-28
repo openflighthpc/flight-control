@@ -587,6 +587,10 @@ class Project < ApplicationRecord
     user_roles.map(&:user).concat(User.where(admin: true)).compact.uniq
   end
 
+  def self.deep_copy_hash(hash)
+    Marshal.load(Marshal.dump(hash))
+  end
+
   private
 
   def additional_validations

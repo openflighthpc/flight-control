@@ -111,14 +111,10 @@ class ChangeRequest < ApplicationRecord
       if slack
         additional << "*Override CPU monitor for*: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}\n"
       else
-        additional <<"<strong>Override CPU monitor for</strong>:#{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}<br>"
+        additional <<"<strong>Override CPU monitor for</strong>: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}<br>"
       end
     end
     additional
-  end
-
-  def formatted_timestamp
-    created_at.strftime('%-I:%M%P %F')
   end
 
   def formatted_days
@@ -126,7 +122,7 @@ class ChangeRequest < ApplicationRecord
   end
 
   def partial
-    :change_request_card
+    'change_request_card'
   end
 
   def includes_instance_type?(group, instance_type)
@@ -189,10 +185,18 @@ class ChangeRequest < ApplicationRecord
     end
   end
 
+  def as_original
+    copy = ChangeRequest.new(self.attributes)
+    change_request_audit_logs.reorder("created_at DESC").each do |change|
+      copy.assign_attributes(change.original_attributes)
+    end
+    copy
+  end
+
   # When we have change logs, we will want to show the original content,
   # but the current status
-  def as_json(*options)
-    request = self
+   def as_json(options={original: true})
+    request = options[:original] ? as_original : self
     {
       type: "scheduled_request",
       username: request.user.username,
