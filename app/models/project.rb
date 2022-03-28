@@ -583,6 +583,10 @@ class Project < ApplicationRecord
                   body: {"text": msg, "channel": slack_channel, "as_user": true})
   end
 
+  def all_associated_users
+    user_roles.map(&:user).concat(User.where(admin: true)).compact.uniq
+  end
+
   private
 
   def additional_validations
