@@ -35,7 +35,7 @@ class User < ApplicationRecord
       # No user with given `flight_id`. This is most likely the first
       # time that a user is accessing Flight Control. Check if the user's
       # email exists in the DB, and if not, create the user.
-      user = User.find_by_email(claims.fetch('email') || User.new(
+      user = User.find_by_email(claims.fetch('email')) || User.new(
         username: claims.fetch('username'),
         email: claims.fetch('email'),
         flight_id: claims.fetch('flight_id'),
