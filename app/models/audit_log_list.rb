@@ -63,8 +63,8 @@ class AuditLogList
           end
 
           if start_date || end_date
-            matching_of_type = matching_of_type.where("created_at >= ?", Date.parse(start_date)) if start_date
-            matching_of_type = matching_of_type.where("created_at < ?", Date.parse(end_date) + 1.day) if end_date
+            matching_of_type = matching_of_type.where("date >= ?", start_date) if start_date
+            matching_of_type = matching_of_type.where("date <= ?", end_date) if end_date
           end
 
           if statuses
@@ -104,7 +104,10 @@ class AuditLogList
   end
 
   def next_logs(current_log_count, latest_timestamp)
-    logs = filtered_logs.select {|log| log.created_at <= latest_timestamp}
+    # Need to convert times to ints when comparing, as otherwise equality may
+    # not be found due to very small differences (in db has greated level
+    # of precision than is captured in a time previously converted to a string)
+    logs = filtered_logs.select {|log| log.created_at.to_i <= latest_timestamp.to_i}
     logs = logs.sort_by { |log| [log.created_at, log.id] }
     logs.pop(current_log_count)
     logs.reverse!

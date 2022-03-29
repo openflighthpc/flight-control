@@ -20,7 +20,7 @@ function loadLogs(event) {
   };
 
   let dataElement = $('#load-more-logs');
-  const latestTimestamp = $('.log-timestamp').eq(5).data("value");
+  const latestTimestamp = $('.log-timestamp').eq(4).data("value");
   const logCount = $('.audit-row').length;
   const projectName = dataElement.data('project');
   const projectParam = `?project=${projectName}`;
