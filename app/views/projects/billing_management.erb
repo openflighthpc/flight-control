@@ -1,5 +1,6 @@
 <% content_for :page_specific_js do %>
   <%= javascript_pack_tag 'billing'%>
+  <%= javascript_pack_tag 'new_data_check'%>
 <% end %>
 
 <% if current_user.projects.length > 1 %>
@@ -59,4 +60,5 @@
     </div>
   </div>
   <%= render '/projects/cycles_table' %>
+  <%= render '/projects/latest_change' %>
 </main>

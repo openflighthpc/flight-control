@@ -78,7 +78,7 @@ class ChangeRequest < ApplicationRecord
       message << group_message if group_changed
     end
     if changed
-      message = "Changes submitted to for automated actioning as part of a scheduled request for *#{project.name}*\n\n" << message
+      message = "Changes submitted for automated actioning as part of a scheduled request for *#{project.name}*\n\n" << message
     else
       message = "No changes required to meet #{counts_criteria} counts in the scheduled request at #{date_time} for *#{project.name}*\n"
     end

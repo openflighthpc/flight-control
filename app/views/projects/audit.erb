@@ -1,5 +1,6 @@
 <% content_for :page_specific_js do %>
   <%= javascript_pack_tag 'audit'%>
+  <%= javascript_pack_tag 'new_data_check'%>
 <% end %>
 
 <main class="col-md-10 ml-sm-auto col-lg-10 px-4" role="main">
@@ -19,4 +20,5 @@
   <% else %>
     <%= render '/partials/history' %>
   <% end %>
+  <%= render '/projects/latest_change' %>
 </main>

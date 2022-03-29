@@ -1,6 +1,7 @@
 <% content_for :page_specific_js do %>
   <%= javascript_pack_tag 'create_event'%>
   <%= javascript_pack_tag 'chart'%>
+  <%= javascript_pack_tag 'new_data_check'%>
 <% end %>
 
 <% if current_user.projects.length > 1 %>
@@ -55,8 +56,5 @@
       </div>
     </div>
   </div>
-  <div id="latest-change"
-       data-value="<%= @project.time_of_latest_change.to_s %>"
-       data-project="<%= @project.name %>">
-  </div>
+  <%= render '/projects/latest_change' %>
 </main>
