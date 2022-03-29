@@ -60,14 +60,14 @@ class ChangeRequestAuditLog < ApplicationRecord
 
   def link_to_request
     if change_request.editable?
-      "<a href='/events/#{change_request_id}/edit'>change request</a>"
+      "<a href='/events/#{change_request_id}/edit?project=#{project.name}'>change request</a>"
     else
       "change request"
     end
   end
 
   def card_description
-    return "Cancelled the #{link_to_request} scheduled for #{scheduled_request.date_time}" if cancellation?
+    return "Cancelled the #{link_to_request} scheduled for #{change_request.date_time}" if cancellation?
 
     html = "Made the following changes to the #{link_to_request} previously scheduled for #{original_date_time}:<br><br>"
     html << "<div class='change-details'>"
@@ -76,7 +76,7 @@ class ChangeRequestAuditLog < ApplicationRecord
         html << count_changes_description
       elsif !UNSHOWN_ATTRIBUTES.include?(attribute) # save but don't show some data types that would confuse end user
         html << "<strong>#{PRETTIFIED_ATTRIBUTES[attribute]}</strong>: "
-        html << "<del>#{pupdates["from"][attribute]}</del> "
+        html << "<del>#{updates["from"][attribute]}</del> "
         html << "#{updates["to"][attribute]}"
         html << " hour(s)" if attribute == "monitor_override"
         html << "<br>"
@@ -123,7 +123,22 @@ class ChangeRequestAuditLog < ApplicationRecord
   end
 
   def status
-    "Completed"
+    "completed"
+  end
+
+  def as_json(options={})
+    {
+      type: "change_request_change_log",
+      username: user.username,
+      timestamp: created_at,
+      formatted_timestamp: formatted_timestamp,
+      details: card_description,
+      status: status
+    }
+  end
+
+  def to_json(*options)
+    as_json(*options).to_json(*options)
   end
 
   private

@@ -202,7 +202,7 @@ class ChangeRequest < ApplicationRecord
    def as_json(options={original: true})
     request = options[:original] ? as_original : self
     {
-      type: "scheduled_request",
+      type: "change_request",
       username: request.user.username,
       date: request.date,
       time: request.time,

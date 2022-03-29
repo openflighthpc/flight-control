@@ -1,10 +1,12 @@
 <% if @list.first_logs.any? %>
   <% if @list.more_logs? %>
     <% AuditLogList::LOG_TYPES.keys.each do |type| %>
-      <div class="row d-none blank-action-log-card">
+      <% type = type[0..-2] %>
+      <% formatted_type = type.gsub("_", "-") %>
+      <div class="row d-none blank-<%= formatted_type %>-card">
         <div class="col-sm-3"></div>
         <div class="col-sm-6">
-          <%= render "partials/#{type[0..-2]}_card", locals: {log: nil} %>
+          <%= render "partials/#{type}_card", locals: {log: nil} %>
         </div>
       </div>
     <% end %>
@@ -34,6 +36,7 @@
           <button
             class="btn btn-primary"
             id="load-more-logs"
+            data-project="<%= @project.name %>"
             data-types="<%= @list.types.join(',') %>"
             <%= "data-users=#{@list.users.join(',')}" if @list.users %>
             <%= "data-statuses=#{@list.statuses.join(',')}" if @list.statuses %>

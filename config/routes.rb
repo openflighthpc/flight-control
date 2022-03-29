@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   get '/policies', to: 'projects#policy_page'
   get '/audit', to: 'projects#audit'
   get '/json/data-check', to: 'projects#data_check'
+  get '/json/audit-logs', to: 'projects#audit_logs'
   post '/config-update', to: 'projects#config_update'
 
   # Events (change requests and their resulting actions)

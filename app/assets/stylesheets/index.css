@@ -269,5 +269,9 @@ input[type=date] {
 }
 
 .edit-request-link {
-  margin-left:  0.5rem !important;
+  margin-left: 0.5rem !important;
+}
+
+.audit-form-label {
+  margin-left: 1.5rem;
 }

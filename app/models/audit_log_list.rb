@@ -62,13 +62,17 @@ class AuditLogList
             matching_of_type = matching_of_type.where(query, user_ids)
           end
 
-          if statuses && type != "config_logs"
-            matching_of_type = matching_of_type.where("status in (?)", statuses)
-          end
-
           if start_date || end_date
             matching_of_type = matching_of_type.where("created_at >= ?", Date.parse(start_date)) if start_date
             matching_of_type = matching_of_type.where("created_at < ?", Date.parse(end_date) + 1.day) if end_date
+          end
+
+          if statuses
+            if type != "config_logs" && type != "change_request_audit_logs"
+              matching_of_type = matching_of_type.where("status in (?)", statuses)
+            elsif !statuses.include?("completed")
+              matching_of_type = []
+            end
           end
 
           # below is not an active record query so needs to be last
