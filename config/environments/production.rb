@@ -112,10 +112,8 @@ Rails.application.configure do
   
   # Flight SSO integration details
   config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME')
-  config.sso_path = {
-    "host" => "",
-    "port" => ""
-  } 
+  config.sso_uri = ""
+
   config.slack_token = Rails.application.credentials.config[:slack_token]
   config.usd_gbp_conversion = 0.77
   config.gbp_compute_conversion = 12.5

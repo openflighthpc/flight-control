@@ -4,20 +4,21 @@ module Devise::Strategies
   class SsoAuthenticatable < Authenticatable
 
     def authenticate!
-      url = Rails.application.config.sso_path["host"]
-      port = Rails.application.config.sso_path["port"]
-      uri = URI.parse(url)
+      uri = Rails.application.config.sso_uri
+      uri = URI(uri)
 
-      req = Net::HTTP::Post.new(uri)
+      req = Net::HTTP::Post.new(uri.path)
       req.content_type = "application/json"
-      req.body = JSON.dump({
+      body = {
         "account" => {
           "login" => params['user']['username'],
           "password" => params['user']['password']
         }
-      })
+      }.to_json
 
-      res = Net::HTTP.start(uri.hostname, port) do |http|
+      req.body = body
+
+      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
         http.request(req)
       end
 
