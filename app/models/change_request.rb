@@ -194,7 +194,7 @@ class ChangeRequest < ApplicationRecord
     change_request_audit_logs.reorder("created_at DESC").each do |change|
       copy.assign_attributes(change.original_attributes)
     end
-    copy
+    copy.becomes(copy.type.constantize)
   end
 
   # When we have change logs, we will want to show the original content,
