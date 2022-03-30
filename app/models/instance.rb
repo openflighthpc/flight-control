@@ -182,6 +182,35 @@ class Instance
     count
   end
 
+  # at end of day (budget switch off time)
+  def pending_on_date_end(date, temp_counts=nil)
+    count = pending_on
+    if temp_counts
+      original_future_counts = Project.deep_copy_hash(@future_counts)
+      add_future_counts(temp_counts)
+    end
+    return count if @future_counts == {}
+
+    dates = @future_counts.keys.sort
+    previous_dates = dates.select { |d| d <= date }
+    previous_dates.each do |d|
+      changes = @future_counts[d]
+      # a change might be a budget switch off (exact count)
+      # or a scheduled change (minimum count)
+      changes.each do |time, details|
+        if d != Date.today || time < Project::BUDGET_SWITCH_OFF_TIME
+          if details[:min] == true
+            count = [count, details[:count]].max
+          else
+            count = details[:count]
+          end
+        end
+      end
+    end
+    @future_counts = original_future_counts if temp_counts
+    count
+  end
+
   def price_per_hour
     base_price = price || 0
     @platform == "aws" ? base_price * CostLog.usd_gbp_conversion : base_price
@@ -273,6 +302,53 @@ class Instance
     @future_counts
   end
 
+  def add_budget_switch_offs(details)
+    time = Project::BUDGET_SWITCH_OFF_TIME
+    days = details.keys.sort # earlier switch offs must be processed first
+    days.each do |days_in_future|
+      to_switch_off = details[days_in_future]
+      date = Date.today + days_in_future.days
+      count = pending_on_date_end(date)
+      if @future_counts[date]
+        # has priority over any existing scheduled request at that time
+        @future_counts[date][time] = {count: count - to_switch_off, min: false}
+      else
+        @future_counts[date] = {time => {count: count - to_switch_off, min: false}}
+      end
+    end
+  end
+
+  def get_budget_switch_offs_as_schedules(switch_offs)
+    original_future_counts = Project.deep_copy_hash(@future_counts)
+    add_budget_switch_offs(switch_offs)
+    just_switch_offs = {}
+    @future_counts.each do |date, content|
+      content.each do |time, count_and_type|
+        # can't have more than one switch off schedule on the same day for the same Instance object
+        just_switch_offs[date] = content if !count_and_type[:min]
+      end
+    end
+    @future_counts = original_future_counts
+    return just_switch_offs
+  end
+
+  def projected_costs_for_range(start_date, end_date)
+    total = 0
+    (start_date..end_date).to_a.each do |date|
+      total += pending_daily_cost_with_future_counts(date)
+    end
+    total
+  end
+
+  def projected_costs_with_budget_switch_offs(switch_offs, start_date, end_date)
+    original_counts = Project.deep_copy_hash(@future_counts)
+
+    add_future_counts(switch_offs)
+    total = projected_costs_for_range(start_date, end_date)
+    @future_counts = original_counts
+    total
+  end
+
   def cpus
     @details[:cpu] || -1
   end
@@ -316,5 +392,19 @@ class Instance
 
   def node_limit
     @project.front_end_compute_groups.dig(@group, 'nodes', truncated_name, 'limit') || 0
+  end
+
+  def priority
+    @project.front_end_compute_groups.dig(@group, 'nodes', truncated_name, 'priority') ||
+      @project.global_node_details.dig(truncated_name, 'priority') ||
+      0
+  end
+
+  def group_priority
+    @project.front_end_compute_groups[@group]["priority"]
+  end
+
+  def weighted_priority
+    priority * group_priority
   end
 end

@@ -226,7 +226,7 @@ class CostsPlotter
     results
   end
 
-  def cost_breakdown(start_date, end_date, change_request=nil)
+  def cost_breakdown(start_date, end_date, change_request=nil, match_budget=false)
     results = {}
     compute_groups = @project.front_end_compute_groups
     (start_date..end_date).to_a.each do |date|
@@ -302,7 +302,191 @@ class CostsPlotter
         results[k][:forecast_budget] = budget - total
       end
     end
+    results = prioritise_to_budget(start_date, end_date, change_request, results) if match_budget
     results
+  end
+
+  def prioritise_to_budget(start_date, end_date, change_request, results)
+    end_costs = results.to_a.last[1]
+    return results if !end_costs[:forecast_budget]
+
+    instances_off = prioritisation_actions(results)
+    return results if !instances_off
+
+    # Maybe this should be performed by the instance tracker
+    @project.latest_instances.map {|group, instances| instances}.flatten.each do |instance|
+      if instances_off.dig(instance.group, instance.instance_type, :off)
+        instance.add_budget_switch_offs(instances_off[instance.group][instance.instance_type][:off])
+      end
+    end
+    cost_breakdown(start_date, end_date, change_request)
+  end
+
+  def prioritisation_actions(results)
+    end_costs = results.to_a.last[1]
+    budget_diff = end_costs[:forecast_budget]
+    return nil if !budget_diff || budget_diff >= 0
+    
+    future_days = 0
+    last_date = nil
+    results.keys.each do |date|
+      date = Date.parse(date)
+      future_days += 1 if date > Date.today()
+      last_date = date
+    end
+    end_of_cycle = last_date
+    prioritised_instances = @project.latest_instances.map {|group, instances| instances}.flatten.sort
+    instances_off = {}
+    @project.latest_instances.each do |group, instances|
+      instances_off[group] = {}
+      instances.each {|instance| instances_off[group][instance.instance_type] = {}}
+    end
+    
+    i = 0
+    while i < prioritised_instances.length && budget_diff < 0
+      switch_offs = {}
+      instance = prioritised_instances[i]
+      group = instance.group
+      type = instance.instance_type
+
+      days = future_days
+      switch_off_date = last_date
+      last_switch_off_day = nil
+      beginning_budget_diff = budget_diff
+      # instance costs can vary day by day based on scheduled requests
+      # and so the impact of a switch off on future days must be calculated
+      while budget_diff < 0 && days > 0
+        days -= 1
+        switch_off_date = switch_off_date - 1.day
+        if instance.pending_on_date_end(switch_off_date) > 0
+          last_switch_off_day = days # earlier days it may not actually be on yet
+          original_cost_until_end_of_cycle = instance.projected_costs_for_range(switch_off_date, end_of_cycle)
+          switch_offs = {switch_off_date => {Project::BUDGET_SWITCH_OFF_TIME => {count: 0, min: false}}}
+          cost_until_end_of_cycle = instance.projected_costs_with_budget_switch_offs(switch_offs, switch_off_date, end_of_cycle)
+          difference = original_cost_until_end_of_cycle - cost_until_end_of_cycle
+          budget_diff = beginning_budget_diff + difference
+        end
+      end
+      if last_switch_off_day
+        on = instance.pending_on_date_end(Date.today + last_switch_off_day.days)
+        instances_off[group][type][:off] = {last_switch_off_day => on }
+      else
+        i += 1
+        next
+      end
+
+      # if enough budget remaining, don't turn off so many instances,
+      # or turn one off later
+      original_switch_offs = Project.deep_copy_hash(switch_offs)
+      original_switch_off_date = Date.today + last_switch_off_day.days
+      if instances_off[group][type][:off] && !instances_off[group][type][:off].empty? && budget_diff > 0 && on > 1
+        off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
+        new_off, new_budget_diff = minimise_switch_offs(instance, off_dates, budget_diff, future_days)
+        if new_budget_diff != budget_diff && new_budget_diff >= 0
+          budget_diff = new_budget_diff
+          instances_off[group][type][:off] = new_off
+        end
+      end
+      i += 1
+    end
+
+    # if shutting off higher priority node(s) leaves a surplus budget (that
+    # is too little for this node to add a day), see if this means lower
+    #priority nodes can be turned off later.
+    i -= 1
+    while budget_diff > 0 && i > 0
+      lower_priority_instance = prioritised_instances[i - 1]
+      group = lower_priority_instance.group
+      type = lower_priority_instance.instance_type
+      off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
+      if instances_off[group][type][:off] && !instances_off[group][type][:off].empty?
+        new_off, new_budget_diff = minimise_switch_offs(lower_priority_instance, off_dates, budget_diff, future_days)
+        if new_budget_diff != budget_diff && budget_diff >= 0
+          budget_diff = new_budget_diff
+          instances_off[group][type][:off] = new_off
+        end
+      end
+      i -= 1;
+    end
+    instances_off
+  end
+
+  def minimise_switch_offs(instance, instances_off, budget_diff, future_days)
+    "SWITCH"
+    return instances_off, budget_diff if budget_diff <= 0 || instances_off.empty?
+
+    end_of_cycle = Date.today + future_days.days
+    original_switch_offs = instance.get_budget_switch_offs_as_schedules(instances_off)
+    new_switch_offs = Project.deep_copy_hash(original_switch_offs)
+    last_switch_off_day = nil
+
+    instances_off.reverse_each do |original_days_in_future, off|
+      beginning_budget_diff = budget_diff
+      off.times do |x|
+        break if budget_diff <= 0 || (x > 0 && last_switch_off_day && last_switch_off_day <= future_days) ||
+        new_switch_offs.empty?
+
+        last_switch_off_day = nil
+        new_days = original_days_in_future
+        original_switch_off_date = Date.today + original_days_in_future
+        switch_off_date = original_switch_off_date
+        count_start_schedules = Project.deep_copy_hash(new_switch_offs)
+        count_start_budget_diff = budget_diff;
+        on = instance.pending_on_date_end(original_switch_off_date, original_switch_offs)
+        new_switch_offs[original_switch_off_date.to_s][Project::BUDGET_SWITCH_OFF_TIME][:count] += 1
+        if new_switch_offs[original_switch_off_date.to_s][Project::BUDGET_SWITCH_OFF_TIME][:count] >= off
+          new_switch_offs.delete(original_switch_off_date.to_s)
+        end
+
+        previous_switch_offs = Project.deep_copy_hash(new_switch_offs)
+        while budget_diff > 0 && new_days <= future_days
+          temp_switch_offs = Project.deep_copy_hash(new_switch_offs)
+          new_days += 1;
+          switch_off_date = switch_off_date + 1.day
+          currently_on = instance.pending_on_date_end(switch_off_date, new_switch_offs)
+          if currently_on > 0
+            if temp_switch_offs.has_key?(switch_off_date.to_s)
+              if temp_switch_offs[switch_off_date.to_s][Project::BUDGET_SWITCH_OFF_TIME][:count] < currently_on
+                temp_switch_offs[switch_off_date.to_s][Project::BUDGET_SWITCH_OFF_TIME][:count] += 1
+              end
+            else
+              temp_switch_offs[switch_off_date.to_s] = {Project::BUDGET_SWITCH_OFF_TIME => {count: currently_on - 1, min: false}}
+            end
+          else
+            temp_switch_offs = previous_switch_offs
+          end
+          start_date = [Date.today, end_of_cycle].min
+          original_cost_until_end_of_cycle = instance.projected_costs_with_budget_switch_offs(original_switch_offs, start_date, end_of_cycle)
+          cost_until_end_of_cycle = instance.projected_costs_with_budget_switch_offs(temp_switch_offs, start_date, end_of_cycle)
+          difference = original_cost_until_end_of_cycle - cost_until_end_of_cycle
+          budget_diff = beginning_budget_diff + difference
+          # don't use if means going over budget, or no instances to turn off that day
+          if budget_diff >= 0 && currently_on > 0 && budget_diff < beginning_budget_diff
+            last_switch_off_day = new_days
+            previous_switch_offs = temp_switch_offs
+            last_budget_diff = budget_diff
+          end
+        end
+
+        if last_switch_off_day
+          if last_switch_off_day < future_days
+            if instances_off.has_key?(last_switch_off_day)
+              instances_off[last_switch_off_day] += 1
+            else
+              instances_off[last_switch_off_day] = 1
+            end
+          end
+          instances_off[original_days_in_future] -= 1
+          instances_off.delete(original_days_in_future) if instances_off[original_days_in_future] == 0
+          instances_off = nil if instances_off.empty?
+          budget_diff = last_budget_diff
+        else
+          previous_switch_offs = count_start_schedules
+          budget_diff = count_start_budget_diff
+        end
+      end
+    end
+    return instances_off, budget_diff
   end
 
   # For forecasts we use the latest amount (except for compute group instance costs)
@@ -330,7 +514,8 @@ class CostsPlotter
     total = 0.0
     if date > Date.today
       group ||= :total
-      return temp_change_request || @project.pending? ? pending_compute_costs(date)[group] : current_compute_costs[group]
+      # return temp_change_request || @project.pending? ? pending_compute_costs(date)[group] : current_compute_costs[group]
+      return pending_compute_costs(date)[group]
     end
 
     actions = @project.action_logs.where(date: date)
