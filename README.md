@@ -230,6 +230,41 @@ Rake tasks such as generating daily reports, recording instance logs and recordi
 
 ## Visualiser
 
+### Users
+
+Projects and the events belonging to them can only be accessed by users with the given permissions to do so.
+
+#### User management
+
+Rake tasks exists for the creation and archival of users, as well as the mutation of their permissions.
+
+The most important user tasks are as follows:
+
+- `rake users:create[username,password]` - Create a user with the given username. Password is an optional argument; if not given, a random base 58 string will be generated and output to the console.
+- `rake users:create_admin[username,password]` - Create an admin user. Admin users have permission for _all actions_ across _all projects_.
+- `rake users:archive[username]` - Archive a user. An archived user will not be able to log in.
+- `rake users:activate[username]` - Activate a previously archived user.
+
+#### User roles
+
+All of a user's permissions across projects are handled by user roles. User roles are hard-coded in `app/models/user_role.rb`.
+
+The most important user role tasks are as follows:
+
+- `rake users:roles:assign[username,project,role]` - Create role `role` for user `username` on project `project`. For example, `rake users:roles:assign[myuser,democluster,viewer]`. Will give `myuser` the `viewer` role for project `democluster`. They will have read-only permissions for the project with no executive permissions.
+- `rake users:roles:revoke[username,project,role]` - Revoke a role for a given user and cluster. Similar to `assign`, but it removes the given role.
+
+#### Flight SSO integration
+
+This application has the capacity to authenticate users via a Flight SSO server. To do so, some configuration is required:
+
+- The `JWT_SECRET` environment variable must be set. This is a shared secret used to decode JSON Web Tokens given out by Flight SSO.
+- The `sso_cookie_name` and `sso_uri` keys must be set in `config/environments/*.rb`.
+  - `sso_cookie_name` is the name of the cookie that the SSO session will be stored in. This must match the cookie name being used by SSO.
+  - `sso_uri` is the URI used to reach the SSO server. It should be the full path to the SSO endpoint, including any port specificity.
+
+When a user logs in to Flight Control with SSO credentials for a first time, a user record is created for them in the database. This user object should be treated like any 'local' user, in that it can be archived/activated and have user roles created/revoked for it.
+
 ### Costs Breakdown
 
 #### Selected Project
