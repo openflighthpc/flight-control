@@ -130,7 +130,8 @@ function disableMonitor() {
   if ($('#monitor-status-switch').is(':checked')) {
     $('#monitor-status-input').val('true')
     $('#threshold-input').prop('disabled', false)
-    original = $('#threshold-input').data('original');
+    let original = $('#threshold-input').data('original');
+    if(original === '') original = 5;
     $('#threshold-input').val(original);
     $('#threshold-row').fadeIn();
     $('#monitor-pause').prop('checked', $('#monitor-pause').data('original'));
