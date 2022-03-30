@@ -1,4 +1,4 @@
-<% if current_user && current_user.projects.any? %>
+<% if current_user && current_user.projects.length > 1 %>
   <% projects = current_user.projects.reorder(:name) %>
   <nav class="col-md-2 bg-light sidebar" id="project-nav">
     <div class="sidebar-sticky">

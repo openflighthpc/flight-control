@@ -65,8 +65,8 @@ td {
   text-decoration: none;
 }
 
-.nav-tabs {
-  margin-left: -1.5rem;
+.flush {
+  margin-left: -1.55rem;
 }
 
 .simple-node-details {

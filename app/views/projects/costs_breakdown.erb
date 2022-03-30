@@ -2,7 +2,11 @@
   <%= javascript_pack_tag 'chart'%>
 <% end %>
 
-<main class="col-md-10 ml-sm-auto col-lg-10 px-4" role="main">
+<% if current_user.projects.length > 1 %>
+  <main class="col-md-10 ml-sm-auto col-lg-10 px-4" role="main">
+<% else %>
+  <main class="col-md-12 ml-sm-auto col-lg-12 px-0" role="main">
+<% end %>
   <%= render '/partials/nav.erb' %>
   <div class="row session-alerts">
     <div class="col-sm-3"></div>
