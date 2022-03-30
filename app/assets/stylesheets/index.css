@@ -251,12 +251,30 @@ input[type=date] {
 }
 
 .change-request-header {
+  background-color: #3ba549 !important;
+  color: white;
+}
+
+.request-change-header {
   background-color: #fca24e !important;
   color: white;
 }
 
+.automated-action-header {
+  background-color: #17a2b8 !important;
+}
+
+.action-header {
+  background-color: #6C757D !important;
+}
+
+.request-cancel-header {
+  background-color: #ea2309 !important;
+  color: white;
+}
+
 .config-log-header {
-  background-color: #fca24e !important;
+  background-color: #875F9A !important;
   color: white;
 }
 

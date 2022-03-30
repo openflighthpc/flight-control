@@ -75,11 +75,16 @@ function addChangeRequestCard(log){
 }
 
 function addChangeRequestChangeCard(log) {
-  const blankSrCard = $('.blank-change-request-change-card');
+  const blankSrCard = $('.blank-change-request-audit-log-card');
   let newCard = blankSrCard.clone();
-  newCard.removeClass('blank-change-request-change-card');
+  newCard.removeClass('blank-change-request-audit-log-card');
   newCard.removeClass('d-none');
   newCard.addClass('audit-row');
+  if(log.cancellation) {
+    let header = $('.card-header', newCard);
+    header.removeClass('request-change-header');
+    header.addClass('request-cancel-header');
+  }
   $('.cr-username', newCard).html(log.username);
   let timestamp = $('.log-timestamp', newCard);
   timestamp.data('value', log.timestamp);
@@ -99,6 +104,11 @@ function addActionLogCard(log){
   timestamp.data('value', log.timestamp);
   timestamp.html(log.formatted_timestamp);
   $('.action-log-type', newCard).html(log.automated === true ? "Automated action log" : "Action log");
+  if(log.automated) {
+    let header = $('.card-header', newCard);
+    header.removeClass('action-header');
+    header.addClass('automated-action-header');
+  }
   $('.card-text', newCard).html(log.details);
   $('.action-status', newCard).html(log.status);
   newCard.insertAfter($('.audit-row').last());

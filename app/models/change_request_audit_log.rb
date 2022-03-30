@@ -128,11 +128,12 @@ class ChangeRequestAuditLog < ApplicationRecord
 
   def as_json(options={})
     {
-      type: "change_request_change_log",
+      type: "change_request_audit_log",
       username: user.username,
       timestamp: created_at,
       formatted_timestamp: formatted_timestamp,
       details: card_description,
+      cancellation: cancellation?,
       status: status
     }
   end
