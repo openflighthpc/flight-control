@@ -25,7 +25,7 @@ class AwsMonitor
                            action: "off",
                            automated: true)
           if slack
-            msg = "Shutting down #{values[:name]} (20 min avg of max load is #{values[:average]}; this is " \
+            msg = "Shutting down #{values[:name]} (20 min avg of max load is #{values[:average].round(2)}; this is " \
                   "lower than threshold of #{@project.utilisation_threshold})"
             @project.send_slack_message(msg)
           end
@@ -107,7 +107,7 @@ class AwsMonitor
     if vals.length < 4
       return {average: 100, last: last}
     else
-      return {average: (vals.inject { |sum, el| sum + el.to_i }.to_f / vals.size).round(2), last: last}
+      return {average: (vals.inject(0.0) { |sum, el| sum + el } / vals.size), last: last}
     end
   end
 end
