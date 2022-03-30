@@ -18,7 +18,9 @@ module Devise::Strategies
 
       req.body = body
 
-      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      use_ssl = Rails.application.config.use_ssl
+
+      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: use_ssl) do |http|
         http.request(req)
       end
 
