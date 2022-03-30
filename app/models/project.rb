@@ -9,6 +9,7 @@ require_relative '../services/instance_tracker'
 require 'httparty'
 
 class Project < ApplicationRecord
+  BUDGET_SWITCH_OFF_TIME = "23:30"
   DEFAULT_COSTS_DATE = Date.today - 3
   SCOPES = %w[total data_out core core_storage]
   has_many :instance_logs
