@@ -24,7 +24,7 @@ class ApplicationController < ActionController::Base
   private
 
   def authenticate_user_from_jwt!
-    return if !User.find_by(id: session["warden.user.user.key".to_sym]&.[](0))
+    return if User.find_by(id: session["warden.user.user.key".to_sym]&.[](0))
     token = cookies[Rails.application.config.sso_cookie_name.to_sym]
     return if token.blank?
     user = User.from_jwt_token(token)
