@@ -33,9 +33,9 @@
       <% end %>
     </nav>
     <div class="container-fluid <%= 'pl-0' if current_user %>">
-      <div class="row">
+      <div <%= "class=row" if !current_user || current_user.projects.length > 1 %>>
         <%= render '/partials/project_nav.erb' %>
-         <%= yield %>
+        <%= yield %>
       </div>
     </div>
   </body>

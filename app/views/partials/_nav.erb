@@ -1,5 +1,5 @@
 <% if @nav_view != nil %>
-  <ul class="nav nav-tabs<%= current_user.projects.length > 1 ? ' flush' : ' pl-2'  %> view-selection">
+  <ul class="nav nav-tabs<%= current_user.projects.length > 1 ? ' flush' : ''  %> view-selection">
     <li class="nav-item">
       <%= link_to "Billing Management", billing_management_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "billing"}" %>
     </li>
