@@ -29,7 +29,7 @@ class ApplicationController < ActionController::Base
     return if token.blank?
     user = User.from_jwt_token(token)
     return if !user
-    sign_in user
+    sign_in_and_redirect user
   end
 
   def user_not_authorized
