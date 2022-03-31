@@ -3,18 +3,6 @@
   <%= javascript_pack_tag 'new_data_check'%>
 <% end %>
 
-<% if current_user.projects.length > 1 %>
-  <main class="col-md-10 ml-sm-auto col-lg-10 px-4" role="main">
-<% else %>
-  <main class="col-md-12 ml-sm-auto col-lg-12 px-0" role="main">
-<% end %>
-  <%= render '/partials/nav.erb' %>
-  <div class="row session-alerts">
-    <div class="col-sm-3"></div>
-    <div class="col-sm-6">
-      <%= render 'partials/flashes' %>
-    </div>
-  </div>
   <div class="mt-4 text-center mb-4">
     <h2><%= @project.name %> - Billing Management</h2>
   </div>
@@ -61,4 +49,3 @@
   </div>
   <%= render '/projects/cycles_table' %>
   <%= render '/projects/latest_change' %>
-</main>

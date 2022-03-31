@@ -1,5 +1,5 @@
 <div class="row">
-  <% if current_user.projects.length > 1 %>
+  <% if current_user.multi_project_user? %>
     <div class="col-sm-1"></div>
     <div class="mt-4 ml-4 col-10" >
   <% else %>
