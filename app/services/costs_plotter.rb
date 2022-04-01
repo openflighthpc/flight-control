@@ -512,6 +512,25 @@ class CostsPlotter
     return instances_off, budget_diff
   end
 
+  # After running costs_breakdown
+  def switch_off_details(index_date=start_of_current_billing_interval)
+    switch_offs = {}
+    @project.latest_instances.each do |group, instance_types|
+      instance_types.each do |instance|
+        off = instance.budget_switch_offs
+        if off.any?
+          off_using_relative_index = {}
+          off.each do |date, number_off|
+            days_after_index_date = (date - index_date).to_i
+            off_using_relative_index[days_after_index_date] = number_off if days_after_index_date >= 0
+          end
+          switch_offs["#{group} #{instance.front_end_instance_type}"] = off_using_relative_index
+        end
+      end
+    end
+    switch_offs
+  end
+
   # For forecasts we use the latest amount (except for compute group instance costs)
   def latest_previous_costs(date)
     costs = {compute: 0.0, data_out: 0.0, core: 0.0, core_storage: 0.0, total: 0.0, other: 0.0}
