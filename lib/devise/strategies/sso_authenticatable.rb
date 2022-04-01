@@ -28,7 +28,10 @@ module Devise::Strategies
         res = JSON.parse(res.body)
         user = User.from_jwt_token(res['user']['authentication_token'])
         cookie = Rails.application.config.sso_cookie_name
-        cookies[cookie.to_sym] = res['user']['authentication_token']
+        cookies[cookie.to_sym] = {
+          value: res['user']['authentication_token'],
+          domain: 'alces-flight.com'
+        }
         success!(user)
       rescue JSON::ParserError
         fail(message = "Invalid Username or password.")
