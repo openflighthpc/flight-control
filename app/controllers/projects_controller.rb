@@ -115,6 +115,7 @@ class ProjectsController < ApplicationController
     @current_instances = @project.latest_instances
     filter_current_instances if @datasets
     @cycle_thresholds = cost_plotter.cycle_thresholds(@start_date, @end_date)
+    @switch_offs = cost_plotter.switch_off_details(@start_date)
     @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date)
   end
 

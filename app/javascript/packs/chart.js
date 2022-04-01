@@ -1,6 +1,7 @@
 window.addEventListener('DOMContentLoaded', (event) => {
   addOverBudgetLines();
   addCycleLines();
+  addShutOffLines();
   if($('#cost-chart-filter').length > 0) {
     $('.cost-chart-date').on('input', validateCostChartDates);
   }
@@ -322,4 +323,72 @@ window.overBudgetDateIndexes = function(){
     }
   }
   return indexes;
+}
+
+window.addShutOffLines = function() {
+  const shutOffLinesPlugin = {
+    renderVerticalLine: function (chartInstance, pointIndex, off, instanceType, number) {
+      let meta = null;
+      if(typeof simple_chart !== 'undefined' && chartInstance === simple_chart ||
+         typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
+        meta = chartInstance.getDatasetMeta(0);
+      }  else {
+        let index = null;
+        let forecastBudgetDataset = null;
+        let datasets = chartInstance.data.datasets;
+        for (let i = 0; i < datasets.length; i++) {
+          if(datasets[i].label === "forecast remaining budget") {
+            index = i;
+            forecastBudgetDataset = datasets[i];
+            break
+          }
+        }
+
+        if (forecastBudgetDataset != null && forecastBudgetDataset.data[pointIndex] != null) {
+          meta = chartInstance.getDatasetMeta(index);
+        } else {
+          let budgetDataset = null;
+          for (let i = 0; i < datasets.length; i++) {
+            if(datasets[i].label === "remaining budget") {
+              index = i;
+              budgetDataset = datasets[i];
+              break
+            }
+          }
+          meta = chartInstance.getDatasetMeta(index);
+        }
+      }
+      const lineLeftOffset = meta.data[pointIndex]._model.x
+      const scale = chartInstance.scales['y-axis-0'];
+      const context = chartInstance.chart.ctx;
+
+      context.beginPath();
+      context.strokeStyle = '#ff0000';
+      context.moveTo(lineLeftOffset, scale.top);
+      context.lineTo(lineLeftOffset, scale.bottom);
+      context.stroke();
+
+      context.fillStyle = "#ff0000";
+      let position = 'left';
+      if (pointIndex > chartInstance.data.labels.length / 2) position = 'right';
+      context.textAlign = position;
+      context.fillText(` ${off} ${instanceType} off `, lineLeftOffset, (((scale.bottom - scale.top)/10) * number) + scale.top * 2);
+    },
+
+    afterDatasetsDraw: function (chart, easing) {
+      // this needs updating to accomodate individual switch offs
+      if(chart.data.off != "undefined" && chart.data.off != null) {
+        let index = 0;
+        Object.keys(chart.data.off).forEach((key, i) => {
+          Object.keys(chart.data.off[key]).forEach((daysInFuture, j) => {
+            let off = chart.data.off[key][daysInFuture]
+            this.renderVerticalLine(chart, daysInFuture, off, key, index);
+            index += 1;
+          });
+        });
+      }
+    }
+  };
+
+  Chart.plugins.register(shutOffLinesPlugin);
 }

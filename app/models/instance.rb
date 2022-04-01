@@ -5,7 +5,7 @@ require_relative 'project'
 class Instance
   @@instance_details = nil
 
-  attr_reader :count, :details, :region, :instance_type, :group
+  attr_reader :count, :details, :region, :instance_type, :group, :budget_switch_offs
 
   def self.instance_details
     if !@@instance_details
@@ -115,6 +115,7 @@ class Instance
     @details = region_details[instance_type] if region_details
     @details ||= {}
     @future_counts = {}
+    @budget_switch_offs = {}
   end
 
   def present_in_region?
@@ -311,10 +312,11 @@ class Instance
       count = pending_on_date_end(date)
       if @future_counts[date]
         # has priority over any existing scheduled request at that time
-        @future_counts[date][time] = {count: count - to_switch_off, min: false, budget_switch_off: true}
+        @future_counts[date][time] = {count: count - to_switch_off, min: false}
       else
-        @future_counts[date] = {time => {count: count - to_switch_off, min: false, budget_switch_off: true}}
+        @future_counts[date] = {time => {count: count - to_switch_off, min: false}}
       end
+      @budget_switch_offs[date] = to_switch_off
     end
   end
 
