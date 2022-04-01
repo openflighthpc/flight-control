@@ -30,7 +30,15 @@ class User < ApplicationRecord
     # Attempt to find user by `flight_id`
     user = find_by(flight_id: claims.fetch('flight_id'))
     if user.present?
-      return user
+      user.tap do |u|
+        jwt_iat = Time.at(claims.fetch('iat', 0))
+        if jwt_iat.nil? || u.jwt_iat < jwt_iat
+          u.email = claims.fetch('email')
+          u.username = claims.fetch('username')
+          u.jwt_iat = jwt_iat
+          u.save
+        end
+      end
     else
       # No user with given `flight_id`. This is most likely the first
       # time that a user is accessing Flight Control. Check if the user's
