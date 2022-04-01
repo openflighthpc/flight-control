@@ -16,6 +16,7 @@ class Project < ApplicationRecord
   has_many :action_logs
   has_many :config_logs
   has_many :change_requests
+  has_many :change_request_audit_logs
   has_many :one_off_change_requests
   has_many :repeated_change_requests
   has_many :balances
@@ -580,6 +581,14 @@ class Project < ApplicationRecord
     HTTParty.post("https://slack.com/api/chat.postMessage",
                   headers: {"Authorization": "Bearer #{Project.slack_token}"},
                   body: {"text": msg, "channel": slack_channel, "as_user": true})
+  end
+
+  def all_associated_users
+    user_roles.map(&:user).concat(User.where(admin: true)).compact.uniq
+  end
+
+  def self.deep_copy_hash(hash)
+    Marshal.load(Marshal.dump(hash))
   end
 
   private

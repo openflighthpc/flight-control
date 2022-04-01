@@ -1,0 +1,22 @@
+<% log = locals[:log] %>
+<div class="card audit-log config-log">
+  <div class="card-header config-log-header d-inline-flex justify-content-between align-items-center ">
+    <span class="config-log-source">
+      <% if log&.automated %>
+        <% request_link = log.change_request.editable? ? "<a href='/events/#{log.change_request_id}?project=#{@project.name}' >change request.</a>" : "change request" %>
+        Project configuration updated as part of a <%= request_link.html_safe %>
+      <% else %>
+        Project configuration change submitted by <b class="config-username"><%= log.user.username if log%></b>
+      <% end %>
+    </span>
+    <span class="log-timestamp" data-value='<%=log.created_at if log%>'><%= log.formatted_timestamp if log%></span>
+  </div>
+  <div class="card-body">
+    <div class="card-text">
+      <%= log.card_description.html_safe if log %>
+    </div>
+  </div>
+  <div class="card-footer text-right">
+    Status: <strong class="log-status"><%= log.status if log%></strong>
+  </div>
+</div>

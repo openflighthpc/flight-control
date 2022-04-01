@@ -51,17 +51,17 @@ class ActionLog < ApplicationRecord
     instance_log.front_end_instance_type
   end
 
-  # def partial
-  #   :action_log_card
-  # end
+  def partial
+    'action_log_card'
+  end
 
   def formatted_timestamp
     actioned_at.strftime('%-I:%M%P %F')
   end
 
-  # def username
-  #   user_id ? user.username : "Automated"
-  # end
+  def username
+    user_id ? user.username : "Automated"
+  end
 
   def card_description
     html = "Started switch #{self.action} of 1 #{customer_facing_type}"
@@ -93,7 +93,7 @@ class ActionLog < ApplicationRecord
       formatted_timestamp: formatted_timestamp,
       details: card_description,
       simplified_details: simplified_description,
-      username: user ? user.username : "-",
+      username: username,
       automated: automated,
       status: status
     }

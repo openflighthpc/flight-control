@@ -58,39 +58,41 @@ class ConfigLog < ActiveRecord::Base
     message
   end
 
-  # Not currently used
+  def partial
+    'config_log_card'
+  end
+
   def card_description
-    ""
-    # html = "Project configuration updated:<br><br>"
-    # html << "<div class='change-details'>"
-    # parsed_changes.each do |attribute, details|
-    #   if details["to"] != details["from"]
-    #     if attribute == 'compute_groups'
-    #       html << "<strong>Instance priorities:</strong>"
-    #     else
-    #       html << "<strong>#{attribute.gsub("_", " ").capitalize}:</strong>"
-    #     end
-    #     details["to"] = "none (monitor enabled)" if details["to"].nil?
-    #     if attribute == 'compute_groups'
-    #       html << "<br>"
-    #       out_str = ""
-    #       details['to'].each do |group, g_details|
-    #         out_str << "#{group}:\n"
-    #         g_details['nodes'].each do |node, n_details|
-    #           out_str << "  #{InstanceMapping.opposite_name(node)}\n"
-    #         end
-    #       end
-    #       out_str.gsub!(' ', '&nbsp;').gsub!("\n", '<br>')
-    #       html << out_str
-    #     else
-    #       html << " #{details["to"]}"
-    #       html << "%" if attribute == "utilisation_threshold"
-    #     end
-    #     html << "<br>"
-    #   end
-    # end
-    # html << "</div>"
-    # html
+    html = "Project configuration updated:<br><br>"
+    html << "<div class='change-details'>"
+    config_changes.each do |attribute, details|
+      if details["to"] != details["from"]
+        if attribute == 'compute_groups'
+          html << "<strong>Instance priorities:</strong>"
+        else
+          html << "<strong>#{attribute.gsub("_", " ").capitalize}:</strong>"
+        end
+        details["to"] = "none (monitor enabled)" if details["to"].nil?
+        if attribute == 'compute_groups'
+          html << "<br>"
+          out_str = ""
+          details['to'].each do |group, g_details|
+            out_str << "#{group}:\n"
+            g_details['nodes'].each do |node, n_details|
+              out_str << "  #{InstanceMapping.opposite_name(node)}\n"
+            end
+          end
+          out_str.gsub!(' ', '&nbsp;').gsub!("\n", '<br>')
+          html << out_str
+        else
+          html << " #{details["to"]}"
+          html << "%" if attribute == "utilisation_threshold"
+        end
+        html << "<br>"
+      end
+    end
+    html << "</div>"
+    html
   end
 
   def status

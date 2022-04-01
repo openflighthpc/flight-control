@@ -1,0 +1,20 @@
+<% log = locals[:log].as_original if locals[:log] %>
+<div class="card audit-log change-request-log">
+  <div class="card-header change-request-header d-inline-flex justify-content-between align-items-center ">
+    <span>Change request submitted by <b class="cr-username"><%=User.find(log.user_id).username if log%></b></span>
+    <span class="log-timestamp" data-value='<%=log.created_at if log%>'><%= log.formatted_timestamp if log%></span>
+  </div>
+  <div class="card-body">
+    <div class="card-text">
+      <%= log.card_description.html_safe if log %>
+    </div>
+  </div>
+  <div class="card-footer d-flex justify-content-between">
+    <div class="edit-request-link">
+      <% if log && log.editable? %>
+        <a href="/events/<%= log.id %>/edit?project=<%= @project.name %>">Edit request</a>
+      <% end%>
+    </div>
+    <div>Status: <strong class="change-status"><%= log.status if log%></strong></div>
+  </div>
+</div>

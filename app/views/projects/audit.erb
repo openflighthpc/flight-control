@@ -1,0 +1,15 @@
+<% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'audit'%>
+  <%= javascript_pack_tag 'new_data_check'%>
+<% end %>
+
+  <div class="mt-4 text-center mb-4">
+    <h2><%= @project.name %> - Audit Logs</h2>
+  </div>
+  <%= render '/projects/audit_filter_form' %>
+  <% if !@list.filtered_logs.any? %>
+    <h4 class="text-center mt-3">No matching logs</h4>
+  <% else %>
+    <%= render '/partials/history' %>
+  <% end %>
+  <%= render '/projects/latest_change' %>

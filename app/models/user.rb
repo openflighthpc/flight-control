@@ -55,6 +55,10 @@ class User < ApplicationRecord
     (admin? ? Project.all : Project.where(id: user_roles.map(&:project_id))).reorder(:name)
   end
 
+  def multi_project_user?
+    @multi ||= projects.length > 1
+  end
+
   def has_role_for?(project, role=nil)
     user_roles.exists?({project_id: project, role: role}.compact)
   end

@@ -5,7 +5,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
     $('.cost-chart-date').on('input', validateCostChartDates);
   }
   $('.tool-tip').tooltip();
-  setTimeout(checkForNewData, 30000);
 });
 
 // to give the illusion that actual & forecast datasets are one and the same

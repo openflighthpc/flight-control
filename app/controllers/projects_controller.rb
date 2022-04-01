@@ -20,6 +20,38 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def audit
+    get_project
+    if !@project
+      no_project_redirect
+    else
+      authorize @project, policy_class: ProjectPolicy
+      @list = AuditLogList.new(@project, params)
+      @nav_view = "audit"
+    end
+  end
+
+  def audit_logs
+    get_project
+    if !@project
+      no_project_redirect
+    else
+      authorize @project, policy_class: ProjectPolicy
+      latest_timestamp = Time.parse(params['timestamp'])
+      log_count = params['log_count'].to_i
+      filters = {"groups" => params['groups'],
+                 "types" => params['types'],
+                 "users" => params['users'],
+                 "statuses" => params['statuses'],
+                 "start_date" => params["start_date"],
+                 "end_date" => params["end_date"]
+                }
+      list = AuditLogList.new(@project, filters)
+      logs, more = list.next_logs(log_count, latest_timestamp)
+      render json: {logs: logs, more: more}
+    end
+  end
+
   def config_update
     get_project
     if !@project

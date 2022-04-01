@@ -1,0 +1,75 @@
+<div class="row">
+  <% if current_user.multi_project_user? %>
+    <div class="col-sm-1"></div>
+    <div class="mt-4 ml-4 col-10" >
+  <% else %>
+    <div class="col-sm-2"></div>
+    <div class="mt-4 ml-4 col-9" >
+  <% end %>
+    <form class="form" action="/audit" method="get" id="audit-logs-filter">
+      <div class="form-row">
+        <div class="form-group col-md-2">
+          <label for="log-types" class="audit-form-label">Groups:</label>
+          <select multiple class="form-control audit-select" name="groups[]" id="log-groups-list">
+            <% @project.front_end_compute_groups.keys.each do |group| %>
+              <option value=<%=group%> <%= @list.filters["groups"]&.include?(group) ? 'selected' : '' if @list %>>
+              <%= group %>
+              </option>
+            <% end %>
+          </select>  
+        </div>
+        <div class="form-group col-md-2">
+          <label for="log-types" class="audit-form-label">Log Types:</label>
+          <select multiple class="form-control audit-select" name="types[]" id="log-types-list">
+            <% AuditLogList::LOG_TYPES.each do |klass, description| %>
+              <option value=<%=klass%> <%= @list.filters["types"]&.include?(klass) ? 'selected' : '' if @list %>>
+              <%= description %>
+              </option>
+            <% end %>
+          </select>  
+        </div>
+        <div class="form-group col-md-2">
+          <label for="users-list" class="audit-form-label">Users:</label>
+          <select multiple class="form-control audit-select" name="users[]" id="users-list">
+            <% users = @project.all_associated_users.pluck(:username) %>
+            <% users << "automated" %>
+            <% users.sort.each do |username| %>
+              <option value=<%=username%> <%= @list.users&.include?(username) ? 'selected' : '' if @list %>>
+              <%= username %>
+              </option>
+            <% end %>
+          </select>
+        </div>
+        <div class="form-group col-md-2">
+          <label for="users-list" class="audit-form-label">Status:</label>
+           <select multiple class="form-control audit-select" name="statuses[]" id="status-list">
+            <% AuditLogList::POSSIBLE_STATUSES.each do |status| %>
+              <option value=<%=status%> <%= @list.statuses&.include?(status) ? 'selected' : '' if @list %>>
+                <%= status %>
+              </option>
+            <% end %>
+          </select>
+        </div>
+        <div class="form-group col-md-2">
+          <label for="from-date" class="audit-form-label">From:</label>
+          <input class="form-control" type="date" id='from-date'
+                 name='start_date' max=<%=Date.today%>
+                 <%= "value=#{@list.start_date}" if @list.start_date %>>
+        </div>
+        <div class="form-group col-md-2">
+          <label for="to-date" class="audit-form-label">To:</label>
+          <input class="form-control" type="date" id='to-date'
+                 name="end_date" max=<%=Date.today%>
+                 <%= "value=#{@list.end_date}" if @list.end_date %>>
+        </div>
+      </div>
+      <input type="hidden" name="project" value=<%= @project.name %>>
+      <div class="form-row align-items-center">
+        <div class="form-group col-md-4">
+          <input type="submit" value="Filter" class="btn btn-primary">
+          <a href="/audit?project=<%= @project.name %>" class="btn btn-danger">Clear all</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

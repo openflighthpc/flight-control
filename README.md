@@ -317,3 +317,9 @@ If nodes are switched off as part of this process a slack message is sent to the
 ### Project Policies
 
 Settings for a project's `utilisation_threshold`, `override_monitor_until` and `monitor_active` attributes can be set on the project's policies page. Only admins and users with a default role for the project can access and use this page.
+
+### Audit Logs
+
+On the `audit` page, users can view a history of actions taken for a given project. This includes the creation of change requests, editing or cancelling of a change request, action logs and config logs.
+
+These records can be filtered by any combination of compute group, user, log type, log status and by date.

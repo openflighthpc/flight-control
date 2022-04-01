@@ -1,0 +1,16 @@
+<% log = locals[:log] %>
+<% header_class = log && log.automated? ? "automated-action-header" : "action-header" %>
+<div class="card audit-log action-log">
+  <div class="card-header <%= header_class %> text-white d-inline-flex justify-content-between align-items-center ">
+    <span class="action-log-type"><%= log && log.automated ? "Automated Action Log" : "Action log" %></span>
+    <span class="log-timestamp" data-value='<%=log.created_at if log%>'><%= log.formatted_timestamp if log%></span>
+  </div>
+  <div class="card-body">
+    <p class="card-text">
+      <%= log.card_description.html_safe if log%>
+    </p>
+  </div>
+  <div class="card-footer text-right">
+    Status: <strong class="action-status"><%= log.status if log%></strong>
+  </div>
+</div>

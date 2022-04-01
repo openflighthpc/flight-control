@@ -78,7 +78,7 @@ class ChangeRequest < ApplicationRecord
       message << group_message if group_changed
     end
     if changed
-      message = "Changes submitted to for automated actioning as part of a scheduled request for *#{project.name}*\n\n" << message
+      message = "Changes submitted for automated actioning as part of a scheduled request for *#{project.name}*\n\n" << message
     else
       message = "No changes required to meet #{counts_criteria} counts in the scheduled request at #{date_time} for *#{project.name}*\n"
     end
@@ -111,14 +111,10 @@ class ChangeRequest < ApplicationRecord
       if slack
         additional << "*Override CPU monitor for*: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}\n"
       else
-        additional <<"<strong>Override CPU monitor for</strong>:#{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}<br>"
+        additional <<"<strong>Override CPU monitor for</strong>: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}<br>"
       end
     end
     additional
-  end
-
-  def formatted_timestamp
-    created_at.strftime('%-I:%M%P %F')
   end
 
   def formatted_days
@@ -126,7 +122,7 @@ class ChangeRequest < ApplicationRecord
   end
 
   def partial
-    :change_request_card
+    'change_request_card'
   end
 
   def includes_instance_type?(group, instance_type)
@@ -135,7 +131,11 @@ class ChangeRequest < ApplicationRecord
 
   # Includes counts for any of the provided groups
   def included_in_groups?(groups)
-    groups.detect { |group| counts[group] }
+    groups.detect { |group| includes_group?(group) }
+  end
+
+  def includes_group?(group)
+    counts[group] && !counts[group].blank?
   end
 
   def instances_to_change_with_pending
@@ -189,12 +189,20 @@ class ChangeRequest < ApplicationRecord
     end
   end
 
+  def as_original
+    copy = ChangeRequest.new(self.attributes)
+    change_request_audit_logs.reorder("created_at DESC").each do |change|
+      copy.assign_attributes(change.original_attributes)
+    end
+    copy.becomes(copy.type.constantize)
+  end
+
   # When we have change logs, we will want to show the original content,
   # but the current status
-  def as_json(*options)
-    request = self
+   def as_json(options={original: true})
+    request = options[:original] ? as_original : self
     {
-      type: "scheduled_request",
+      type: "change_request",
       username: request.user.username,
       date: request.date,
       time: request.time,

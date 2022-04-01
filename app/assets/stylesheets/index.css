@@ -240,3 +240,56 @@ input[type=date] {
 #policies-table td {
   vertical-align:  middle;
 }
+
+.audit-logs {
+  margin-top: 0.5rem;
+  margin-bottom: 5rem;
+}
+
+.audit-log {
+  margin-bottom: 2rem;
+}
+
+.change-request-header {
+  background-color: #3ba549 !important;
+  color: white;
+}
+
+.request-change-header {
+  background-color: #fca24e !important;
+  color: white;
+}
+
+.automated-action-header {
+  background-color: #17a2b8 !important;
+}
+
+.action-header {
+  background-color: #6C757D !important;
+}
+
+.request-cancel-header {
+  background-color: #ea2309 !important;
+  color: white;
+}
+
+.config-log-header {
+  background-color: #875F9A !important;
+  color: white;
+}
+
+.card-footer {
+  padding: 0.5rem !important;
+}
+
+.change-details {
+  padding-left: 2rem;
+}
+
+.edit-request-link {
+  margin-left: 0.5rem !important;
+}
+
+.audit-form-label {
+  margin-left: 0.9rem;
+}

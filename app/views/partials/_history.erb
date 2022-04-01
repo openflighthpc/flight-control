@@ -1,0 +1,51 @@
+<% if @list.first_logs.any? %>
+  <% if @list.more_logs? %>
+    <% AuditLogList::LOG_TYPES.keys.each do |type| %>
+      <% type = type[0..-2] %>
+      <% formatted_type = type.gsub("_", "-") %>
+      <div class="row d-none blank-<%= formatted_type %>-card">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6">
+          <%= render "partials/#{type}_card", locals: {log: nil} %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <div class="audit-logs">
+    <div class="row">
+      <div class="col-sm-3"></div>
+      <div class="col-sm-6">
+        <h3 class="mr-auto p-2 audit-logs-title">
+          History
+        </h3>
+      </div>
+    </div>
+    <% @list.first_logs.each do |log| %>
+      <div class="row audit-row">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6">
+          <%= render "partials/#{log.partial}", locals: {log: log} %>
+        </div>
+      </div>
+    <% end %>
+    <% if @list.more_logs? %>
+      <div class="row">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6 text-center">
+          <button
+            class="btn btn-primary"
+            id="load-more-logs"
+            data-project="<%= @project.name %>"
+            data-types="<%= @list.types.join(',') %>"
+            <%= "data-users=#{@list.users.join(',')}" if @list.users %>
+            <%= "data-statuses=#{@list.statuses.join(',')}" if @list.statuses %>
+            <%= "data-groups=#{@list.groups.join(',')}" if @list.groups %>
+            <%= "data-start_date=#{@list.start_date}"  if @list.start_date %>
+            <%= "data-end_date=#{@list.end_date}"  if @list.end_date %>
+          > Load more </button>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

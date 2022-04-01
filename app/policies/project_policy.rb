@@ -11,4 +11,6 @@ class ProjectPolicy < ApplicationPolicy
   alias_method :billing_management?, :show?
   alias_method :data_check?, :show?
   alias_method :costs_breakdown?, :show?
+  alias_method :audit?, :show?
+  alias_method :audit_logs?, :audit?
 end
