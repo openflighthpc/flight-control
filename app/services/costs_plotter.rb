@@ -6,7 +6,7 @@ class CostsPlotter
 
   def chart_cost_breakdown(start_date, end_date, temp_change_request=nil, cost_entries=nil)
     cost_entries ||= cost_breakdown(start_date, end_date, temp_change_request)
-    dates = cost_entries.keys
+    dates = []
     compute = []
     nodes = []
     data_out = []
@@ -21,7 +21,7 @@ class CostsPlotter
     forecast_other = []
     forecast_remaining_budget = []
     compute_group_details = {actual: {}, forecast: {}}
-    @project.front_end_compute_groups.keys.each do |group| 
+    @project.front_end_compute_groups.keys.each do |group|
       compute_group_details[:actual][group.to_sym] = []
       compute_group_details[:actual]["#{group}_storage".to_sym] = []
       compute_group_details[:forecast][group.to_sym] = []
@@ -29,6 +29,8 @@ class CostsPlotter
     end
     first_forecast = true
     cost_entries.each do |k, v|
+      next if Date.parse(k) < start_date || Date.parse(k) > end_date
+      dates << k
       break if @project.archived_date && Date.parse(k) >= @project.archived_date
 
       if v.has_key?(:compute)
@@ -115,6 +117,7 @@ class CostsPlotter
     cost_entries.each do |k, v|
       k = Date.parse(k)
       break if @project.archived_date && k >= @project.archived_date
+      break if k > end_date
 
       if k < @project.start_date
         main_datasets.each { |dataset| dataset << nil }
@@ -226,6 +229,30 @@ class CostsPlotter
     results
   end
 
+  # break costs into cycles. Allows for calculating over budget switch offs
+  # across multiple cycles
+  def super_cost_breakdown(start_date, end_date, change_request=nil, match_buget=false)
+    start_of_current_cycle = start_of_billing_interval(Date.today)
+    if start_date < start_of_current_cycle
+      start = start_of_billing_interval(start_date)
+    else
+      start = start_of_current_cycle
+    end
+    end_date = end_of_billing_interval(end_date)
+    covered_cycles = []
+    date_range = (start..end_date).to_a
+    active_billing_cycles.each do |start_of_cycle|
+      covered_cycles << start_of_cycle if date_range.include?(start_of_cycle)
+    end
+    all_costs = {}
+    covered_cycles.each do |start_of_cycle|
+      end_of_cycle = end_of_billing_interval(start_of_cycle)
+      cycle_costs = cost_breakdown(start_of_cycle, end_of_cycle, nil, true)
+      all_costs = all_costs.deep_merge(cycle_costs)
+    end
+    all_costs
+  end
+
   def cost_breakdown(start_date, end_date, change_request=nil, match_budget=false)
     results = {}
     compute_groups = @project.front_end_compute_groups
@@ -302,7 +329,9 @@ class CostsPlotter
         results[k][:forecast_budget] = budget - total
       end
     end
-    results = prioritise_to_budget(start_date, end_date, change_request, results) if match_budget
+    4.times do
+      results = prioritise_to_budget(start_date, end_date, change_request, results) if match_budget
+    end
     results
   end
 
@@ -327,13 +356,8 @@ class CostsPlotter
     budget_diff = end_costs[:forecast_budget]
     return nil if !budget_diff || budget_diff >= 0
     
-    future_days = 0
-    last_date = nil
-    results.keys.each do |date|
-      date = Date.parse(date)
-      future_days += 1 if date > Date.today()
-      last_date = date
-    end
+    last_date = Date.parse(results.keys.last)
+    future_days = [last_date - Date.today, 0].max
     end_of_cycle = last_date
     prioritised_instances = @project.latest_instances.map {|group, instances| instances}.flatten.sort
     instances_off = {}
@@ -412,7 +436,6 @@ class CostsPlotter
   end
 
   def minimise_switch_offs(instance, instances_off, budget_diff, future_days)
-    "SWITCH"
     return instances_off, budget_diff if budget_diff <= 0 || instances_off.empty?
 
     end_of_cycle = Date.today + future_days.days
@@ -433,9 +456,9 @@ class CostsPlotter
         count_start_schedules = Project.deep_copy_hash(new_switch_offs)
         count_start_budget_diff = budget_diff;
         on = instance.pending_on_date_end(original_switch_off_date, original_switch_offs)
-        new_switch_offs[original_switch_off_date.to_s][Project::BUDGET_SWITCH_OFF_TIME][:count] += 1
-        if new_switch_offs[original_switch_off_date.to_s][Project::BUDGET_SWITCH_OFF_TIME][:count] >= off
-          new_switch_offs.delete(original_switch_off_date.to_s)
+        new_switch_offs[original_switch_off_date][Project::BUDGET_SWITCH_OFF_TIME][:count] += 1
+        if new_switch_offs[original_switch_off_date][Project::BUDGET_SWITCH_OFF_TIME][:count] >= off
+          new_switch_offs.delete(original_switch_off_date)
         end
 
         previous_switch_offs = Project.deep_copy_hash(new_switch_offs)
@@ -445,12 +468,12 @@ class CostsPlotter
           switch_off_date = switch_off_date + 1.day
           currently_on = instance.pending_on_date_end(switch_off_date, new_switch_offs)
           if currently_on > 0
-            if temp_switch_offs.has_key?(switch_off_date.to_s)
-              if temp_switch_offs[switch_off_date.to_s][Project::BUDGET_SWITCH_OFF_TIME][:count] < currently_on
-                temp_switch_offs[switch_off_date.to_s][Project::BUDGET_SWITCH_OFF_TIME][:count] += 1
+            if temp_switch_offs.has_key?(switch_off_date)
+              if temp_switch_offs[switch_off_date][Project::BUDGET_SWITCH_OFF_TIME][:count] < currently_on
+                temp_switch_offs[switch_off_date][Project::BUDGET_SWITCH_OFF_TIME][:count] += 1
               end
             else
-              temp_switch_offs[switch_off_date.to_s] = {Project::BUDGET_SWITCH_OFF_TIME => {count: currently_on - 1, min: false}}
+              temp_switch_offs[switch_off_date] = {Project::BUDGET_SWITCH_OFF_TIME => {count: currently_on - 1, min: false}}
             end
           else
             temp_switch_offs = previous_switch_offs

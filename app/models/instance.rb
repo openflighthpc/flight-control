@@ -311,9 +311,9 @@ class Instance
       count = pending_on_date_end(date)
       if @future_counts[date]
         # has priority over any existing scheduled request at that time
-        @future_counts[date][time] = {count: count - to_switch_off, min: false}
+        @future_counts[date][time] = {count: count - to_switch_off, min: false, budget_switch_off: true}
       else
-        @future_counts[date] = {time => {count: count - to_switch_off, min: false}}
+        @future_counts[date] = {time => {count: count - to_switch_off, min: false, budget_switch_off: true}}
       end
     end
   end
