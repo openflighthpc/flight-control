@@ -6,6 +6,7 @@ module Devise::Strategies
     def authenticate!
       uri = Rails.application.config.sso_uri
       uri = URI(uri)
+      uri.path << "/sign-in"
 
       req = Net::HTTP::Post.new(uri.path)
       req.content_type = "application/json"

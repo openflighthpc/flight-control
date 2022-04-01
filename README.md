@@ -261,7 +261,7 @@ This application has the capacity to authenticate users via a Flight SSO server.
 - The `JWT_SECRET` environment variable must be set. This is a shared secret used to decode JSON Web Tokens given out by Flight SSO.
 - The `sso_cookie_name` and `sso_uri` keys must be set in `config/environments/*.rb`.
   - `sso_cookie_name` is the name of the cookie that the SSO session will be stored in. This must match the cookie name being used by SSO.
-  - `sso_uri` is the URI used to reach the SSO server. It should be the full path to the SSO endpoint, including any port specificity.
+  - `sso_uri` is the URI used to reach the SSO server. It should be the host and port, _not_ including the path.
 
 When a user logs in to Flight Control with SSO credentials for a first time, a user record is created for them in the database. This user object should be treated like any 'local' user, in that it can be archived/activated and have user roles created/revoked for it.
 
