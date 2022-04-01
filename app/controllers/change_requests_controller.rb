@@ -73,19 +73,17 @@ class ChangeRequestsController < ApplicationController
         flash[:danger] = format_errors(request)
       end
     end
-    redirect_to events_new_path(project: @project.name)
+    redirect_to events_path(project: @project.name)
   end
 
   def update
     get_project
-    target = events_new_path(project: @project.name)
     parameters = filtered_change_request_params
     request = ChangeRequest.find_by_id(params[:id])
     if !request
       flash[:danger] = "Request not found"
     else
       authorize request, policy_class: ChangeRequestPolicy
-      target = event_edit_path(request, project: @project.name)
       if request.id != parameters[:id].to_i
         flash[:danger] = "Ids do not match"
       else
@@ -107,7 +105,7 @@ class ChangeRequestsController < ApplicationController
         end
       end
     end
-    redirect_to target
+    redirect_to events_path(project: @project.name)
   end
 
   def cancel
@@ -146,6 +144,7 @@ class ChangeRequestsController < ApplicationController
       :type,
       :end_date,
       :description,
+      :monitor_override_hours,
       nodes: {}
     )
     filtered = permitted.transform_values do |value|

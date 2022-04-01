@@ -55,10 +55,6 @@ class ActionLog < ApplicationRecord
   #   :action_log_card
   # end
 
-  def automated?
-    automated == 1
-  end
-
   def formatted_timestamp
     actioned_at.strftime('%-I:%M%P %F')
   end
@@ -97,8 +93,8 @@ class ActionLog < ApplicationRecord
       formatted_timestamp: formatted_timestamp,
       details: card_description,
       simplified_details: simplified_description,
-      username: "Someone",
-      automated: automated?,
+      username: user ? user.username : "-",
+      automated: automated,
       status: status
     }
   end
@@ -161,8 +157,8 @@ class ActionLog < ApplicationRecord
   end
 
   def automated_or_user
-    if !automated? && !user_id
+    if !automated && !user_id
       errors.add(:user_id, "must not be blank if not an automated change")
-   end
+    end
   end
 end

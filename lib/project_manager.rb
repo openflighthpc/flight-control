@@ -31,7 +31,7 @@ class ProjectManager
       tp Project.all, :id, :name, :platform, :start_date, :end_date, :archived_date,
       :visualiser, :slack_channel, {regions: {:display_method => :describe_regions, formatters: [formatter]}},
       {resource_groups: {:display_method => :describe_resource_groups, formatters: [formatter]}}, {filter_level: {formatters: [formatter]}},
-      {project_tag: {formatters: [formatter]}}
+      {project_tag: {formatters: [formatter]}}, :monitor_active
       puts
       add_or_update_project
     else
@@ -292,7 +292,11 @@ class ProjectManager
         puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
       end
     end
-    attributes[:slack_channel] = get_non_blank("Slack Channel", "Slack Channel")
+    attributes[:slack_channel] = get_non_blank("Slack Channel")
+    attributes[:monitor_active] = get_non_blank("Monitor active")
+    if attributes[:monitor_active]
+      attributes[:utilisation_threshold] = get_non_blank("Utilisation threshold")
+    end
 
     if attributes[:platform].downcase == "aws"
       attributes = add_aws_attributes(attributes)
@@ -547,7 +551,7 @@ class ProjectManager
     response
   end
 
-  def show_attributes(project) 
+  def show_attributes(project)
     puts project.name
     puts "platform: #{project.platform}"
     puts "start_date: #{project.start_date}"
@@ -559,6 +563,9 @@ class ProjectManager
     puts "slack_channel: #{project.slack_channel}"
     show_class_specific_fields(project)
     show_budget_policy_attributes(project)
+    puts "monitor_active: #{!!project.monitor_active}"
+    puts "utilisation_threshold: #{project.utilisation_threshold}"
+    puts "override_monitor_until: #{project.override_monitor_until}"
   end
 
   def show_class_specific_fields(project)

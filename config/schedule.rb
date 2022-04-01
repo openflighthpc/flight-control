@@ -35,3 +35,7 @@ end
 every 1.minute do
   rake "change_requests:all[true,false]"
 end
+
+every 20.minutes do
+  rake "projects:monitor:all"
+end

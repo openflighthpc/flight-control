@@ -52,7 +52,7 @@ class User < ApplicationRecord
   end
 
   def projects
-    admin? ? Project.all : Project.where(id: user_roles.map(&:project_id))
+    (admin? ? Project.all : Project.where(id: user_roles.map(&:project_id))).reorder(:name)
   end
 
   def has_role_for?(project, role=nil)

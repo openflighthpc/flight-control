@@ -334,8 +334,23 @@ class Project < ApplicationRecord
     # platform specific, so none in this superclass
   end
 
+  def monitor
+    # platform specific, so none in this superclass
+  end
+
+  def monitor_currently_active?
+    monitor_active && (!override_monitor_until ||
+    override_monitor_until <= Time.now)
+  end
+
   def costs_plotter
     @costs_plotter ||= CostsPlotter.new(self)
+  end
+
+  def check_and_switch_off_idle_nodes(slack=false)
+    return if !utilisation_threshold
+
+    monitor.check_and_switch_off(slack)
   end
 
   def daily_report(date=DEFAULT_COSTS_DATE, rerun=false, slack=true, text=true, verbose=false)
@@ -437,7 +452,6 @@ class Project < ApplicationRecord
         request.reload
         new_attributes = request.attributes
         new_attributes["formatted_days"] = request.formatted_days
-
         create_change_request_log(request.id, user.id, original_attributes, new_attributes)
         send_slack_message(msg)
       end
@@ -468,14 +482,62 @@ class Project < ApplicationRecord
     pending_one_off_and_repeat_requests.each do |request|
       if request.due?
         any = true
-        msg = request.formatted_actions
-        send_slack_message(msg) if slack
-        puts msg if text
-        request.start
-        action_change_request(request)
+        action_change_request(request, slack, text)
       end
     end
     puts "No scheduled requests due for project #{self.name}." if !any && text
+  end
+
+  def action_change_request(request, slack=false, text=false)
+    if request.monitor_override_hours
+      details = {"override_monitor_until" => request.monitor_end_time.to_s}
+      submit_config_change(details, request.user, true, request.actual_or_parent_id, slack, text)
+    end
+    msg = request.formatted_actions
+    send_slack_message(msg) if slack
+    puts msg if text
+    request.start
+
+    instances_to_change = request.instances_to_change_with_pending
+    instance_list = {on: {}, off: {}}
+    instances_to_change.each do |action, instances|
+      instances.each do |instance|
+        # Platforms expect instances to be grouped by different criteria
+        # for efficient SDK/API queries, and to use id or name
+        grouping = instance.send(instance_grouping)
+        identifier = instance.send(instance_identifier)
+        if instance_list[action].has_key?(grouping)
+          instance_list[action][grouping] << identifier
+        else
+          instance_list[action][grouping] = [identifier]
+        end
+        action_log = ActionLog.new(project_id: id, user_id: request.user_id,
+                                   action: action, reason: "Change request",
+                                   instance_id: instance.instance_id,
+                                   change_request_id: request.actual_or_parent_id)
+        action_log.save!
+      end
+    end
+    update_instance_statuses(instance_list)
+  end
+
+  def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
+    change = ConfigLog.new(details: details, user_id: user.id, project_id: id, automated: automated,
+                           change_request_id: request_id)
+    success = change.save
+
+    if success
+      # Will need updating when possible to change compute group priorities,
+      # as these in a yaml file, not db fields
+      change.config_changes.each do |attribute, value|
+        self.assign_attributes({attribute => value["to"]})
+      end
+      self.save
+      msg = change.formatted_changes
+      send_slack_message(msg) if slack
+      puts msg if text
+    end
+    change
   end
 
   def update_instance_statuses(actions)

@@ -66,11 +66,9 @@ class RepeatedChangeRequest < ChangeRequest
   def additional_field_details(slack=false)
     details = ""
     if slack
-      #details = "*Override monitor for*: #{monitor_override} hours\n" if monitor_override
       details << "\n*Repeat until*: #{end_date}\n"
       details << "*On days*: #{formatted_days}\n"
     else
-      #details = "<strong>Override monitor for</strong>: #{monitor_override} hours<br>" if monitor_override
       details << "<br><strong>Repeat until</strong>: #{end_date}<br>"
       details << "<strong>On days</strong>: #{formatted_days}<br>"
     end

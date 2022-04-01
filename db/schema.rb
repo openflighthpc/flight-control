@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_22_142817) do
+ActiveRecord::Schema.define(version: 2022_03_23_163905) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -82,8 +82,23 @@ ActiveRecord::Schema.define(version: 2022_03_22_142817) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.bigint "user_id"
+    t.integer "monitor_override_hours"
     t.index ["project_id"], name: "index_change_requests_on_project_id"
     t.index ["user_id"], name: "index_change_requests_on_user_id"
+  end
+
+  create_table "config_logs", force: :cascade do |t|
+    t.bigint "project_id"
+    t.bigint "user_id"
+    t.bigint "change_request_id"
+    t.json "config_changes"
+    t.boolean "automated"
+    t.date "date"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["change_request_id"], name: "index_config_logs_on_change_request_id"
+    t.index ["project_id"], name: "index_config_logs_on_project_id"
+    t.index ["user_id"], name: "index_config_logs_on_user_id"
   end
 
   create_table "cost_logs", force: :cascade do |t|

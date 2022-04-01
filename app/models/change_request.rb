@@ -38,6 +38,10 @@ class ChangeRequest < ApplicationRecord
     InstanceMapping.customer_facing_type(project.platform, type)
   end
 
+  def monitor_end_time
+    monitor_override_hours ? date_time + monitor_override_hours.hours : nil
+  end
+
   def formatted_changes(with_opening=true)
     message = ""
     opening = "#{user.username} requested the following scheduled #{counts_criteria} counts for *#{self.project.name}*:\n"
@@ -95,15 +99,22 @@ class ChangeRequest < ApplicationRecord
   end
 
   def additional_field_details(slack=false)
+    additional = ""
     if description
       if slack
-        "*Description*: #{description}\n"
+        additional << "*Description*: #{description}\n"
       else
-        "<strong>Description</strong>: #{description}<br>"
+        additional <<"<strong>Description</strong>: #{description}<br>"
       end
-    else
-      ""
     end
+    if monitor_override_hours
+      if slack
+        additional << "*Override CPU monitor for*: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}\n"
+      else
+        additional <<"<strong>Override CPU monitor for</strong>:#{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}<br>"
+      end
+    end
+    additional
   end
 
   def formatted_timestamp
@@ -196,7 +207,8 @@ class ChangeRequest < ApplicationRecord
       counts_criteria: counts_criteria.capitalize,
       frontend_id: front_end_id,
       description: description,
-      link: self.link,
+      monitor_override_hours: monitor_override_hours,
+      link: link,
       updated_at: updated_at.to_s
     }
   end

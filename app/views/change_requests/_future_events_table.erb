@@ -18,6 +18,7 @@
             Target counts
           </th>
           <th class="events-table-explainer"></th>
+          <th class="events-table-explainer"></th>
           <% if @editor %>
             <th class="events-table-explainer" id="edit-column"></th>
           <% end %>
@@ -32,6 +33,7 @@
           <% @compute_groups.each do |group| %>
             <th scope="col" class="events-sub-header"><%= group %></th>
           <% end %>
+          <th scope="col" class="events-sub-header"> Monitor Off </th>
           <th scope="col" class="events-sub-header"> Description </th>
           <% if @editor %>
             <th scope="col" class="events-sub-header"> Manage </th>
@@ -59,6 +61,9 @@
                 <%= schedule.counts_criteria.capitalize %>
               </td>
               <%= render '/change_requests/scheduled_request_event_details', locals: {schedule: schedule, compute_groups: @compute_groups} %>
+              <td>
+                <%= schedule.monitor_override_hours ? "#{schedule.monitor_override_hours} hour#{'s' if schedule.monitor_override_hours > 1}" : "-" if schedule %>
+              </td>
               <td>
                 <%= schedule.description ? schedule.description : "-" %>
               </td>

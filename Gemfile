@@ -33,6 +33,7 @@ gem 'httparty'
 gem 'aws-sdk-ec2'
 gem 'aws-sdk-costexplorer'
 gem 'aws-sdk-pricing'
+gem 'aws-sdk-cloudwatch'
 gem 'whenever'
 gem 'data_migrate'
 

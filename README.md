@@ -266,7 +266,7 @@ Change requests can either specify exact counts, which will turn instances on or
 
 These requests can either be carried out 'now', 5 minutes after submission(rounded up), or at a specified date and time in the future.
 
-If in the future, the user can also optionally choose to repeat the request on the chosen days of the week, until the chosen end date (inclusive of that date). Users may also specify a description for these requests.
+If in the future, the user can also optionally choose to repeat the request on the chosen days of the week, until the chosen end date (inclusive of that date). Users may also specify a description for these requests, and if it should include an override to the CPU monitor for a specified number of hours.
 
 Once all request details have been selected, a chart will be displayed with the estimated resulting costs, for the current billing cycle.
 
@@ -290,6 +290,8 @@ A cron job is specified as part of the configuration for whenever, that runs a r
 
 When the specified date(s) and time for a request is reached, its targets are compared to the current instance counts to determine what actions (if any) are required. If any, requests are submitted to the relevant cloud platform to switch on/off instances to meet the counts and an Action Log created for each action.
 
+If the request includes a change to the monitor override this will also be updated and an associated ConfigLog created recording the details.
+
 Pending instance counts (based on pending action logs) will be displayed in the instance counts charts on the costs breakdown and create event page.
 
 When new instance logs are created, these are compared against any pending action logs. If the action logs' target states are reached, they are updated from a status of 'pending' to 'complete'.
@@ -303,3 +305,11 @@ An action log can be created using the task `rake action_logs:add [project_name,
 `instance_id` here refers to the id given by the instance's platform and must be in the appropriate format. For example, for aws this would be something like `i-0b00efe3aab7010da`, or for azure `/subscriptions/#{subscription_id}/resourceGroups/#{resource_group}/providers/Microsoft.Compute/virtualMachines/#{instance_name}`.
 
 `action` must be `on` or `off` and `actioned_at_time` in the format "yyyy-mm-dd HH:MM".
+
+### CPU Monitor and idle node switch offs
+
+Included in `config/schedule` is a cron task running every 20 minutes, that checks the CPU utilisation of any running nodes and switches them off if this is below the project's set `utilisation_threshold`. CPU utilisation is calculated as an average of the maximum values recorded over the past 20 minutes. If 20 minutes of data is not available, the utilisation will be treated as 100%.
+
+These checks and switch offs can be disabled entirely by setting a project's `monitor_active` to `false` or `nil`. It can also be disabled temporarily by setting a value for the project's `override_monitor_until`, which must be a valid date & time.
+
+If nodes are switched off as part of this process a slack message is sent to the project's slack channel with details, and associated action logs created.
