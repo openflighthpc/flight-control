@@ -4,7 +4,7 @@ class SessionsController < Devise::SessionsController
   end
 
   def destroy
-    cookies.delete Rails.application.config.sso_cookie_name
     super
+    cookies.delete Rails.application.config.sso_cookie_name, domain: :all
   end
 end
