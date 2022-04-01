@@ -32,7 +32,7 @@ class User < ApplicationRecord
     if user.present?
       user.tap do |u|
         jwt_iat = Time.at(claims.fetch('iat', 0))
-        if jwt_iat.nil? || u.jwt_iat < jwt_iat
+        if u.jwt_iat.nil? || u.jwt_iat < jwt_iat
           u.email = claims.fetch('email')
           u.username = claims.fetch('username')
           u.jwt_iat = jwt_iat
