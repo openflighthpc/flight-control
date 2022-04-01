@@ -7,7 +7,33 @@ class ProjectsController < ApplicationController
       authorize @project, policy_class: ProjectPolicy
       @nav_view = "costs"
       get_costs_data
-      puts "here"
+    end
+  end
+
+  def policy_page
+    get_project
+    if !@project
+      no_project_redirect
+    else
+      authorize @project, policy_class: ProjectPolicy
+      @nav_view = "policies"
+    end
+  end
+
+  def config_update
+    get_project
+    if !@project
+      no_project_redirect
+    else
+      authorize @project, policy_class: ProjectPolicy
+      details = params.permit(config: {})["config"]
+      result = @project.submit_config_change(details, current_user)
+      if result.valid? && result.persisted?
+        flash[:success] = "Config change submitted"
+      else
+        flash[:danger] = result.errors.full_messages.join(", ")
+      end
+      redirect_to policies_path(project: @project.name)
     end
   end
 

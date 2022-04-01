@@ -3,7 +3,7 @@ class ConfigLog < ActiveRecord::Base
   belongs_to :user
   belongs_to :change_request, optional: true
   default_scope { order(:created_at) }
-  validates :project_id, :automated, presence: true
+  validates :project_id, presence: true
   validates :config_changes, presence: true, on: :save
   validate :includes_change, on: :create
   validate :automated_or_user
@@ -17,8 +17,23 @@ class ConfigLog < ActiveRecord::Base
       new_override = Time.parse(new_override).strftime("%Y/%m/%d %H:%M:%S %z")
     end
     monitor_details = {from: existing_override, to: new_override}
-    # will change once more than monitor able to change
-    full_details = {override_monitor_until: monitor_details}
+    if self.automated
+       full_details = {override_monitor_until: monitor_details}
+    else
+      full_details = {
+                      monitor_active: {},
+                      override_monitor_until: monitor_details,
+                      utilisation_threshold: {}
+                     }
+      full_details[:monitor_active][:from] = self.project.monitor_active?
+      full_details[:monitor_active][:to] = details['monitor_active'] == 'true'
+      full_details[:utilisation_threshold][:from] = self.project.utilisation_threshold
+      if details['monitor_active'] != 'true'
+        full_details[:utilisation_threshold][:to] = full_details[:utilisation_threshold][:from]
+      else
+        full_details[:utilisation_threshold][:to] = details["utilisation_threshold"].to_i
+      end
+    end
     self.config_changes = full_details
   end
 

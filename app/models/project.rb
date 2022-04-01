@@ -14,6 +14,7 @@ class Project < ApplicationRecord
   has_many :instance_logs
   has_many :cost_logs
   has_many :action_logs
+  has_many :config_logs
   has_many :change_requests
   has_many :one_off_change_requests
   has_many :repeated_change_requests
@@ -343,6 +344,11 @@ class Project < ApplicationRecord
     override_monitor_until <= Time.now)
   end
 
+  def monitor_override_active?
+    monitor_active && override_monitor_until &&
+    override_monitor_until > Time.now
+  end
+
   def costs_plotter
     @costs_plotter ||= CostsPlotter.new(self)
   end
@@ -522,10 +528,9 @@ class Project < ApplicationRecord
   end
 
   def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
-    change = ConfigLog.new(details: details, user_id: user.id, project_id: id, automated: automated,
-                           change_request_id: request_id)
+    change = ConfigLog.new(user_id: user.id, project_id: id, automated: automated,
+                           change_request_id: request_id, details: details)
     success = change.save
-
     if success
       # Will need updating when possible to change compute group priorities,
       # as these in a yaml file, not db fields

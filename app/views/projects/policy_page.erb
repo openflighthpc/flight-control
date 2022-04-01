@@ -1,0 +1,165 @@
+<% content_for :page_specific_js do %>
+  <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+  <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+  <%= javascript_pack_tag 'policies'%>
+<% end %>
+
+<% if current_user.projects.length > 1 %>
+  <main class="col-md-10 ml-sm-auto col-lg-10 px-4" role="main">
+<% else %>
+  <main class="col-md-12 ml-sm-auto col-lg-12 px-0" role="main">
+<% end %> 
+  <%= render '/partials/nav.erb' %>
+  <div class="row session-alerts">
+    <div class="col-sm-3"></div>
+    <div class="col-sm-6">
+      <%= render 'partials/flashes' %>
+    </div>
+  </div>
+  <div class="mt-4 text-center mb-4">
+    <h2><%= @project.name %> - Policies</h2>
+  </div>
+  <div class="col-sm-10 <%= 'pl-4' if current_user.projects.length <= 1 %>">
+    <h4 id="power-down-policies-title"> Power-Down Policies</h4>
+    <form action='/config-update?project=<%= @project.name %>' method='post' id='config-change-form'>
+      <table class="table" id="policies-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;" scope="col">Policy</th>
+            <th style="width: 20%;" scope="col">Current Value</th>
+            <th style="width: 50%;" scope="col">New Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              Utilisation switch offs<a href="#" class="config-tooltip" data-placement="top" title="Enable or disable nodes being switched off due to low CPU utilisation." onClick="return false;"><sup>?</sup></a>
+            </td>
+            <td>
+              <%=
+                @project.monitor_active? ? "Enabled" : "Disabled"
+              %>
+            </td>
+            <td>
+              <div class="input-group">
+                <input
+                  type="checkbox"
+                  id="monitor-status-switch"
+                  class="custom-control-input form-control"
+                  autocomplete="off"
+                  data-toggle="toggle"
+                  data-on="Enabled"
+                  data-off="Disabled"
+                  data-offstyle="danger"
+                  value="<%= @project.monitor_active %>"
+                  <%= 'checked' if @project.monitor_active %>
+                />
+                <input
+                  id="monitor-status-input"
+                  type="hidden"
+                  name="config[monitor_active]"
+                  value="<%= @project.monitor_active %>"
+                  data-original="<%= @project.monitor_active %>"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr id="threshold-row" style="<%= 'display: none;' if !@project.monitor_active? %>">
+            <td>
+              CPU utilisation threshold<a href="#" class="config-tooltip" data-placement="top" title="If a node has an average CPU utilisation percentage of less than this (over the past 20 minutes) it will be automatically shut down" onClick="return false;"><sup>?</sup></a>
+            </td>
+            <td><%= !@project.monitor_active? ? "Disabled" : "#{@project.utilisation_threshold}%" %></td>
+            <td>
+              <div class="input-group utilisation-input">
+                <input
+                  id="threshold-input"
+                  name="config[utilisation_threshold]"
+                  class='form-control config-input'
+                  type="number"
+                  min="1"
+                  max="10"
+                  value="<%= @project.monitor_active ? @project.utilisation_threshold : '' %>"
+                  data-original="<%= @project.monitor_active ? @project.utilisation_threshold : '' %>"
+                  autocomplete="off"
+                >
+                <div class="input-group-append">
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr id="pause-row" style="<%= 'display:none;' if !@project.monitor_active? %>">
+            <td>
+              Pause utilisation switch-offs<a href="#" class="config-tooltip" data-placement="top" title="Temporarily pause nodes being switched off due to low CPU utilisation for up to 8 hours." onClick="return false;"><sup>?</sup></a>
+            </td>
+            <td>
+              <%= if @project.monitor_override_active?
+                "Paused until #{@project.override_monitor_until}"
+              else
+                "N/A"
+              end
+              %>
+            </td>
+            <td>
+              <div class="form-inline">
+                <div class="p-2 mr-2 ml-5 custom-control custom-switch">
+                  <input type="checkbox"
+                         class="custom-control-input"
+                         id="monitor-pause" 
+                         autocomplete="off"
+                         <%= 'checked' if @project.monitor_override_active? %>
+                         data-original=<%= @project.monitor_override_active? %>
+                  >
+                  <label class="custom-control-label" for="monitor-pause">Pause</label>
+                </div>
+                <% if @project.monitor_override_active? %>
+                  <% override_time = (@project.override_monitor_until - Time.new).to_i %>
+                  <% hours = (override_time / 3600).floor %>
+                  <% minutes = ((override_time - (hours * 3600)) / 60).floor %>
+                <% end %>
+                <label>For:
+                  <input type="number" 
+                         class="form-control ml-2 mr-2 override-input text-center"
+                         id="override-hours"
+                         min="0"
+                         max="8"
+                         placeholder="Hrs"
+                         <% if @project.monitor_override_active? %>
+                           data-original="<%= hours %>"
+                           value="<%= hours %>"
+                         <% end %>
+                         data-changed="no"
+                  >
+                </label>hrs
+                <label>
+                  <input type="number"
+                         class="form-control ml-2 mr-2 override-input text-center" 
+                         id="override-minutes"
+                         placeholder="Mins"
+                         min="0"
+                         max="59"
+                         <% if @project.monitor_active %>
+                           data-original="<%= minutes %>"
+                           value="<%= minutes %>"
+                         <% end %>
+                         data-changed="no"
+                  >
+                </label> mins
+                <input type="hidden"
+                       class="config-input"
+                       id="override-monitor-until"
+                       name="config[override_monitor_until]"
+                       value="<%= @project.override_monitor_until if @project.monitor_override_active? %>"
+                       data-original="<%= @project.override_monitor_until if @project.monitor_override_active?%>">
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
+      <input type="submit" id="config-change-submit"
+                 class="btn btn-warning ml-2 disabled"
+                 value="Update" disabled>
+    </form>
+  </div>
+</main>
