@@ -574,7 +574,11 @@ class CostsPlotter
         scheduled_actions = scheduled_actions.select { |scheduled| scheduled.actual_or_parent_id != temp_change_request.actual_or_parent_id }
       end
       if temp_change_request.action_on_date?(date.to_s)
-        scheduled_actions = scheduled_actions << temp_change_request.individual_request_on_date(date.to_s)
+        temp_as_one_off = temp_change_request.individual_request_on_date(date.to_s)
+        # If temp request is a one off we need to reset comparison counts so accurately
+        # determining temporary switch ons/ offs
+        temp_as_one_off.reset_comparison_counts
+        scheduled_actions = scheduled_actions << temp_as_one_off
       end
     end
     scheuled_actions = scheduled_actions.select { |scheduled| scheduled.counts[group.to_s]} if group
