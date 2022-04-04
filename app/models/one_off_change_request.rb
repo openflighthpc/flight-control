@@ -49,6 +49,8 @@ class OneOffChangeRequest < ChangeRequest
     action_on_date?(date) ? self : nil
   end
 
+  # TODO: Update as not working correctly when minimum counts with same
+  # values as current, for today
   def check_and_update_target_counts(group, type, current_status)
     action = nil
     return action if !counts[group] || !counts[group][type]
@@ -62,6 +64,12 @@ class OneOffChangeRequest < ChangeRequest
 
     comparison = @comparison_counts[group][type]
     target_count = counts[group][type]
+
+    puts "#{group} #{type}"
+    puts "COMPARE"
+    puts comparison
+    puts "TARGET"
+    puts target_count
     
     if comparison < target_count
       if current_status == "off"
@@ -88,6 +96,10 @@ class OneOffChangeRequest < ChangeRequest
       @comparison_counts[group] = {type => amount}
     end
     @comparison_counts[group][type] = 0 if @comparison_counts[group][type] < 0
+  end
+
+  def reset_comparison_counts
+    @comparison_counts = {}
   end
 
   def start
