@@ -335,7 +335,7 @@ class CostsPlotter
     # this process to just update the compute costs + total of existing results, rather than
     # creating new results.
     if match_budget
-      5.times do |x|
+      10.times do |x|
         results = prioritise_to_budget(start_date, end_date, change_request, results)
       end
     end
