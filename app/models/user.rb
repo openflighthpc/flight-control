@@ -26,7 +26,6 @@ class User < ApplicationRecord
 
   def self.from_jwt_token(token, jwt_decode_options={})
     claims = ::JsonWebToken.decode(token, jwt_decode_options)
-    return if Time.at(claims.fetch('exp')) < Time.current
     # Attempt to find user by `flight_id`
     user = find_by(flight_id: claims.fetch('flight_id'))
     if user.present?
@@ -47,6 +46,7 @@ class User < ApplicationRecord
         username: claims.fetch('username'),
         email: claims.fetch('email'),
         flight_id: claims.fetch('flight_id'),
+        jwt_iat: claims.fetch('iat', 0),
         password: SecureRandom.base58(20)
       )
 
