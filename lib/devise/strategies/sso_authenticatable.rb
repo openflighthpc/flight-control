@@ -31,7 +31,7 @@ module Devise::Strategies
         cookie = Rails.application.config.sso_cookie_name
         cookies[cookie.to_sym] = {
           value: res['user']['authentication_token'],
-          domain: 'alces-flight.com'
+          domain: Rails.application.config.sso_domain
         }
         success!(user)
       rescue JSON::ParserError
