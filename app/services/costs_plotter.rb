@@ -335,7 +335,7 @@ class CostsPlotter
     # this process to just update the compute costs + total of existing results, rather than
     # creating new results.
     if match_budget
-      10.times do |x|
+      5.times do |x|
         results = prioritise_to_budget(start_date, end_date, change_request, results)
       end
     end
@@ -363,6 +363,8 @@ class CostsPlotter
     
     last_date = Date.parse(results.keys.last)
     future_days = [last_date - Date.today, 0].max
+    first_date = Date.parse(results.keys.first)
+    future_cycle_days = [first_date - Date.today, 0].max
     end_of_cycle = last_date
     prioritised_instances = @project.latest_instances.map {|group, instances| instances}.flatten.sort
     instances_off = {}
@@ -384,7 +386,7 @@ class CostsPlotter
       beginning_budget_diff = budget_diff
       # instance costs can vary day by day based on scheduled requests
       # and so the impact of a switch off on future days must be calculated
-      while budget_diff < 0 && days > 0
+      while budget_diff < 0 && days > 0 && days > future_cycle_days
         days -= 1
         switch_off_date = switch_off_date - 1.day
         if instance.pending_on_date_end(switch_off_date) > 0
@@ -410,7 +412,7 @@ class CostsPlotter
       original_switch_off_date = Date.today + last_switch_off_day.days
       if instances_off[group][type][:off] && !instances_off[group][type][:off].empty? && budget_diff > 0 && on > 1
         off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
-        new_off, new_budget_diff = minimise_switch_offs(instance, off_dates, budget_diff, future_days)
+        new_off, new_budget_diff = minimise_switch_offs(instance, off_dates, budget_diff, future_days, future_cycle_days)
         if new_budget_diff != budget_diff && new_budget_diff >= 0
           budget_diff = new_budget_diff
           instances_off[group][type][:off] = new_off
@@ -429,7 +431,7 @@ class CostsPlotter
       type = lower_priority_instance.instance_type
       off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
       if instances_off[group][type][:off] && !instances_off[group][type][:off].empty?
-        new_off, new_budget_diff = minimise_switch_offs(lower_priority_instance, off_dates, budget_diff, future_days)
+        new_off, new_budget_diff = minimise_switch_offs(instance, off_dates, budget_diff, future_days, future_cycle_days)
         if new_budget_diff != budget_diff && budget_diff >= 0
           budget_diff = new_budget_diff
           instances_off[group][type][:off] = new_off
@@ -440,7 +442,7 @@ class CostsPlotter
     instances_off
   end
 
-  def minimise_switch_offs(instance, instances_off, budget_diff, future_days)
+  def minimise_switch_offs(instance, instances_off, budget_diff, future_days, future_cycle_days)
     return instances_off, budget_diff if budget_diff <= 0 || instances_off.empty?
 
     end_of_cycle = Date.today + future_days.days
@@ -451,7 +453,7 @@ class CostsPlotter
     instances_off.reverse_each do |original_days_in_future, off|
       beginning_budget_diff = budget_diff
       off.times do |x|
-        break if budget_diff <= 0 || (x > 0 && last_switch_off_day && last_switch_off_day <= future_days) ||
+        break if budget_diff <= 0 || (x > 0 && last_switch_off_day && (last_switch_off_day <= future_days || last_switch_off_day <= future_cycle_days)) ||
         new_switch_offs.empty?
 
         last_switch_off_day = nil
