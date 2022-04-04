@@ -109,6 +109,12 @@ Rails.application.configure do
   # config.active_record.database_selector = { delay: 2.seconds }
   # config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
   # config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+  
+  # Flight SSO integration details
+  config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME')
+  config.sso_uri = ""
+  config.sso_domain = ""
+  config.use_ssl = true
 
   config.slack_token = Rails.application.credentials.config[:slack_token]
   config.usd_gbp_conversion = 0.77

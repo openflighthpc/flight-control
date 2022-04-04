@@ -60,6 +60,12 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
+  # Flight SSO integration details
+  config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME', 'flight_sso_dev')
+  config.sso_uri = ""
+  config.sso_domain = ""
+  config.use_ssl = false
+
   config.slack_token = Rails.application.credentials.config[:slack_token]
   config.usd_gbp_conversion = 0.77
   config.gbp_compute_conversion = 12.5

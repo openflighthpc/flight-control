@@ -28,6 +28,10 @@ every :day, at: '12:00am' do
   rake "instance_details:record"
 end
 
+every :day, at: '12:00am' do
+  rake "sso:sync"
+end
+
 every 5.minutes do
   rake "instance_logs:record:all[true]"
 end

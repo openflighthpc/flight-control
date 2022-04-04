@@ -179,17 +179,20 @@ namespace :users do
     tp User.where(admin: false),
       "username",
       :active?,
-      {"user_roles.project.name" => {display_name: "projects"}},
-      {"user_roles.role.to_s" => {display_name: "roles"}}
+      {:email => {:width => 50}},
+      {"projects.name" => {display_name: "projects"}},
+      {"user_roles.role" => {display_name: "roles"}},
+      :sso?
   end
 
   desc "Show user status"
   task :status, [:username] => :environment do |task, args|
     arguments = args.to_h
     user = [User.find_by(username: arguments[:username])]
-    tp user, :username, :active?, :admin?,
+    tp user, :username, :active?, {:email => {:width => 50}}, :admin?,
       {"user_roles.project.name" => {display_name: "projects"}},
-      {"user_roles.role.to_s" => {display_name: "roles"}}
+      {"user_roles.role.to_s" => {display_name: "roles"}},
+      :sso?
   end
 
   desc "Set admin status of user"
@@ -204,6 +207,35 @@ namespace :users do
       puts "Error changing user admin status:\n #{user.errors.full_messages.join("\n")}"
     end
   end
+
+  desc "Set admin status of user"
+  task :set_admin_status, [:username, :bool] => :environment do |task, args|
+    arguments = args.to_h
+
+    user = set_admin_status(arguments[:username], arguments[:bool])
+    if user
+      puts "User \"#{arguments[:username]}\" admin status is now '#{arguments[:bool]}'"
+    else
+      puts "Error changing user admin status:\n #{user.errors.full_messages.join("\n")}"
+    end
+  end
+end
+
+def assign_role(user, project, role)
+  return UserRole.create(user: user, project: project, role: role)
+end
+
+def set_admin_status(username, bool)
+  user = User.find_by(username: username)
+
+  unless user
+    puts "User not found"
+    return
+  end
+
+  user.admin = bool
+
+  return user
 end
 
 def assign_role(user, project, role)

@@ -1,11 +1,13 @@
+require 'json_web_token'
+
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
-         :rememberable, :validatable
+         :sso_authenticatable, :rememberable, :validatable
 
   has_many :change_requests
   has_many :change_request_audit_logs
   has_many :action_logs
-  has_many :user_roles
+  has_many :user_roles, dependent: :delete_all
   alias :roles :user_roles
 
   validates :username,
@@ -15,7 +17,46 @@ class User < ApplicationRecord
   validates :admin,
     inclusion: { within: [true, false] }
 
+  validates :flight_id,
+    uniqueness: {
+      allow_blank: true
+    }
+
   before_save :default_values
+
+  def self.from_jwt_token(token, jwt_decode_options={})
+    claims = ::JsonWebToken.decode(token, jwt_decode_options)
+    # Attempt to find user by `flight_id`
+    user = find_by(flight_id: claims.fetch('flight_id'))
+    if user.present?
+      user.tap do |u|
+        jwt_iat = Time.at(claims.fetch('iat', 0))
+        if u.jwt_iat.nil? || u.jwt_iat < jwt_iat
+          u.email = claims.fetch('email')
+          u.username = claims.fetch('username')
+          u.jwt_iat = jwt_iat
+          u.save
+        end
+      end
+    else
+      # No user with given `flight_id`. This is most likely the first
+      # time that a user is accessing Flight Control. Check if the user's
+      # email exists in the DB, and if not, create the user.
+      user = User.find_by_email(claims.fetch('email')) || User.new(
+        username: claims.fetch('username'),
+        email: claims.fetch('email'),
+        flight_id: claims.fetch('flight_id'),
+        jwt_iat: claims.fetch('iat', 0),
+        password: SecureRandom.base58(20)
+      )
+
+      if user.save
+        return user
+      else
+        raise user.errors.full_messages.to_s
+      end
+    end
+  end
 
   # Not all users have an email
   def email_required?
@@ -24,6 +65,10 @@ class User < ApplicationRecord
 
   def email_changed?
     false
+  end
+
+  def sso?
+    flight_id.present?
   end
 
   # Override base Devise method to include an archived? check

@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
   protect_from_forgery
-  before_action :authenticate_user!
+  before_action :authenticate_user_from_jwt!, :authenticate_user!
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
@@ -21,6 +21,22 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  def authenticate_user_from_jwt!
+    existing_session = User.find_by(id: session["warden.user.user.key".to_sym]&.[](0))
+    return if existing_session && !existing_session.sso?
+
+    token = cookies[Rails.application.config.sso_cookie_name.to_sym]
+    if existing_session&.sso? && token.blank?
+      sign_out existing_session
+    end
+    return if token.blank?
+
+    user = User.from_jwt_token(token)
+    return if !user
+    return if user == existing_session
+    sign_in_and_redirect user
+  end
 
   def user_not_authorized
     flash[:alert] = "You are not authorised to perform this action."
