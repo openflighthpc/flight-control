@@ -203,6 +203,7 @@ function updateChart(response) {
   actualTotalDataset.data = costs.actual.total;
   forecastTotalDataset.data = costs.forecast.total
   simple_chart.data.balance_end = response.balance_end;
+  simple_chart.data.off = response.budget_switch_offs;
   simple_chart.update();
   let submitButton = $('#wizard-submit-button');
   let overBudget = overBudgetDateIndexes().length > 0;

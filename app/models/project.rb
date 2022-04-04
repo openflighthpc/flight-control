@@ -407,6 +407,7 @@ class Project < ApplicationRecord
     start_date = costs_plotter.start_of_billing_interval(Date.today)
     end_date = costs_plotter.end_of_billing_interval(start_date)
     results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, change)
+    results[:budget_switch_offs] = costs_plotter.switch_off_details(start_date)
     results
   end
 

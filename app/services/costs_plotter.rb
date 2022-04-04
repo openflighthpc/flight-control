@@ -329,8 +329,15 @@ class CostsPlotter
         results[k][:forecast_budget] = budget - total
       end
     end
-    4.times do
-      results = prioritise_to_budget(start_date, end_date, change_request, results) if match_budget
+    # This is a blunt way of ensuring we can have multiple switch offs for the same instances 
+    # (in the situation that they are turned back on later by a change request).
+    # Future imporvements: update prioritise_to_budget to accomodate this instead, and update
+    # this process to just update the compute costs + total of existing results, rather than
+    # creating new results.
+    if match_budget
+      10.times do |x|
+        results = prioritise_to_budget(start_date, end_date, change_request, results)
+      end
     end
     results
   end
@@ -338,10 +345,8 @@ class CostsPlotter
   def prioritise_to_budget(start_date, end_date, change_request, results)
     end_costs = results.to_a.last[1]
     return results if !end_costs[:forecast_budget]
-
     instances_off = prioritisation_actions(results)
     return results if !instances_off
-
     # Maybe this should be performed by the instance tracker
     @project.latest_instances.map {|group, instances| instances}.flatten.each do |instance|
       if instances_off.dig(instance.group, instance.instance_type, :off)
@@ -979,14 +984,14 @@ class CostsPlotter
   def cumulative_change_request_costs(temp_change_request)
     start_date = start_of_billing_interval(Date.today)
     end_date = end_of_billing_interval(start_date)
-    costs = cost_breakdown(start_date, end_date, temp_change_request)
+    costs = cost_breakdown(start_date, end_date, temp_change_request, true)
     chart_cumulative_costs(start_date, end_date, temp_change_request, costs)
   end
 
   def change_request_goes_over_budget?(change_request)
     start_date = start_of_billing_interval(Date.today)
     end_date = end_of_billing_interval(start_date)
-    costs = cost_breakdown(start_date, end_date, change_request)
+    costs = cost_breakdown(start_date, end_date, change_request, true)
     end_costs = costs.to_a.last[1]
     end_budget = end_costs[:forecast_budget] ? end_costs[:forecast_budget] : end_costs[:budget]
     end_budget < 0

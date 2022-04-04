@@ -199,7 +199,7 @@ class Instance
       # a change might be a budget switch off (exact count)
       # or a scheduled change (minimum count)
       changes.each do |time, details|
-        if d != Date.today || time < Project::BUDGET_SWITCH_OFF_TIME
+        if d != Date.today || time <= Project::BUDGET_SWITCH_OFF_TIME
           if details[:min] == true
             count = [count, details[:count]].max
           else
