@@ -262,8 +262,11 @@ This application has the capacity to authenticate users via a Flight SSO server.
 - The `sso_cookie_name` and `sso_uri` keys must be set in `config/environments/*.rb`.
   - `sso_cookie_name` is the name of the cookie that the SSO session will be stored in. This must match the cookie name being used by SSO.
   - `sso_uri` is the URI used to reach the SSO server. It should be the host and port, _not_ including the path.
+  - `sso_domain` is the domain that the cookie will be created under. Again, it should match the SSO server in use.
 
-When a user logs in to Flight Control with SSO credentials for a first time, a user record is created for them in the database. This user object should be treated like any 'local' user, in that it can be archived/activated and have user roles created/revoked for it.
+A rake task (`rake sso:sync`) and cron schedule item have been created for syncing the user database to the SSO database. The `JWT_SECRET` environment variable is required for it to work. The sync task will query the SSO database for users, create an SSO user in Control for any that don't already exist, and update any username/email discrepancies locally.
+
+SSO user objects should be treated like any 'local' user, in that it can be archived/activated and have user roles created/revoked for it.
 
 ### Costs Breakdown
 
