@@ -568,11 +568,14 @@ class CostsPlotter
     costs = cost_breakdown(start_date, end_date, nil, true)
     switch_offs = {}
     @project.latest_instances.each do |group, instance_types|
-      switch_offs[group] = {}
       instance_types.each do |instance|
         off_today = instance.budget_switch_offs[Date.today]
         if off_today
-          switch_offs[group][instance.instance_type] = off_today
+          if switch_offs[group]
+            switch_offs[group][instance.instance_type] = off_today
+          else
+            switch_offs[group] = {instance.instance_type => off_today }
+          end
         end
       end
     end

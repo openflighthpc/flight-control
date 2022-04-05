@@ -512,26 +512,7 @@ class Project < ApplicationRecord
     request.start
 
     instances_to_change = request.instances_to_change_with_pending
-    instance_list = {on: {}, off: {}}
-    instances_to_change.each do |action, instances|
-      instances.each do |instance|
-        # Platforms expect instances to be grouped by different criteria
-        # for efficient SDK/API queries, and to use id or name
-        grouping = instance.send(instance_grouping)
-        identifier = instance.send(instance_identifier)
-        if instance_list[action].has_key?(grouping)
-          instance_list[action][grouping] << identifier
-        else
-          instance_list[action][grouping] = [identifier]
-        end
-        action_log = ActionLog.new(project_id: id, user_id: request.user_id,
-                                   action: action, reason: "Change request",
-                                   instance_id: instance.instance_id,
-                                   change_request_id: request.actual_or_parent_id)
-        action_log.save!
-      end
-    end
-    update_instance_statuses(instance_list)
+    update_instance_statuses(instances_to_change, request)
   end
 
   def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
@@ -568,10 +549,56 @@ class Project < ApplicationRecord
   end
 
   def perform_budget_switch_offs(slack=true)
-    
+    switch_offs = costs_plotter.today_budget_switch_offs
+    if switch_offs.any?
+      to_switch_off = []
+      msg = "To meet budget for project *#{self.name}*, instances submitted to automated scripts for switch off:\n\n"
+      switch_offs.each do |compute_group, instance_types|
+        msg << "*#{compute_group}*\n"
+        change = false
+        instance_types.each do |instance_type, number|
+          instances = latest_instance_logs.where(instance_type: instance_type, compute_group: compute_group)
+          instances.each {|instance| puts instance.pending_on?}
+          instances = instances.select { |instance| instance.pending_on? }
+          instances = instances.first(number)
+          to_switch_off = to_switch_off.concat(instances)
+          msg << "#{number} #{instance_type}\n" if instances.any?
+          change = true if instances.any?
+        end
+        msg << "None\n" if !change
+      end
+      send_slack_message(msg) if slack
+      update_instance_statuses({off: to_switch_off})
+    else
+      msg = "No switch offs required today for project #{self.name} to meet budget, based on current forecasts."
+      send_slack_message(msg) if slack
+    end
+    msg
   end
 
-  def update_instance_statuses(actions)
+  # This is doing too much, the grouping and action logs should
+  # be elsewhere
+  def update_instance_statuses(instances_to_change, request=nil)
+    actions = {on: {}, off: {}}
+    instances_to_change.each do |action, instances|
+      instances.each do |instance|
+        # Platforms expect instances to be grouped by different criteria
+        # for efficient SDK/API queries, and to use id or name
+        grouping = instance.send(instance_grouping)
+        identifier = instance.send(instance_identifier)
+        if actions[action].has_key?(grouping)
+          actions[action][grouping] << identifier
+        else
+          actions[action][grouping] = [identifier]
+        end
+        action_log = ActionLog.new(project_id: id, user_id: request&.user_id,
+                                   action: action, reason: "Change request",
+                                   instance_id: instance.instance_id,
+                                   change_request_id: request&.actual_or_parent_id,
+                                   automated: request.blank?)
+        action_log.save!
+      end
+    end
     actions.each do |action, details|
       next if details.empty?
       # for aws grouping is region, for azure is resource group
