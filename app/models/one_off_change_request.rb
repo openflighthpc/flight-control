@@ -64,12 +64,6 @@ class OneOffChangeRequest < ChangeRequest
 
     comparison = @comparison_counts[group][type]
     target_count = counts[group][type]
-
-    puts "#{group} #{type}"
-    puts "COMPARE"
-    puts comparison
-    puts "TARGET"
-    puts target_count
     
     if comparison < target_count
       if current_status == "off"

@@ -70,7 +70,7 @@ class InstanceLog < ApplicationRecord
   end
 
   def pending_on?
-    status == ON_STATUSES[platform]
+    pending_status == ON_STATUSES[platform]
   end
 
   def resource_group
