@@ -538,6 +538,29 @@ class CostsPlotter
     switch_offs
   end
 
+  def switch_off_schedule_msg
+    off_msg = nil
+    @project.reset_latest_instances
+    start_date = start_of_current_billing_interval
+    end_date = end_of_billing_interval(start_date)
+    costs = cost_breakdown(start_date, end_date, nil, true)
+    switch_offs = switch_off_details
+    if switch_offs.any?
+      off_msg = ""
+      off_details = []
+      switch_offs.each do |instance, details|
+        details.each do |days_in_future, off|
+          off_details << ["#{off} #{instance}", days_in_future]
+        end
+      end
+      off_details.sort_by! {|details| [details[1], details[0]]}
+      off_details.each do |details|
+        off_msg << "Turn off #{details[0]} by end of #{start_date + details[1].days}#{" (today)" if details[1] == 0}\n"
+      end
+    end
+    off_msg
+  end
+
   # For forecasts we use the latest amount (except for compute group instance costs)
   def latest_previous_costs(date)
     costs = {compute: 0.0, data_out: 0.0, core: 0.0, core_storage: 0.0, total: 0.0, other: 0.0}
