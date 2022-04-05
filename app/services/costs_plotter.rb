@@ -561,6 +561,24 @@ class CostsPlotter
     off_msg
   end
 
+  def today_budget_switch_offs
+    @project.reset_latest_instances
+    start_date = start_of_current_billing_interval
+    end_date = end_of_billing_interval(start_date)
+    costs = cost_breakdown(start_date, end_date, nil, true)
+    switch_offs = {}
+    @project.latest_instances.each do |group, instance_types|
+      switch_offs[group] = {}
+      instance_types.each do |instance|
+        off_today = instance.budget_switch_offs[Date.today]
+        if off_today
+          switch_offs[group][instance.instance_type] = off_today
+        end
+      end
+    end
+    switch_offs
+  end
+
   # For forecasts we use the latest amount (except for compute group instance costs)
   def latest_previous_costs(date)
     costs = {compute: 0.0, data_out: 0.0, core: 0.0, core_storage: 0.0, total: 0.0, other: 0.0}
