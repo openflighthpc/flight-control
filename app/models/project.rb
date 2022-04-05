@@ -567,6 +567,10 @@ class Project < ApplicationRecord
     msg
   end
 
+  def perform_budget_switch_offs(slack=true)
+    
+  end
+
   def update_instance_statuses(actions)
     actions.each do |action, details|
       next if details.empty?
