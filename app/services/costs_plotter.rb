@@ -531,7 +531,7 @@ class CostsPlotter
             days_after_index_date = (date - index_date).to_i
             off_using_relative_index[days_after_index_date] = number_off if days_after_index_date >= 0
           end
-          switch_offs["#{group} #{instance.front_end_instance_type}"] = off_using_relative_index
+          switch_offs["#{group} #{instance.customer_facing_type}"] = off_using_relative_index
         end
       end
     end

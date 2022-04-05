@@ -220,6 +220,12 @@ function updateChart(response) {
     submitButton.attr('disabled', false);
     submitButton.prop('title', '');
   }
+  if(Object.keys(simple_chart.data.off).length > 0) {
+    $('#over-budget-switch-off-details').html(overBudgetSwitchOffDetails());
+    $('#request-over-budget-switch-offs').css('display', 'block');
+  } else {
+    $('#request-over-budget-switch-offs').css('display', 'none');
+  }
   if(simple_chart.data.balance_end != null) {
     $('#over-balance-warning').css('display', 'block');
   } else {
@@ -230,6 +236,31 @@ function updateChart(response) {
   } else {
     $('#over-budget-warning').css('display', 'none');
   }
+}
+
+function overBudgetSwitchOffDetails() {
+  let dates = simple_chart.data.labels;
+  let dateGrouped = {};
+  let details = "To best meet budget with these changes, nodes will need to be switched off during the current billing cycle.";
+  details += " Based on current forecasts:<br>";
+  Object.keys(simple_chart.data.off).forEach((type, i) => {
+      Object.keys(simple_chart.data.off[type]).forEach((dayIndex, j) => {
+        let content = `${simple_chart.data.off[type][dayIndex]} ${type}`;
+        if(dateGrouped[dayIndex] != undefined) {
+          dateGrouped[dayIndex].push(content);
+        } else {
+          dateGrouped[dayIndex] = [content];
+        }
+      });
+    });
+
+    Object.keys(dateGrouped).forEach((key, index) => {
+      for (let i = 0; i < dateGrouped[key].length; i++) {
+        details += `<br>- ${dateGrouped[key][i]} node${parseInt(dateGrouped[key][i]) > 1 ? "s" : ""} off by end of ${simple_chart.data.labels[key]}.`;
+      }
+    });
+
+  return details;
 }
 
 window.updateRequestSummary = function() {
