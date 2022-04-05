@@ -223,8 +223,10 @@ function updateChart(response) {
   if(Object.keys(simple_chart.data.off).length > 0) {
     $('#over-budget-switch-off-details').html(overBudgetSwitchOffDetails());
     $('#request-over-budget-switch-offs').css('display', 'block');
+    $('#over-budget-switch-offs-checkbox').val(true);
   } else {
     $('#request-over-budget-switch-offs').css('display', 'none');
+    $('#over-budget-switch-offs-checkbox').val(false);
   }
   if(simple_chart.data.balance_end != null) {
     $('#over-balance-warning').css('display', 'block');

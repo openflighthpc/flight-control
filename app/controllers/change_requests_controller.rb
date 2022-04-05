@@ -66,6 +66,7 @@ class ChangeRequestsController < ApplicationController
       authorize ChangeRequest.new(project: @project)
       parameters.delete(:project)
       parameters[:user_id] = current_user.id
+      parameters[:over_budget_switch_offs] = parameters[:over_budget_switch_offs] == "true"
       request = @project.create_change_request(parameters)
       if request.valid?
         flash[:success] = "Request created"
@@ -92,6 +93,7 @@ class ChangeRequestsController < ApplicationController
         else
           parameters.delete(:project)
           parameters.delete(:timeframe)
+          parameters[:over_budget_switch_offs] = parameters[:over_budget_switch_offs] == "true"
           request, success = @project.update_change_request(request, current_user, parameters)
           if success
             flash[:success] = "Request updated"
@@ -145,6 +147,7 @@ class ChangeRequestsController < ApplicationController
       :end_date,
       :description,
       :monitor_override_hours,
+      :over_budget_switch_offs,
       nodes: {}
     )
     filtered = permitted.transform_values do |value|

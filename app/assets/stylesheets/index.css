@@ -294,3 +294,7 @@ input[type=date] {
 .audit-form-label {
   margin-left: 0.9rem;
 }
+
+#over-budget-switch-offs-checkbox {
+  display: none;
+}
