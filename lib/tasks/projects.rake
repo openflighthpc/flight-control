@@ -67,4 +67,68 @@ namespace :projects do
       end
     end
   end
+
+  namespace :budget_switch_off_schedule do
+    desc "Show over budget switch off schedules for all active projects"
+    task :all, [:slack, :text] => :environment do |task, args|
+      Project.active.each do |project|
+        begin
+        rescue StandardError => e
+          puts "Error determining over budget switch offs for #{project.name}: #{e.message}"
+          next
+        end
+        fork do
+          Rake::Task['projects:budget_switch_off_schedule:by_project'].invoke(project.name,args[:slack],args[:text])
+          Rake::Task['projects:budget_switch_off_schedule:by_project'].reenable
+        end
+      end
+    end
+
+    desc "Show over budget switch off schedule for a given project"
+    task :by_project, [:project, :slack, :text] => :environment do |task, args|
+      project = Project.find_by(name: args[:project])
+      if !project
+        puts "No project found with that name"
+      else
+        begin
+          msg = project.budget_switch_off_schedule(args["slack"] == "true")
+          puts msg if args["text"] == "true"
+        rescue StandardError => e
+          puts "Error determining over budget switch offs for #{project.name}: #{e.message}"
+        end
+      end
+    end
+  end
+  
+  namespace :budget_switch_offs do
+    desc "Carry out any over budget scheduled switch offs for all active projects"
+    task :all, [:slack, :text]  => :environment do |task, args|
+      Project.active.each do |project|
+        begin
+        rescue Errno::ENOENT
+          puts "No config file found for project #{project.name}"
+          next
+        end
+        fork do
+          Rake::Task['projects:budget_switch_offs:by_project'].invoke(project.name,args[:slack],args[:text])
+          Rake::Task['projects:budget_switch_offs:by_project'].reenable
+        end
+      end
+    end
+
+    desc "Carry out any over budget switch offs for a given project"
+    task :by_project, [:project, :slack, :text] do |task, args|
+      project = Project.find_by(name: args[:project])
+      if !project
+        puts "No project found with that name"
+      else
+        begin
+          msg = project.perform_budget_switch_offs(args[:slack] == "true")
+          puts msg if args[:text] == "true"
+        rescue Errno::ENOENT
+          puts "No config file found for project #{project.name}"
+        end
+      end
+    end
+  end
 end
