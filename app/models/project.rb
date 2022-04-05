@@ -552,6 +552,21 @@ class Project < ApplicationRecord
     change
   end
 
+  def budget_switch_off_schedule(slack=false)
+    reset_latest_instances
+    off_msg = costs_plotter.switch_off_schedule_msg
+    if off_msg
+      msg = "Based on latest forecasts, nodes must be switched off to meet this cycle's budget. Current planned switch offs:\n\n"
+      msg << off_msg
+    else
+      msg = "No budget switch offs required based on current forecasts."
+    end
+    msg = "Project *#{self.name}*\n" << msg
+    msg << "\n\n"
+    send_slack_message(msg) if slack
+    msg
+  end
+
   def update_instance_statuses(actions)
     actions.each do |action, details|
       next if details.empty?
