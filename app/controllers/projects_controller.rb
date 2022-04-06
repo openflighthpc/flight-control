@@ -107,7 +107,7 @@ class ProjectsController < ApplicationController
     else
       @end_date = cost_plotter.end_of_billing_interval(@start_date)
     end
-    costs = cost_plotter.super_cost_breakdown(@start_date, @end_date, nil, true)
+    costs = cost_plotter.combined_cost_breakdown(@start_date, @end_date, nil, true)
     @cost_breakdown = cost_plotter.chart_cost_breakdown(@start_date, @end_date, nil, costs)
     @cumulative_costs = cost_plotter.chart_cumulative_costs(@start_date, @end_date, nil, costs)
     @possible_datasets = cost_plotter.possible_datasets
@@ -118,7 +118,7 @@ class ProjectsController < ApplicationController
     @min_date = cost_plotter.minimum_date
     @max_date = cost_plotter.date_limit
     @switch_offs = cost_plotter.switch_off_details(@start_date)
-    @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date)
+    @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date, false)
   end
 
   private
