@@ -113,12 +113,12 @@ class ProjectsController < ApplicationController
     @possible_datasets = cost_plotter.possible_datasets
     @datasets = params['datasets']
     @current_instances = @project.latest_instances
-    filter_current_instances if @datasets
     @cycle_thresholds = cost_plotter.cycle_thresholds(@start_date, @end_date)
     @min_date = cost_plotter.minimum_date
     @max_date = cost_plotter.date_limit
     @switch_offs = cost_plotter.switch_off_details(@start_date)
     @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date, false)
+    filter_current_instances if @datasets
   end
 
   private
