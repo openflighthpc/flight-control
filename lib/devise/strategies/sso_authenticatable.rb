@@ -6,7 +6,7 @@ module Devise::Strategies
     def authenticate!
       uri = Rails.application.config.sso_uri
       uri = URI(uri)
-      uri.path << "/sign-in"
+      uri.path << "/sign-in#{'?permanent=1' if params['user']['remember_me'] == '1'}"
 
       req = Net::HTTP::Post.new(uri.path)
       req.content_type = "application/json"
@@ -26,12 +26,17 @@ module Devise::Strategies
       end
 
       begin
+        cookie_details = res.header["Set-cookie"]
         res = JSON.parse(res.body)
+        # cookie header is returned as one long string, we need to
+        # extract the expiry.
+        expiry = cookie_details.split(";").last.split("=").last
         user = User.from_jwt_token(res['user']['authentication_token'])
         cookie = Rails.application.config.sso_cookie_name
         cookies[cookie.to_sym] = {
           value: res['user']['authentication_token'],
-          domain: Rails.application.config.sso_domain
+          domain: Rails.application.config.sso_domain,
+          expires: Time.parse(expiry)
         }
         success!(user)
       rescue JSON::ParserError
