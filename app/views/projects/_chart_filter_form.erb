@@ -17,12 +17,16 @@
           <label for="from-date" class="charts-form-label">From:</label>
           <input class="form-control cost-chart-date" type="date" id='start-date'
                  name='start_date'
+                 min='<%= @min_date %>'
+                 max='<%= @max_date %>'
                  <%= "value=#{@start_date}" %>>
         </div>
         <div class="form-group col-md-2">
           <label for="to-date" class="charts-form-label">To:</label>
           <input class="form-control cost-chart-date" type="date" id='end-date'
                  name="end_date"
+                 min='<%= @min_date %>'
+                 max='<%= @max_date %>'
                  <%= "value=#{@end_date}" %>>
         </div>
       </div>
