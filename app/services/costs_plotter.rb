@@ -231,7 +231,7 @@ class CostsPlotter
 
   # break costs into cycles. Allows for calculating over budget switch offs
   # across multiple cycles
-  def super_cost_breakdown(start_date, end_date, change_request=nil, match_buget=false)
+  def combined_cost_breakdown(start_date, end_date, change_request=nil, match_buget=false)
     start_of_current_cycle = start_of_billing_interval(Date.today)
     if start_date < start_of_current_cycle
       start = start_of_billing_interval(start_date)
@@ -840,7 +840,16 @@ class CostsPlotter
     @latest_cost_log_date ||= @project.cost_logs.last&.date
   end
 
-  def estimated_end_of_balance(temp_change_request=nil)
+  # Possibly a better way of calculating this, but complex due to need
+  # to consider over budget switch offs
+  def estimated_balance_end_in_cycle(start_date=start_of_current_billing_interval,
+                                     end_date=end_of_current_billing_interval,
+                                     recalculate_costs=true,
+                                     temp_change_request=nil)
+    # This needs to run to ensure over budget switch offs are considered
+    if recalculate_costs
+      combined_cost_breakdown(start_date, end_date, temp_change_request, true)
+    end
     balance = @project.balances.where("amount > ?", 0).last
     balance = balance ? balance.amount : 0.0
     date_grouped = @project.cost_logs.where(scope: "total").group_by { |log| log.date }
@@ -851,28 +860,22 @@ class CostsPlotter
       break if balance <= 0
     end
 
-    if balance > 0 && (!@project.archived_date || balance_end_date <= @project.archived_date)
+    if balance > 0 && balance_end_date < end_date
       # Need to set a final date to avoid possibility of infinite/ very long loop if costs
       # are zero/ very low
-      final_check_date = @project.archived_date ? @project.archived_date : Date.today + 1.year
+      final_check_date = end_date
       while(balance > 0 && balance_end_date < final_check_date)
         balance_end_date += 1.day
-        balance -= forecast_compute_cost(balance_end_date, nil, temp_change_request)
+        balance -= forecast_compute_cost(balance_end_date, nil)
         balance -= latest_compute_storage_costs
         balance -= latest_non_compute_costs
       end
       balance_end_date = nil if balance_end_date >= final_check_date
     end
-    balance_end_date
-  end
 
-  def estimated_balance_end_in_cycle(start_date=start_of_current_billing_interval,
-                                     end_date=end_of_current_billing_interval,
-                                     temp_change_request=nil)
     cycle_index = nil
-    estimated_end = estimated_end_of_balance(temp_change_request)
-    if estimated_end && estimated_end >= start_date && estimated_end <= end_date
-      cycle_index = (start_date..end_date).to_a.index(estimated_end)
+    if balance_end_date && balance_end_date >= start_date && balance_end_date <= end_date
+      cycle_index = (start_date..end_date).to_a.index(balance_end_date)
     end
     cycle_index
   end
