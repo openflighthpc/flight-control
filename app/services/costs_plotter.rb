@@ -1053,4 +1053,15 @@ class CostsPlotter
     end_budget = end_costs[:forecast_budget] ? end_costs[:forecast_budget] : end_costs[:budget]
     end_budget < 0
   end
+
+  # For costs breakdown form
+  def date_limit
+    limit = start_of_current_billing_interval + 3.months
+    limt = @project.archived_date if @project.archived_date
+    end_of_billing_interval(limit)
+  end
+
+  def minimum_date
+    active_billing_cycles.first
+  end
 end
