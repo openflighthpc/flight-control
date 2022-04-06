@@ -821,7 +821,7 @@ class CostsPlotter
     costs_between_dates(@project.start_date, date)
   end
 
-  # Does not include end date
+  # Does not include end date or over budget switch offs
   def costs_between_dates(start_date, end_date)
     logs = @project.cost_logs.where(scope: "total").where("date < ? AND date >= ?", end_date, start_date)
     costs = logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
@@ -1012,8 +1012,17 @@ class CostsPlotter
         end
         # costs between dates does not include end date, 
         # so need to add another day
+        if current
+          costs = cost_breakdown(start_date, end_date, nil, true)
+          cost = costs.reduce(0.0) do |sum, details|
+            costs = details[1]
+            sum + (costs[:total] ? costs[:total] : costs[:forecast_total])
+          end
+        else
+          cost = costs_between_dates(start_date, end_date + 1.day).to_i
+        end
         cycle_details = { start: start_date, end: end_date,
-                          cost: costs_between_dates(start_date, end_date + 1.day).to_i,
+                          cost: cost,
                           current: current,
                           estimate: !latest_cost_log_date || end_date > latest_cost_log_date
                         }
