@@ -331,12 +331,14 @@ class CostsPlotter
     end
     # This is a blunt way of ensuring we can have multiple switch offs for the same instances 
     # (in the situation that they are turned back on later by a change request).
-    # Future imporvements: update prioritise_to_budget to accomodate this instead, and update
+    # This may lead to very long processing times if many number of nodes & future requests.
+    # Future improvements: update prioritise_to_budget to accomodate this instead, and update
     # this process to just update the compute costs + total of existing results, rather than
     # creating new results.
     if match_budget
-      10.times do |x|
-        results = prioritise_to_budget(start_date, end_date, change_request, results)
+      continue = true
+      while continue
+        results, continue = prioritise_to_budget(start_date, end_date, change_request, results)
       end
     end
     results
@@ -344,18 +346,21 @@ class CostsPlotter
 
   def prioritise_to_budget(start_date, end_date, change_request, results)
     end_costs = results.to_a.last[1]
-    return results if !end_costs[:forecast_budget]
+    return results, false if !end_costs[:forecast_budget]
     instances_off = prioritisation_actions(results)
-    return results if !instances_off
+    return results, false if !instances_off || instances_off.empty?
+
     # Maybe this should be performed by the instance tracker
     @project.latest_instances.map {|group, instances| instances}.flatten.each do |instance|
       if instances_off.dig(instance.group, instance.instance_type, :off)
         instance.add_budget_switch_offs(instances_off[instance.group][instance.instance_type][:off])
       end
     end
-    cost_breakdown(start_date, end_date, change_request)
+    return cost_breakdown(start_date, end_date, change_request), true
   end
 
+  # Update/ rewrite this so considers switching off at multiple times (not
+  # just once per cycle). This may involve a significant/ complete rewrite.
   def prioritisation_actions(results)
     end_costs = results.to_a.last[1]
     budget_diff = end_costs[:forecast_budget]
@@ -439,6 +444,7 @@ class CostsPlotter
       end
       i -= 1;
     end
+    instances_off.select! {|group, instance_types| instance_types.any? {|type, off| off.any? }}
     instances_off
   end
 
@@ -555,7 +561,8 @@ class CostsPlotter
       end
       off_details.sort_by! {|details| [details[1], details[0]]}
       off_details.each do |details|
-        off_msg << "Turn off #{details[0]} by end of #{start_date + details[1].days}#{" (today)" if details[1] == 0}\n"
+        date = start_date + details[1].days
+        off_msg << "Turn off #{details[0]} by end of #{date}#{" (today)" if date == Date.today}\n"
       end
     end
     off_msg
