@@ -378,7 +378,7 @@ window.addShutOffLines = function() {
       } else {
         text += " >";
       }
-      context.fillText(text, lineLeftOffset, (((scale.bottom - scale.top)/15) * number) + scale.top * 1.2);
+      context.fillText(text, lineLeftOffset, (((scale.bottom - scale.top)/15) * number) + scale.top * 1.5);
     },
 
     afterDatasetsDraw: function (chart, easing) {
