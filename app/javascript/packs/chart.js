@@ -372,7 +372,13 @@ window.addShutOffLines = function() {
       let position = 'left';
       if (pointIndex > chartInstance.data.labels.length / 2) position = 'right';
       context.textAlign = position;
-      context.fillText(` ${off} ${instanceType} off `, lineLeftOffset, (((scale.bottom - scale.top)/10) * number) + scale.top * 2);
+      let text = ` ${off} ${instanceType} off`;
+      if(position === 'left') {
+        text = "< " + text;
+      } else {
+        text += " >";
+      }
+      context.fillText(text, lineLeftOffset, (((scale.bottom - scale.top)/15) * number) + scale.top * 1.2);
     },
 
     afterDatasetsDraw: function (chart, easing) {
