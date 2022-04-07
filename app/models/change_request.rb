@@ -125,6 +125,10 @@ class ChangeRequest < ApplicationRecord
     'change_request_card'
   end
 
+  def description_partial
+    'change_request_event_details'
+  end
+
   def includes_instance_type?(group, instance_type)
     counts[group][instance_type]
   end

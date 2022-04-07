@@ -6,6 +6,7 @@ require_relative 'action_log'
 require_relative '../services/project_config_creator'
 require_relative '../services/costs_plotter'
 require_relative '../services/instance_tracker'
+require_relative '../decorators/budget_switch_off_decorator'
 require 'httparty'
 
 class Project < ApplicationRecord
@@ -131,13 +132,15 @@ class Project < ApplicationRecord
 
   # In future this will include over budget switch offs
   def events(groups=nil)
-    events = pending_one_off_and_repeat_requests
+    events = pending_one_off_and_repeat_requests.concat(decorated_switch_offs)
     events = events.select { |event| event.included_in_groups?(groups) } if groups
     events
   end
 
   def events_on(date, groups=nil)
-    pending_one_off_and_repeat_requests_on(date, groups)
+    requests = pending_one_off_and_repeat_requests_on(date, groups)
+    switch_offs = decorated_switch_offs.select { |off| off.date == date && (!groups || off.included_in_groups?(groups)) }
+    requests.concat(switch_offs)
   end
 
   def events_by_date(chosen_events=events)
@@ -575,7 +578,17 @@ class Project < ApplicationRecord
     msg
   end
 
-  # This is doing too much, the grouping and action logs should
+  # Convert them into a format equivalent to a change request,
+  # for use in the front end.
+  def decorated_switch_offs
+    results = []
+    costs_plotter.switch_offs_by_date.each do |date, details|
+      results << BudgetSwitchOffDecorator.new(Date.parse(date), details, platform)
+    end
+    results
+  end
+
+  # This is perhaps doing too much, the grouping and action logs could
   # be elsewhere
   def update_instance_statuses(instances_to_change, request=nil)
     actions = {on: {}, off: {}}
