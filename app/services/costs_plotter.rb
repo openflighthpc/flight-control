@@ -329,26 +329,17 @@ class CostsPlotter
         results[k][:forecast_budget] = budget - total
       end
     end
-    # This is a blunt way of ensuring we can have multiple switch offs for the same instances 
-    # (in the situation that they are turned back on later by a change request).
-    # This may lead to very long processing times if many number of nodes & future requests.
-    # Future improvements: update prioritise_to_budget to accomodate this instead, and update
-    # this process to just update the compute costs + total of existing results, rather than
-    # creating new results.
     if match_budget
-      continue = true
-      while continue
-        results, continue = prioritise_to_budget(start_date, end_date, change_request, results)
-      end
+      results = prioritise_to_budget(start_date, end_date, change_request, results)
     end
     results
   end
 
   def prioritise_to_budget(start_date, end_date, change_request, results)
     end_costs = results.to_a.last[1]
-    return results, false if !end_costs[:forecast_budget]
+    return results if !end_costs[:forecast_budget]
     instances_off = prioritisation_actions(results)
-    return results, false if !instances_off || instances_off.empty?
+    return results if !instances_off || instances_off.empty?
 
     # Maybe this should be performed by the instance tracker
     @project.latest_instances.map {|group, instances| instances}.flatten.each do |instance|
@@ -356,7 +347,30 @@ class CostsPlotter
         instance.add_budget_switch_offs(instances_off[instance.group][instance.instance_type][:off])
       end
     end
-    return cost_breakdown(start_date, end_date, change_request), true
+
+    compute_groups = @project.front_end_compute_groups.keys
+    remaining_budget = nil
+    results.each do |date, costs|
+      if costs[:forecast_budget]
+        if !remaining_budget
+          remaining_budget = costs[:forecast_budget] + costs[:forecast_total]
+        end
+        original_non_compute_total = costs[:forecast_total] - costs[:forecast_compute] 
+        compute_total = 0.0
+        compute_groups.each do |group|
+          results[date]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(date), group.to_sym, change_request)
+          compute_total += results[date]["forecast_#{group}".to_sym]
+          compute_total += results[date]["forecast_#{group}_storage".to_sym]
+        end
+        results[date][:forecast_compute] = compute_total
+        results[date][:forecast_total] = original_non_compute_total + compute_total
+        remaining_budget -= results[date][:forecast_total]
+        results[date][:forecast_budget] = remaining_budget 
+      end
+    end
+
+    # recursively call self until no more switch offs possible
+    prioritise_to_budget(start_date, end_date, change_request, results)
   end
 
   # Update/ rewrite this so considers switching off at multiple times (not
@@ -776,8 +790,8 @@ class CostsPlotter
     @latest_cost_log_date ||= @project.cost_logs.last&.date
   end
 
-  # Possibly a better way of calculating this, but complex due to need
-  # to consider over budget switch offs
+  # To Do: calculate this as part of cost_breakdown, as doing
+  # many similar calculations.
   def estimated_balance_end_in_cycle(start_date=start_of_current_billing_interval,
                                      end_date=end_of_current_billing_interval,
                                      recalculate_costs=true,
@@ -1015,7 +1029,7 @@ class CostsPlotter
 
   def switch_offs_by_date
     start_date = start_of_current_billing_interval
-    recalculate_costs_and_switch_offs(end_of_billing_interval(Date.today + 2.months))
+    recalculate_costs_and_switch_offs(end_of_billing_interval(Date.today + 1.month))
     switch_offs = switch_off_details(start_date, false)
     results = {}
     return results if switch_offs == nil || switch_offs.empty?
