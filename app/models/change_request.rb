@@ -216,6 +216,7 @@ class ChangeRequest < ApplicationRecord
       descriptive_counts: descriptive_counts,
       status: status,
       editable: editable?,
+      cancellable: cancellable?,
       counts_criteria: counts_criteria.capitalize,
       frontend_id: front_end_id,
       description: description,

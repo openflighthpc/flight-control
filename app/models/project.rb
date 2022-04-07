@@ -149,7 +149,7 @@ class Project < ApplicationRecord
 
   # within next 5 mins
   def upcoming_events(groups=nil)
-    today_events = events_on(Date.today.to_s, groups)
+    today_events = events_on(Date.today, groups)
     five_mins_from_now = Time.now + 5.minutes
     today_events.select { |event| event.date_time <= five_mins_from_now }
   end

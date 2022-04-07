@@ -185,14 +185,6 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
     }
     html += "</td>";
   });
-  //html += `<td>`;
-  // if(details.type === "budget_switch_off") {
-  //   html += "n/a";
-  // } else if(details.monitor === null) {
-  //   html += "none";
-  // } else {
-  //   html += `${details.monitor} hour${details.monitor > 1 ? "s" : ""}`;
-  // }
   let override = details.monitor_override_hours;
   if (override) override = `${override} hour${ override > 1 ? 's' : '' }`;
   html += `<td>${override ? override : '-'}</td>`;
@@ -210,12 +202,15 @@ function createRequestButtons(details) {
   const id = details.frontend_id.split("-")[0];
   const project = $("[name='project']").val();
   const token = $('meta[name="csrf-token"]').attr('content');
-  let html = `<form action='/events/${id}/cancel?project=${project}'`;
-  html += `method='post' id='cancel-scheduled-request-${id}'`;
-  html += `onsubmit='return confirm("Are you sure you want to cancel this request?");'>`;
-  html += `<input type="hidden" name="authenticity_token" value="${token}">`;
-  html += `</form> <button class="btn btn-sm btn-danger" form="cancel-scheduled-request-${id}">`;
-  html += ` Cancel </button>`;
+  let html = "";
+  if(details.cancellable) {
+    html = `<form action='/events/${id}/cancel?project=${project}'`;
+    html += `method='post' id='cancel-scheduled-request-${id}'`;
+    html += `onsubmit='return confirm("Are you sure you want to cancel this request?");'>`;
+    html += `<input type="hidden" name="authenticity_token" value="${token}">`;
+    html += `</form> <button class="btn btn-sm btn-danger" form="cancel-scheduled-request-${id}">`;
+    html += ` Cancel </button>`;
+  }
   if(details.editable) {
     html += ' <button class="btn btn-sm btn-warning"';
     html += `onclick="window.location.href='${details.link}'"> Edit </button>`
