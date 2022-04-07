@@ -525,70 +525,6 @@ class CostsPlotter
     return instances_off, budget_diff
   end
 
-  # After running costs_breakdown
-  def switch_off_details(index_date=start_of_current_billing_interval)
-    switch_offs = {}
-    @project.latest_instances.each do |group, instance_types|
-      instance_types.each do |instance|
-        off = instance.budget_switch_offs
-        if off.any?
-          off_using_relative_index = {}
-          off.each do |date, number_off|
-            days_after_index_date = (date - index_date).to_i
-            off_using_relative_index[days_after_index_date] = number_off if days_after_index_date >= 0
-          end
-          switch_offs["#{group} #{instance.customer_facing_type}"] = off_using_relative_index
-        end
-      end
-    end
-    switch_offs
-  end
-
-  def switch_off_schedule_msg
-    off_msg = nil
-    @project.reset_latest_instances
-    start_date = start_of_current_billing_interval
-    end_date = end_of_billing_interval(start_date)
-    costs = cost_breakdown(start_date, end_date, nil, true)
-    switch_offs = switch_off_details
-    if switch_offs.any?
-      off_msg = ""
-      off_details = []
-      switch_offs.each do |instance, details|
-        details.each do |days_in_future, off|
-          off_details << ["#{off} #{instance}", days_in_future]
-        end
-      end
-      off_details.sort_by! {|details| [details[1], details[0]]}
-      off_details.each do |details|
-        date = start_date + details[1].days
-        off_msg << "Turn off #{details[0]} by end of #{date}#{" (today)" if date == Date.today}\n"
-      end
-    end
-    off_msg
-  end
-
-  def today_budget_switch_offs
-    @project.reset_latest_instances
-    start_date = start_of_current_billing_interval
-    end_date = end_of_billing_interval(start_date)
-    costs = cost_breakdown(start_date, end_date, nil, true)
-    switch_offs = {}
-    @project.latest_instances.each do |group, instance_types|
-      instance_types.each do |instance|
-        off_today = instance.budget_switch_offs[Date.today]
-        if off_today
-          if switch_offs[group]
-            switch_offs[group][instance.instance_type] = off_today
-          else
-            switch_offs[group] = {instance.instance_type => off_today }
-          end
-        end
-      end
-    end
-    switch_offs
-  end
-
   # For forecasts we use the latest amount (except for compute group instance costs)
   def latest_previous_costs(date)
     costs = {compute: 0.0, data_out: 0.0, core: 0.0, core_storage: 0.0, total: 0.0, other: 0.0}
@@ -995,6 +931,111 @@ class CostsPlotter
     datasets ||= []
     datasets += [ "budget", "core", "cycle total", "data out", "other"]
     datasets
+  end
+
+  def recalculate_costs_and_switch_offs(end_date=nil)
+    @project.reset_latest_instances
+    start_date = start_of_current_billing_interval
+    end_date ||= end_of_billing_interval(start_date)
+    combined_cost_breakdown(start_date, end_date, nil, true)
+  end
+
+  def switch_off_details(index_date=start_of_current_billing_interval, recalculate=true)
+    recalculate_costs_and_switch_offs if recalculate
+    switch_offs = {}
+    @project.latest_instances.each do |group, instance_types|
+      instance_types.each do |instance|
+        off = instance.budget_switch_offs
+        if off.any?
+          switch_offs[group] = {} if !switch_offs[group]
+          off_using_relative_index = {}
+          off.each do |date, number_off|
+            days_after_index_date = (date - index_date).to_i
+            off_using_relative_index[days_after_index_date] = number_off if days_after_index_date >= 0
+          end
+          switch_offs[group][instance.instance_type] = off_using_relative_index
+        end
+      end
+    end
+    switch_offs
+  end
+
+  def front_end_switch_off_details(index_date=start_of_current_billing_interval, recalculate=true)
+    front_end_switch_offs = {}
+    switch_offs = switch_off_details(index_date, recalculate)
+    switch_offs.each do |group, details|
+      details.each do |instance_type, off_using_relative_index|
+        if off_using_relative_index.any?
+          customer_facing_type = InstanceMapping.customer_facing_type(@project.platform, instance_type)
+          front_end_switch_offs["#{group} #{customer_facing_type}"] = off_using_relative_index
+        end
+      end
+    end
+    front_end_switch_offs
+  end
+
+  def switch_off_schedule_msg(recalculate=true)
+    off_msg = nil
+    start_date = start_of_current_billing_interval
+    switch_offs = front_end_switch_off_details(start_date, recalculate)
+    if switch_offs.any?
+      off_msg = ""
+      off_details = []
+      switch_offs.each do |instance, details|
+        details.each do |days_in_future, off|
+          off_details << ["#{off} #{instance}", days_in_future]
+        end
+      end
+      off_details.sort_by! {|details| [details[1], details[0]]}
+      off_details.each do |details|
+        date = start_date + details[1].days
+        off_msg << "Turn off #{details[0]} by end of #{date}#{" (today)" if date == Date.today}\n"
+      end
+    end
+    off_msg
+  end
+
+  def today_budget_switch_offs
+    recalculate_costs_and_switch_offs
+    switch_offs = {}
+    @project.latest_instances.each do |group, instance_types|
+      instance_types.each do |instance|
+        off_today = instance.budget_switch_offs[Date.today]
+        if off_today
+          if switch_offs[group]
+            switch_offs[group][instance.instance_type] = off_today
+          else
+            switch_offs[group] = {instance.instance_type => off_today }
+          end
+        end
+      end
+    end
+    switch_offs
+  end
+
+  def switch_offs_by_date
+    start_date = start_of_current_billing_interval
+    recalculate_costs_and_switch_offs(end_of_billing_interval(Date.today + 2.months))
+    switch_offs = switch_off_details(start_date, false)
+    results = {}
+    return results if switch_offs == nil || switch_offs.empty?
+
+    switch_offs.each do |group, instances|
+      instances.each do |instance_type, off|
+        next if off == nil || off == {}
+        off.each do |days, number|
+          date = (start_date + days.days).to_s
+          if !results.has_key?(date)
+            results[date] = {group => {instance_type => number}}
+          elsif !results[date].has_key?(group)
+            results[date][group] = {instance_type => number}
+          else
+            results[date][group][instance_type] = number
+          end
+        end
+      end
+    end
+    results
   end
 
   def historic_cycle_details
