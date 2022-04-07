@@ -1,14 +1,13 @@
 # for displaying budget switch offs in future events tables
 class BudgetSwitchOffDecorator
-  SWITCH_OFF_TIME = "23:30"
-
   attr_reader :date, :time, :updated_at, :switch_offs
 
-  def initialize(date, switch_offs)
+  def initialize(date, switch_offs, platform)
     @date = date
-    @time = SWITCH_OFF_TIME
+    @time = Project::BUDGET_SWITCH_OFF_TIME
     @switch_offs = switch_offs
     @updated_at = Time.now
+    @platform = platform
   end
 
   def date_time
@@ -20,15 +19,48 @@ class BudgetSwitchOffDecorator
     "budget-off-#{date}"
   end
 
+  # Includes counts for any of the provided groups
+  def included_in_groups?(groups)
+    groups.detect { |group| includes_group?(group) }
+  end
+
+  def includes_group?(group)
+    switch_offs[group] && !switch_offs[group].blank?
+  end
+
   def descriptive_counts
     results = {}
     switch_offs.each do |group, instance_types|
       customer_facing_types = instance_types.map do |k,v|
-        [InstanceMapping.customer_facing_name(k),v]
+        [InstanceMapping.customer_facing_type(@platform, k),v]
       end.to_h
       results[group] = customer_facing_types
     end
     results
+  end
+
+  def description_partial
+    'over_budget_switch_off_details'
+  end
+
+  def counts_criteria
+    "-"
+  end
+
+  def description
+    "-"
+  end
+
+  def monitor_override_hours
+    nil
+  end
+
+  def editable?
+    false
+  end
+
+  def cancellable?
+    false
   end
 
   def as_json(options={})

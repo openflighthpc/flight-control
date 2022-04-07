@@ -1,0 +1,13 @@
+<% @project.front_end_compute_groups.keys.each do |group| %>
+  <td class="text-danger">
+    <% switch_offs = locals[:schedule].descriptive_counts %>
+    <% if switch_offs[group] %>
+      <% switch_offs[group].each do |type, count| %>
+        <%= "#{count} x #{type} off" %>
+        <br>
+      <% end %>
+    <% else %>
+      -
+    <% end %>
+  </td>
+<% end %>
