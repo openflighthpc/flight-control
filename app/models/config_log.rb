@@ -37,10 +37,6 @@ class ConfigLog < ActiveRecord::Base
     self.config_changes = full_details
   end
 
-  def formatted_timestamp
-    created_at.strftime('%-I:%M%P %F')
-  end
-
   def formatted_changes
     if automated
       message ="The configuration of project *#{self.project.name}* has been updated as part of a scheduled request:\n"
