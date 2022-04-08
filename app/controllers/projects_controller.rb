@@ -7,6 +7,8 @@ class ProjectsController < ApplicationController
       authorize @project, policy_class: ProjectPolicy
       @nav_view = "costs"
       get_costs_data
+      puts "indigo"
+      puts Instance.check_count
     end
   end
 

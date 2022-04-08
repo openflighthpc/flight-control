@@ -170,9 +170,11 @@ class Instance
     count = pending_on
     # store temp counts in a different variable and recalculate only if they have changed
     if temp_counts && @temp_counts != temp_counts
+      @@check_count += 1
       @temp_counts = temp_counts
       @temp_future_count_changes = Project.deep_copy_hash(@future_count_changes)
       add_future_count_changes(temp_counts, true)
+      @temp_future_counts = {}
     end
     future_count_changes = temp_counts ? @temp_future_count_changes : @future_count_changes
     future_counts = temp_counts ? @temp_future_counts : @future_counts
@@ -200,7 +202,7 @@ class Instance
           end
         end
       end
-      future_counts[d] = count if !temp_counts
+      future_counts[d] = count
     end
     @@check_count += 1
     count
