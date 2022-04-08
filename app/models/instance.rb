@@ -235,7 +235,7 @@ class Instance
   end
 
   def compute_cost_per_hour
-    price_per_hour * CostLog.gbp_compute_conversion
+    price_per_hour * CostLog.gbp_compute_conversion * CostLog.at_risk_conversion
   end
 
   # if no pending change, the same as actual
@@ -326,10 +326,13 @@ class Instance
     just_switch_offs = {}
     @future_counts.each do |date, content|
       content.each do |time, count_and_type|
-        # can't have more than one switch off schedule on the same day for the same Instance object
-        just_switch_offs[date] = content if !count_and_type[:min]
+        if time == Project::BUDGET_SWITCH_OFF_TIME
+          # can't have more than one switch off schedule on the same day for the same Instance object
+          just_switch_offs[date] = content if !count_and_type[:min]
+        end
       end
     end
+    throw error
     @future_counts = original_future_counts
     return just_switch_offs
   end

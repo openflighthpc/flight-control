@@ -451,8 +451,8 @@ class CostsPlotter
       i += 1
     end
 
-    # if shutting off higher priority node(s) leaves a surplus budget (that
-    # is too little for this node to add a day), see if this means lower
+    #if shutting off higher priority node(s) leaves a surplus budget (that
+    #is too little for this node to add a day), see if this means lower
     #priority nodes can be turned off later.
     i -= 1
     while budget_diff > 0 && i > 0
@@ -462,15 +462,16 @@ class CostsPlotter
       off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
       if instances_off[group][type][:off] && !instances_off[group][type][:off].empty?
         new_off, new_budget_diff = minimise_switch_offs(instance, off_dates, budget_diff, future_days, future_cycle_days)
-        if new_budget_diff != budget_diff && budget_diff >= 0
+        puts "goats"
+        puts new_off, new_budget_diff, budget_diff
+        if new_budget_diff < budget_diff && budget_diff >= 0
+          throw error
           budget_diff = new_budget_diff
           instances_off[group][type][:off] = new_off
         end
       end
       i -= 1;
     end
-    puts "finale"
-    puts budget_diff
     instances_off.select! {|group, instance_types| instance_types.any? {|type, off| off.any? }}
     instances_off
   end
