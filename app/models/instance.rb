@@ -205,30 +205,22 @@ class Instance
 
   # at end of day (budget switch off time)
   def pending_on_date_end(date, temp_counts=nil)
-    count = pending_on
-    if temp_counts
-      original_future_count_changes = Project.deep_copy_hash(@future_count_changes)
-      add_future_count_changes(temp_counts)
-    end
-    return count if @future_count_changes == {}
+    count = pending_on_date(date, temp_counts)
+    future_count_changes = temp_counts ? @temp_future_count_changes : @future_count_changes
+    return count if future_count_changes == {} || !future_count_changes[date]
 
-    dates = @future_count_changes.keys.sort
-    previous_dates = dates.select { |d| d <= date }
-    previous_dates.each do |d|
-      changes = @future_count_changes[d]
-      # a change might be a budget switch off (exact count)
-      # or a scheduled change (minimum count)
-      changes.each do |time, details|
-        if d != Date.today || time <= Project::BUDGET_SWITCH_OFF_TIME
-          if details[:min] == true
-            count = [count, details[:count]].max
-          else
-            count = details[:count]
-          end
+    changes = future_count_changes[date]
+    # a change might be a budget switch off (exact count)
+    # or a scheduled change (minimum count)
+    changes.each do |time, details|
+      if time <= Project::BUDGET_SWITCH_OFF_TIME
+        if details[:min] == true
+          count = [count, details[:count]].max
+        else
+          count = details[:count]
         end
       end
     end
-    @future_count_changes = original_future_count_changes if temp_counts
     count
   end
 
