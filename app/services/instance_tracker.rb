@@ -68,7 +68,7 @@ class InstanceTracker
         instances = @latest_instances[group]
         instance_types.each do |instance_type, times_and_counts|
           instance = instances.find { |i| i.instance_type == instance_type }
-          instance.add_future_counts({date => times_and_counts})
+          instance.add_future_count_changes({date => times_and_counts})
         end
       end
     end

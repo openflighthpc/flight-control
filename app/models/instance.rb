@@ -4,8 +4,13 @@ require_relative 'project'
 
 class Instance
   @@instance_details = nil
+  @@check_count = 0
 
   attr_reader :count, :details, :region, :instance_type, :group, :budget_switch_offs
+
+  def self.check_count
+    @@check_count
+  end
 
   def self.instance_details
     if !@@instance_details
@@ -110,12 +115,16 @@ class Instance
     @platform = platform
     @project = project
     @count = {on: 0, off: 0}
+    @future_counts = {}
+    @future_count_changes = {}
+    @temp_future_counts = {}
+    @temp_counts = nil
+    @temp_future_count_changes = {}
+    @budget_switch_offs = {}
     self.class.set_instance_details if @@instance_details == nil
     region_details = @@instance_details[region]
     @details = region_details[instance_type] if region_details
     @details ||= {}
-    @future_counts = {}
-    @budget_switch_offs = {}
   end
 
   def present_in_region?
@@ -159,18 +168,28 @@ class Instance
   # at start of day
   def pending_on_date(date, temp_counts=nil)
     count = pending_on
-    if temp_counts
-      original_future_counts = Project.deep_copy_hash(@future_counts)
-      add_future_counts(temp_counts)
+    # store temp counts in a different variable and recalculate only if they have changed
+    if temp_counts && @temp_counts != temp_counts
+      @temp_counts = temp_counts
+      @temp_future_count_changes = Project.deep_copy_hash(@future_count_changes)
+      add_future_count_changes(temp_counts, true)
     end
-    return count if @future_counts == {}
+    future_count_changes = temp_counts ? @temp_future_count_changes : @future_count_changes
+    future_counts = temp_counts ? @temp_future_counts : @future_counts
+    return count if future_count_changes == {}
 
-    dates = @future_counts.keys.sort
-    previous_dates = dates.select { |d| d < date }
+    # If first time calculating to this date, calulate and save result for this
+    # and any preceding dates.
+    return future_counts[date] if future_counts[date]
+
+    dates = future_count_changes.keys.sort
+    latest_calculated_date = future_counts.keys&.sort&.last if !temp_counts
+    previous_dates = dates.select { |d| d < date && (!latest_calculated_date || d >= latest_calculated_date) }
+    count = future_counts[latest_calculated_date] if latest_calculated_date
     previous_dates.each do |d|
-      changes = @future_counts[d]
-      # a change might be a budget switch off (exact count)
-      # or a scheduled change (minimum count)
+      changes = future_count_changes[d]
+      # a change might an be exact count (includes switch offs)
+      # or a minimum count (switch ons only)
       changes.each do |time, details|
         if details[:min] == true
           count = [count, details[:count]].max
@@ -178,8 +197,9 @@ class Instance
           count = details[:count]
         end
       end
+      future_counts[d] = count if !temp_counts
     end
-    @future_counts = original_future_counts if temp_counts
+    @@check_count += 1
     count
   end
 
@@ -187,15 +207,15 @@ class Instance
   def pending_on_date_end(date, temp_counts=nil)
     count = pending_on
     if temp_counts
-      original_future_counts = Project.deep_copy_hash(@future_counts)
-      add_future_counts(temp_counts)
+      original_future_count_changes = Project.deep_copy_hash(@future_count_changes)
+      add_future_count_changes(temp_counts)
     end
-    return count if @future_counts == {}
+    return count if @future_count_changes == {}
 
-    dates = @future_counts.keys.sort
+    dates = @future_count_changes.keys.sort
     previous_dates = dates.select { |d| d <= date }
     previous_dates.each do |d|
-      changes = @future_counts[d]
+      changes = @future_count_changes[d]
       # a change might be a budget switch off (exact count)
       # or a scheduled change (minimum count)
       changes.each do |time, details|
@@ -208,7 +228,7 @@ class Instance
         end
       end
     end
-    @future_counts = original_future_counts if temp_counts
+    @future_count_changes = original_future_count_changes if temp_counts
     count
   end
 
@@ -244,11 +264,12 @@ class Instance
   end
 
   # assumes date is in the future
-  def pending_daily_cost_with_future_counts(date)
-    return pending_total_daily_compute_cost if @future_counts == {}
+  def pending_daily_cost_with_future_count_changes(date, switch_offs=nil)
+    return pending_total_daily_compute_cost if @future_count_changes == {} && !switch_offs
 
-    count = pending_on_date(date)
-    changes_on_date = @future_counts[date]
+    future_count_changes = switch_offs ? @temp_future_count_changes : @future_count_changes
+    count = pending_on_date(date, switch_offs)
+    changes_on_date = future_count_changes[date]
     return daily_compute_cost * count if !changes_on_date
 
     instances = {}
@@ -290,17 +311,18 @@ class Instance
     total_cost.ceil
   end
 
-  def add_future_counts(counts)
+  def add_future_count_changes(counts, temp=false)
+    future_count_changes = temp ? @temp_future_count_changes : @future_count_changes
     counts.each do |date, times_and_counts|
       times_and_counts.each do |time, details|
-        if @future_counts.has_key?(date)
-          @future_counts[date][time] = details
+        if future_count_changes.has_key?(date)
+          future_count_changes[date][time] = details
         else
-          @future_counts[date] = {time => details}
+          future_count_changes[date] = {time => details}
         end
       end
     end
-    @future_counts
+    future_count_changes
   end
 
   def add_budget_switch_offs(details)
@@ -310,44 +332,43 @@ class Instance
       to_switch_off = details[days_in_future]
       date = Date.today + days_in_future.days
       count = pending_on_date_end(date)
-      if @future_counts[date]
+      if @future_count_changes[date]
         # has priority over any existing scheduled request at that time
-        @future_counts[date][time] = {count: count - to_switch_off, min: false}
+        @future_count_changes[date][time] = {count: count - to_switch_off, min: false}
       else
-        @future_counts[date] = {time => {count: count - to_switch_off, min: false}}
+        @future_count_changes[date] = {time => {count: count - to_switch_off, min: false}}
       end
       @budget_switch_offs[date] = to_switch_off
     end
+    # Need to reset future counts so recalculated
+    @future_counts = {}
+    @temp_future_counts = {}
   end
 
   def get_budget_switch_offs_as_schedules(switch_offs)
-    original_future_counts = Project.deep_copy_hash(@future_counts)
+    original_future_count_changes = Project.deep_copy_hash(@future_count_changes)
     add_budget_switch_offs(switch_offs)
     just_switch_offs = {}
-    @future_counts.each do |date, content|
+    @future_count_changes.each do |date, content|
       content.each do |time, count_and_type|
         # can't have more than one switch off schedule on the same day for the same Instance object
         just_switch_offs[date] = content if !count_and_type[:min]
       end
     end
-    @future_counts = original_future_counts
+    @future_count_changes = original_future_count_changes
     return just_switch_offs
   end
 
-  def projected_costs_for_range(start_date, end_date)
+  def projected_costs_for_range(start_date, end_date, switch_offs=nil)
     total = 0
     (start_date..end_date).to_a.each do |date|
-      total += pending_daily_cost_with_future_counts(date)
+      total += pending_daily_cost_with_future_count_changes(date, switch_offs)
     end
     total
   end
 
   def projected_costs_with_budget_switch_offs(switch_offs, start_date, end_date)
-    original_counts = Project.deep_copy_hash(@future_counts)
-
-    add_future_counts(switch_offs)
-    total = projected_costs_for_range(start_date, end_date)
-    @future_counts = original_counts
+    total = projected_costs_for_range(start_date, end_date, switch_offs)
     total
   end
 

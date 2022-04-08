@@ -250,6 +250,8 @@ class CostsPlotter
       cycle_costs = cost_breakdown(start_of_cycle, end_of_cycle, nil, true)
       all_costs = all_costs.deep_merge(cycle_costs)
     end
+    puts "CHECK"
+    puts Instance.check_count
     all_costs
   end
 
@@ -374,7 +376,7 @@ class CostsPlotter
   end
 
   # Update/ rewrite this so considers switching off at multiple times (not
-  # just once per cycle). This may involve a significant/ complete rewrite.
+  # just once per cycle). This may involve a significant/ complete rewrite (v difficult).
   def prioritisation_actions(results)
     end_costs = results.to_a.last[1]
     budget_diff = end_costs[:forecast_budget]
@@ -657,7 +659,7 @@ class CostsPlotter
     @project.latest_instances.each do |group, instances|
       pending_compute_costs[group.to_sym] = 0.0
       instances.each do |instance|
-        cost = instance.pending_daily_cost_with_future_counts(date)
+        cost = instance.pending_daily_cost_with_future_count_changes(date)
         pending_compute_costs[group.to_sym] += cost
         pending_compute_costs[:total] += cost
       end
@@ -771,7 +773,8 @@ class CostsPlotter
     costs_between_dates(@project.start_date, date)
   end
 
-  # Does not include end date or over budget switch offs
+  # Does not include end date. Includes over budget switch offs, if they
+  # have already been calculated.
   def costs_between_dates(start_date, end_date)
     logs = @project.cost_logs.where(scope: "total").where("date < ? AND date >= ?", end_date, start_date)
     costs = logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
