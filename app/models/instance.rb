@@ -5,7 +5,7 @@ require_relative 'project'
 class Instance
   @@instance_details = nil
 
-  attr_reader :count, :details, :region, :instance_type, :group, :budget_switch_offs
+  attr_reader :count, :future_counts, :details, :region, :instance_type, :group, :budget_switch_offs
 
   def self.instance_details
     if !@@instance_details
@@ -159,7 +159,7 @@ class Instance
   # at start of day
   def pending_on_date(date, temp_counts=nil)
     count = pending_on
-    if temp_counts
+    if temp_counts && temp_counts.any?
       original_future_counts = Project.deep_copy_hash(@future_counts)
       add_future_counts(temp_counts)
     end
@@ -179,14 +179,14 @@ class Instance
         end
       end
     end
-    @future_counts = original_future_counts if temp_counts
+    @future_counts = original_future_counts if temp_counts && temp_counts.any?
     count
   end
 
   # at end of day (budget switch off time)
   def pending_on_date_end(date, temp_counts=nil)
     count = pending_on
-    if temp_counts
+    if temp_counts && temp_counts.any?
       original_future_counts = Project.deep_copy_hash(@future_counts)
       add_future_counts(temp_counts)
     end
@@ -208,7 +208,7 @@ class Instance
         end
       end
     end
-    @future_counts = original_future_counts if temp_counts
+    @future_counts = original_future_counts if temp_counts && temp_counts.any?
     count
   end
 
