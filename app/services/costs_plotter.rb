@@ -411,7 +411,7 @@ class CostsPlotter
         switch_off_date = switch_off_date - 1.day
         if instance.pending_on_date_end(switch_off_date, original_switch_offs) > 0
           last_switch_off_day = days # earlier days it may not actually be on yet
-          original_cost_until_end_of_cycle = instance.projected_costs_for_range(switch_off_date, end_of_cycle)
+          original_cost_until_end_of_cycle = instance.projected_costs_with_budget_switch_offs(original_switch_offs, switch_off_date, end_of_cycle)
           switch_offs = Project.deep_copy_hash(original_switch_offs)
           switch_offs[switch_off_date] = {Project::BUDGET_SWITCH_OFF_TIME => {count: 0, min: false}}
           cost_until_end_of_cycle = instance.projected_costs_with_budget_switch_offs(switch_offs, switch_off_date, end_of_cycle)
