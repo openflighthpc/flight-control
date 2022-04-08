@@ -320,23 +320,6 @@ class Instance
     end
   end
 
-  def get_budget_switch_offs_as_schedules(switch_offs)
-    original_future_counts = Project.deep_copy_hash(@future_counts)
-    add_budget_switch_offs(switch_offs)
-    just_switch_offs = {}
-    @future_counts.each do |date, content|
-      content.each do |time, count_and_type|
-        if time == Project::BUDGET_SWITCH_OFF_TIME
-          # can't have more than one switch off schedule on the same day for the same Instance object
-          just_switch_offs[date] = content if !count_and_type[:min]
-        end
-      end
-    end
-    throw error
-    @future_counts = original_future_counts
-    return just_switch_offs
-  end
-
   def projected_costs_for_range(start_date, end_date)
     total = 0
     (start_date..end_date).to_a.each do |date|

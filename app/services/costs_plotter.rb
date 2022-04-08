@@ -369,12 +369,8 @@ class CostsPlotter
       end
     end
     results
-    # recursively call self until no more switch offs possible
-    #prioritise_to_budget(start_date, end_date, change_request, results)
   end
 
-  # Update/ rewrite this so considers switching off at multiple times (not
-  # just once per cycle). This may involve a significant/ complete rewrite.
   def prioritisation_actions(results)
     end_costs = results.to_a.last[1]
     budget_diff = end_costs[:forecast_budget]
@@ -462,8 +458,6 @@ class CostsPlotter
       off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
       if instances_off[group][type][:off] && !instances_off[group][type][:off].empty?
         new_off, new_budget_diff = minimise_switch_offs(instance, off_dates, budget_diff, future_days, future_cycle_days)
-        puts "goats"
-        puts new_off, new_budget_diff, budget_diff
         if new_budget_diff < budget_diff && budget_diff >= 0
           throw error
           budget_diff = new_budget_diff
@@ -489,7 +483,7 @@ class CostsPlotter
     return instances_off, budget_diff if budget_diff <= 0 || instances_off.empty?
 
     end_of_cycle = Date.today + future_days.days
-    original_switch_offs = instance.get_budget_switch_offs_as_schedules(instances_off)
+    original_switch_offs = convert_to_count(instances_off)
     new_switch_offs = Project.deep_copy_hash(original_switch_offs)
     last_switch_off_day = nil
 
