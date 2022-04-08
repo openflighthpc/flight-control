@@ -372,7 +372,8 @@ class CostsPlotter
     end
 
     # recursively call self until no more switch offs possible
-    prioritise_to_budget(start_date, end_date, change_request, results)
+    results
+    #prioritise_to_budget(start_date, end_date, change_request, results)
   end
 
   # Update/ rewrite this so considers switching off at multiple times (not
@@ -400,7 +401,6 @@ class CostsPlotter
       instance = prioritised_instances[i]
       group = instance.group
       type = instance.instance_type
-
       days = future_days
       switch_off_date = last_date
       last_switch_off_day = nil

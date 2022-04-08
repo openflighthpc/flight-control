@@ -6,7 +6,7 @@ class Instance
   @@instance_details = nil
   @@check_count = 0
 
-  attr_reader :count, :details, :region, :instance_type, :group, :budget_switch_offs
+  attr_reader :count, :future_counts, :details, :region, :instance_type, :group, :budget_switch_offs
 
   def self.check_count
     @@check_count
@@ -186,15 +186,18 @@ class Instance
     latest_calculated_date = future_counts.keys&.sort&.last if !temp_counts
     previous_dates = dates.select { |d| d < date && (!latest_calculated_date || d >= latest_calculated_date) }
     count = future_counts[latest_calculated_date] if latest_calculated_date
-    previous_dates.each do |d|
+    latest_calculated_date ||= Date.today
+    (latest_calculated_date..date).to_a.each do |d|
       changes = future_count_changes[d]
       # a change might an be exact count (includes switch offs)
       # or a minimum count (switch ons only)
-      changes.each do |time, details|
-        if details[:min] == true
-          count = [count, details[:count]].max
-        else
-          count = details[:count]
+      if changes
+        changes.each do |time, details|
+          if details[:min] == true
+            count = [count, details[:count]].max
+          else
+            count = details[:count]
+          end
         end
       end
       future_counts[d] = count if !temp_counts
