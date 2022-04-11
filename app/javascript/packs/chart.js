@@ -160,12 +160,16 @@ window.addOverBudgetLines = function(){
       context.stroke();
 
       context.fillStyle = "#ff0000";
-      let position = 'center';
-      if (pointIndex < 2) position = 'left';
-      if (pointIndex > chartInstance.data.labels.length - 3) position = 'right';
+      let position = 'left';
+      if (pointIndex > chartInstance.data.labels.length / 2) position = 'right';
       context.textAlign = position;
+      if(position === 'left') {
+        type = "< " + type;
+      } else {
+        type += " >";
+      }
       let topPosition = (((scale.bottom - scale.top)/10) * number) + scale.top
-      context.fillText(`    ${type} `, lineLeftOffset, topPosition);
+      context.fillText(type, lineLeftOffset, topPosition);
     },
 
     afterDatasetsDraw: function (chart, easing) {
@@ -230,11 +234,16 @@ window.addCycleLines = function(){
       context.stroke();
 
       context.fillStyle = colour;
-      let position = 'center';
-      if (pointIndex < 2) position = 'left';
-      if (pointIndex > chartInstance.data.labels.length - 3) position = 'right';
+      let type = cycle_details.type;
+      let position = 'left';
+      if (pointIndex > chartInstance.data.labels.length / 2) position = 'right';
       context.textAlign = position;
-      context.fillText(`    ${cycle_details.type} `, lineLeftOffset, (scale.bottom - scale.top)/2 + scale.top);
+      if(position === 'left') {
+        type = "< " + type;
+      } else {
+        type += " >";
+      }
+      context.fillText(type, lineLeftOffset, (scale.bottom - scale.top)/2 + scale.top);
     },
 
     afterDatasetsDraw: function (chart, easing) {

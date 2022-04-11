@@ -829,13 +829,13 @@ class CostsPlotter
       # Need to set a final date to avoid possibility of infinite/ very long loop if costs
       # are zero/ very low
       final_check_date = end_date
-      while(balance > 0 && balance_end_date < final_check_date)
+      while(balance > 0 && balance_end_date <= final_check_date)
         balance_end_date += 1.day
         balance -= forecast_compute_cost(balance_end_date, nil)
         balance -= latest_compute_storage_costs
         balance -= latest_non_compute_costs
       end
-      balance_end_date = nil if balance_end_date >= final_check_date
+      balance_end_date = nil if balance_end_date > final_check_date
     end
 
     cycle_index = nil
