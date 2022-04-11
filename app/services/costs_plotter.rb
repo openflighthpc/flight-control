@@ -377,9 +377,9 @@ class CostsPlotter
     return nil if !budget_diff || budget_diff >= 0
     
     last_date = Date.parse(results.keys.last)
-    future_days = [last_date - Date.today, 0].max
+    future_days = [last_date - Date.today, 0].max.to_i
     first_date = Date.parse(results.keys.first)
-    future_cycle_days = [first_date - Date.today, 0].max
+    future_cycle_days = [first_date - Date.today, 0].max.to_i
     end_of_cycle = last_date
     prioritised_instances = @project.latest_instances.map {|group, instances| instances}.flatten.sort
     instances_off = {}
@@ -533,11 +533,15 @@ class CostsPlotter
           end
         end
 
+        # Would be easier to understand if we weren't switching back and forth between
+        # formats
         if last_switch_off_day
           if last_switch_off_day < future_days
-            if instances_off.has_key?(last_switch_off_day)
+            existing_on = instance.pending_on_date_end(last_switch_off_day, previous_switch_offs, false)
+            if instances_off.has_key?(last_switch_off_day) &&
+              instances_off[last_switch_off_day] < existing_on
               instances_off[last_switch_off_day] += 1
-            else
+            elsif existing_on > 0
               instances_off[last_switch_off_day] = 1
             end
           end
@@ -551,6 +555,7 @@ class CostsPlotter
         end
       end
     end
+    
     return instances_off, budget_diff
   end
 

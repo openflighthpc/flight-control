@@ -184,7 +184,7 @@ class Instance
   end
 
   # at end of day (budget switch off time)
-  def pending_on_date_end(date, temp_counts=nil)
+  def pending_on_date_end(date, temp_counts=nil, include_budget_off=true)
     count = pending_on
     if temp_counts && temp_counts.any?
       original_future_counts = Project.deep_copy_hash(@future_counts)
@@ -196,10 +196,13 @@ class Instance
     previous_dates = dates.select { |d| d <= date }
     previous_dates.each do |d|
       changes = @future_counts[d]
-      # a change might be a budget switch off (exact count)
-      # or a scheduled change (minimum count)
-      changes.each do |time, details|
-        if d != Date.today || time <= Project::BUDGET_SWITCH_OFF_TIME
+      # a change might be an exact count
+      # or a scheduled change minimum count
+      changes.keys.sort.each do |time|
+        details = changes[time]
+        if d != Date.today ||
+          ((include_budget_off && time <= Project::BUDGET_SWITCH_OFF_TIME) ||
+          (!include_budget_off && time < Project::BUDGET_SWITCH_OFF_TIME))
           if details[:min] == true
             count = [count, details[:count]].max
           else
@@ -257,7 +260,8 @@ class Instance
       instances[x] = {on: on, hours: 0, previous_time: date.to_time}
     end
     
-    changes_on_date.each do |time, new_count_and_type|
+    changes_on_date.keys.sort.each do |time|
+      new_count_and_type = changes_on_date[time]
       time = Time.parse("#{date} #{time}")
       new_count = new_count_and_type[:count]
       min_count = new_count_and_type[:min]
