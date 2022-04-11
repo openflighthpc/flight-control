@@ -10,7 +10,7 @@ class ChangeRequestsController < ApplicationController
       @in_progress = @in_progress.select { |log| @filtered_groups.include?(log.compute_group) }
     end
     @upcoming = @project.upcoming_events_by_date(@filtered_groups)
-    @future_events = @project.future_events_by_date(@filtered_groups)
+    @future_events = @project.future_events_by_date(@filtered_groups, false)
     filter_records if @filtered_groups
     @nav_view = "manage events"
     @editor = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create?

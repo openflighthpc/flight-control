@@ -131,8 +131,8 @@ class Project < ApplicationRecord
   end
 
   # In future this will include over budget switch offs
-  def events(groups=nil)
-    events = pending_one_off_and_repeat_requests.concat(decorated_switch_offs)
+  def events(groups=nil, recalculate_budget_off=true)
+    events = pending_one_off_and_repeat_requests.concat(decorated_switch_offs(recalculate_budget_off))
     events = events.select { |event| event.included_in_groups?(groups) } if groups
     events
   end
@@ -159,14 +159,14 @@ class Project < ApplicationRecord
   end
 
   # after next 5 mins
-  def future_events(groups=nil)
+  def future_events(groups=nil, recalculate_budget_off=true)
     five_mins_from_now = Time.now + 5.minutes
-    future = events(groups)
+    future = events(groups, recalculate_budget_off)
     future.select { |event| event.date_time > five_mins_from_now }
   end
 
-  def future_events_by_date(groups=nil)
-    events_by_date(future_events(groups))
+  def future_events_by_date(groups=nil, recalculate_budget_off=true)
+    events_by_date(future_events(groups, recalculate_budget_off))
   end
 
   def events_by_id(events)
@@ -580,9 +580,9 @@ class Project < ApplicationRecord
 
   # Convert them into a format equivalent to a change request,
   # for use in the front end.
-  def decorated_switch_offs
+  def decorated_switch_offs(recalculate=true)
     results = []
-    costs_plotter.switch_offs_by_date.each do |date, details|
+    costs_plotter.switch_offs_by_date(recalculate).each do |date, details|
       results << BudgetSwitchOffDecorator.new(Date.parse(date), details, platform)
     end
     results

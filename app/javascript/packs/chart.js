@@ -174,7 +174,7 @@ window.addOverBudgetLines = function(){
         this.renderVerticalLine(chart, indexes[i], "Over budget", 1);
       }
       if(chart.data.balance_end != null) {
-        this.renderVerticalLine(chart, chart.data.balance_end, "Empty balance", 2);
+        this.renderVerticalLine(chart, chart.data.balance_end, "Empty balance", 9);
       }
     }
   };

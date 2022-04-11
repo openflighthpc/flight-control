@@ -1060,9 +1060,11 @@ class CostsPlotter
     switch_offs
   end
 
-  def switch_offs_by_date
+  def switch_offs_by_date(recalculate=true)
     start_date = start_of_current_billing_interval
-    recalculate_costs_and_switch_offs(end_of_billing_interval(Date.today + 1.month))
+    if recalculate
+      recalculate_costs_and_switch_offs(end_of_billing_interval(Date.today + 1.month))
+    end
     switch_offs = switch_off_details(start_date, false)
     results = {}
     return results if switch_offs == nil || switch_offs.empty?

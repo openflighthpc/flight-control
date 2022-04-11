@@ -245,23 +245,11 @@ function overBudgetSwitchOffDetails() {
   let dateGrouped = {};
   let details = "To best meet budget with these changes, nodes will need to be switched off during the current billing cycle.";
   details += " Based on current forecasts:<br>";
-  Object.keys(simple_chart.data.off).forEach((type, i) => {
-      Object.keys(simple_chart.data.off[type]).forEach((dayIndex, j) => {
-        let content = `${simple_chart.data.off[type][dayIndex]} ${type}`;
-        if(dateGrouped[dayIndex] != undefined) {
-          dateGrouped[dayIndex].push(content);
-        } else {
-          dateGrouped[dayIndex] = [content];
-        }
-      });
+  Object.keys(simple_chart.data.off).sort().forEach((daysInFuture, i) => {
+    simple_chart.data.off[daysInFuture].forEach((text, j) => {
+      details += `<br>- ${simple_chart.data.off[daysInFuture][j]} off by end of ${dates[daysInFuture]}.`;
     });
-
-    Object.keys(dateGrouped).forEach((key, index) => {
-      for (let i = 0; i < dateGrouped[key].length; i++) {
-        details += `<br>- ${dateGrouped[key][i]} node${parseInt(dateGrouped[key][i]) > 1 ? "s" : ""} off by end of ${simple_chart.data.labels[key]}.`;
-      }
-    });
-
+  });
   return details;
 }
 
