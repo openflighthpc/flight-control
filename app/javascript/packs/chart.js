@@ -327,7 +327,7 @@ window.overBudgetDateIndexes = function(){
 
 window.addShutOffLines = function() {
   const shutOffLinesPlugin = {
-    renderVerticalLine: function (chartInstance, pointIndex, off, instanceType, number) {
+    renderVerticalLine: function (chartInstance, pointIndex, text, number) {
       let meta = null;
       if(typeof simple_chart !== 'undefined' && chartInstance === simple_chart ||
          typeof chartInstance !== 'undefined' && chartInstance === cumulative_chart) {
@@ -372,23 +372,21 @@ window.addShutOffLines = function() {
       let position = 'left';
       if (pointIndex > chartInstance.data.labels.length / 2) position = 'right';
       context.textAlign = position;
-      let text = ` ${off} ${instanceType} off`;
       if(position === 'left') {
         text = "< " + text;
       } else {
         text += " >";
       }
-      context.fillText(text, lineLeftOffset, (((scale.bottom - scale.top)/15) * number) + scale.top * 1.5);
+      context.fillText(text, lineLeftOffset, (((scale.bottom - scale.top)/18) * number) + scale.top * 1.5);
     },
 
     afterDatasetsDraw: function (chart, easing) {
       // this needs updating to accomodate individual switch offs
       if(chart.data.off != "undefined" && chart.data.off != null) {
         let index = 0;
-        Object.keys(chart.data.off).forEach((key, i) => {
-          Object.keys(chart.data.off[key]).forEach((daysInFuture, j) => {
-            let off = chart.data.off[key][daysInFuture]
-            this.renderVerticalLine(chart, daysInFuture, off, key, index);
+        Object.keys(chart.data.off).sort().forEach((daysInFuture, i) => {
+          chart.data.off[daysInFuture].forEach((text, j) => {
+            this.renderVerticalLine(chart, daysInFuture, text, index);
             index += 1;
           });
         });

@@ -457,9 +457,8 @@ class CostsPlotter
       type = lower_priority_instance.instance_type
       off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
       if instances_off[group][type][:off] && !instances_off[group][type][:off].empty?
-        new_off, new_budget_diff = minimise_switch_offs(instance, off_dates, budget_diff, future_days, future_cycle_days)
-        if new_budget_diff < budget_diff && budget_diff >= 0
-          throw error
+        new_off, new_budget_diff = minimise_switch_offs(lower_priority_instance, off_dates, budget_diff, future_days, future_cycle_days)
+        if new_budget_diff <= budget_diff && budget_diff >= 0
           budget_diff = new_budget_diff
           instances_off[group][type][:off] = new_off
         end
@@ -481,7 +480,6 @@ class CostsPlotter
 
   def minimise_switch_offs(instance, instances_off, budget_diff, future_days, future_cycle_days)
     return instances_off, budget_diff if budget_diff <= 0 || instances_off.empty?
-
     end_of_cycle = Date.today + future_days.days
     original_switch_offs = convert_to_count(instances_off)
     new_switch_offs = Project.deep_copy_hash(original_switch_offs)
@@ -990,6 +988,24 @@ class CostsPlotter
     end
     switch_offs
   end
+
+  def front_end_switch_offs_by_date(index_date=start_of_current_billing_interval, recalculate=true)
+    front_end_switch_offs = {}
+    switch_offs = switch_off_details(index_date, recalculate)
+    switch_offs.each do |group, details|
+      details.each do |instance_type, off_using_relative_index|
+        customer_facing_type = InstanceMapping.customer_facing_type(@project.platform, instance_type)
+        off_using_relative_index.each do |i, off|
+          if front_end_switch_offs[i]
+            front_end_switch_offs[i] << "#{off}x #{group} #{customer_facing_type} off"
+          else
+            front_end_switch_offs[i] = ["#{off}x #{group} #{customer_facing_type} off"]
+          end
+        end
+      end
+    end
+    front_end_switch_offs
+  end  
 
   def front_end_switch_off_details(index_date=start_of_current_billing_interval, recalculate=true)
     front_end_switch_offs = {}
