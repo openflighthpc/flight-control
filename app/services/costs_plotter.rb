@@ -458,7 +458,7 @@ class CostsPlotter
       off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
       if instances_off[group][type][:off] && !instances_off[group][type][:off].empty?
         new_off, new_budget_diff = minimise_switch_offs(lower_priority_instance, off_dates, budget_diff, future_days, future_cycle_days)
-        if new_budget_diff <= budget_diff && budget_diff >= 0
+        if new_budget_diff != budget_diff && budget_diff >= 0
           budget_diff = new_budget_diff
           instances_off[group][type][:off] = new_off
         end
