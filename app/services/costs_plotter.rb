@@ -588,6 +588,15 @@ class CostsPlotter
       return pending_compute_costs(date)[group]
     end
 
+    # To be consistent with rounding, etc. for overall total we need to calculate groups
+    # individually.
+    if !group
+      @project.front_end_compute_groups.keys.each do |group|
+        total += forecast_compute_cost(date, group, temp_change_request)
+      end
+      return total
+    end
+
     actions = @project.action_logs.where(date: date)
     scheduled_actions = @project.pending_one_off_and_repeat_requests_on(date.to_s)
     if temp_change_request
@@ -603,8 +612,7 @@ class CostsPlotter
       end
     end
     scheuled_actions = scheduled_actions.select { |scheduled| scheduled.counts[group.to_s]} if group
-    instance_logs = @project.instance_logs.where(date: date.to_s)
-    instance_logs = instance_logs.where(compute_group: group) if group
+    instance_logs = @project.instance_logs.where(date: date.to_s).where(compute_group: group)
     # In case no logs recorded on that day, use previous
     instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
     if actions.any? || scheduled_actions.any?
@@ -836,7 +844,8 @@ class CostsPlotter
       final_check_date = end_date
       while(balance > 0 && balance_end_date <= final_check_date)
         balance_end_date += 1.day
-        balance -= forecast_compute_cost(balance_end_date, nil)
+        compute = forecast_compute_cost(balance_end_date, nil)
+        balance -= compute
         balance -= latest_compute_storage_costs
         balance -= latest_non_compute_costs
       end
