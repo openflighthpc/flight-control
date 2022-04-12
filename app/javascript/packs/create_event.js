@@ -207,7 +207,7 @@ function updateChart(response) {
   simple_chart.update();
   let submitButton = $('#wizard-submit-button');
   let overBudget = overBudgetDateIndexes().length > 0;
-  if(simple_chart.data.balance_end != null) {
+  if(simple_chart.data.balance_end.over) {
     submitButton.addClass('disabled');
     submitButton.attr('disabled', true);
     submitButton.prop('title', 'Cannot submit request that goes over balance');
@@ -228,7 +228,7 @@ function updateChart(response) {
     $('#request-over-budget-switch-offs').css('display', 'none');
     $('#over-budget-switch-offs-checkbox').val(false);
   }
-  if(simple_chart.data.balance_end != null) {
+  if(simple_chart.data.balance_end.over) {
     $('#over-balance-warning').css('display', 'block');
   } else {
     $('#over-balance-warning').css('display', 'none');

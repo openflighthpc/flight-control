@@ -822,12 +822,9 @@ class CostsPlotter
   # many similar calculations.
   def estimated_balance_end_in_cycle(start_date=start_of_current_billing_interval,
                                      end_date=end_of_current_billing_interval,
-                                     recalculate_costs=true,
+                                     costs=nil,
                                      temp_change_request=nil)
-    # This needs to run to ensure over budget switch offs are considered
-    if recalculate_costs
-      combined_cost_breakdown(start_date, end_date, temp_change_request, true)
-    end
+    costs ||= combined_cost_breakdown(start_date, end_date, temp_change_request, true)
     balance = @project.balances.where("amount > ?", 0).last
     balance = balance ? balance.amount : 0.0
     date_grouped = @project.cost_logs.where(scope: "total").group_by { |log| log.date }
@@ -844,10 +841,11 @@ class CostsPlotter
       final_check_date = end_date
       while(balance > 0 && balance_end_date <= final_check_date)
         balance_end_date += 1.day
-        compute = forecast_compute_cost(balance_end_date, nil)
-        balance -= compute
-        balance -= latest_compute_storage_costs
-        balance -= latest_non_compute_costs
+        day_costs = costs[balance_end_date.to_s]
+        next if !day_costs
+
+        total_day_cost = day_costs[:total] ? day_costs[:total] : day_costs[:forecast_total]
+        balance -= total_day_cost
       end
       balance_end_date = nil if balance_end_date > final_check_date
     end
@@ -856,7 +854,7 @@ class CostsPlotter
     if balance_end_date && balance_end_date >= start_date && balance_end_date <= end_date
       cycle_index = (start_date..end_date).to_a.index(balance_end_date)
     end
-    cycle_index
+    {cycle_index: cycle_index, over: balance < 0, end_balance: balance}
   end
 
   def cycle_thresholds(start_date, end_date)
@@ -1158,7 +1156,7 @@ class CostsPlotter
     start_date = start_of_billing_interval(Date.today)
     end_date = end_of_billing_interval(start_date)
     costs = cost_breakdown(start_date, end_date, temp_change_request, true)
-    chart_cumulative_costs(start_date, end_date, temp_change_request, costs)
+    return costs, chart_cumulative_costs(start_date, end_date, temp_change_request, costs)
   end
 
   def change_request_goes_over_budget?(change_request)

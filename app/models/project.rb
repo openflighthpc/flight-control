@@ -406,10 +406,11 @@ class Project < ApplicationRecord
     # This sets the future instance counts based on the
     # if the temp change request were carried out
     latest_instances(change)
-    results = {costs: costs_plotter.cumulative_change_request_costs(change)}
+    costs, chart_costs = costs_plotter.cumulative_change_request_costs(change)
+    results = {costs: chart_costs}
     start_date = costs_plotter.start_of_billing_interval(Date.today)
     end_date = costs_plotter.end_of_billing_interval(start_date)
-    results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, false, change)
+    results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, costs, change)
     results[:budget_switch_offs] = costs_plotter.front_end_switch_offs_by_date(start_date, false)
     results
   end

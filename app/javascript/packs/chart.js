@@ -177,8 +177,8 @@ window.addOverBudgetLines = function(){
       for (let i = 0; i < indexes.length; i++) {
         this.renderVerticalLine(chart, indexes[i], "Over budget", 1);
       }
-      if(chart.data.balance_end != null) {
-        this.renderVerticalLine(chart, chart.data.balance_end, "Empty balance", 9);
+      if(chart.data.balance_end != undefined && chart.data.balance_end.cycle_index != null) {
+        this.renderVerticalLine(chart, chart.data.balance_end.cycle_index, "Empty balance", 9);
       }
     }
   };
