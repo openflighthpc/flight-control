@@ -200,9 +200,9 @@ class Instance
       # or a scheduled change minimum count
       changes.keys.sort.each do |time|
         details = changes[time]
-        if d != Date.today ||
+        if d != date || (d == date &&
           ((include_budget_off && time <= Project::BUDGET_SWITCH_OFF_TIME) ||
-          (!include_budget_off && time < Project::BUDGET_SWITCH_OFF_TIME))
+          (!include_budget_off && time < Project::BUDGET_SWITCH_OFF_TIME)))
           if details[:min] == true
             count = [count, details[:count]].max
           else

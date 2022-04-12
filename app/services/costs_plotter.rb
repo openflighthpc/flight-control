@@ -492,6 +492,7 @@ class CostsPlotter
         new_switch_offs.empty?
 
         last_switch_off_day = nil
+        last_switch_off_date = nil
         new_days = original_days_in_future
         original_switch_off_date = Date.today + original_days_in_future
         switch_off_date = original_switch_off_date
@@ -527,6 +528,7 @@ class CostsPlotter
           budget_diff = beginning_budget_diff + difference
           # don't use if means going over budget, or no instances to turn off that day
           if budget_diff >= 0 && currently_on > 0 && budget_diff < beginning_budget_diff
+            last_switch_off_date = switch_off_date
             last_switch_off_day = new_days
             previous_switch_offs = temp_switch_offs
             last_budget_diff = budget_diff
@@ -537,7 +539,7 @@ class CostsPlotter
         # formats
         if last_switch_off_day
           if last_switch_off_day < future_days
-            existing_on = instance.pending_on_date_end(last_switch_off_day, previous_switch_offs, false)
+            existing_on = instance.pending_on_date_end(last_switch_off_date, previous_switch_offs, false)
             if instances_off.has_key?(last_switch_off_day) &&
               instances_off[last_switch_off_day] < existing_on
               instances_off[last_switch_off_day] += 1
@@ -547,7 +549,6 @@ class CostsPlotter
           end
           instances_off[original_days_in_future] -= 1
           instances_off.delete(original_days_in_future) if instances_off[original_days_in_future] == 0
-          instances_off = nil if instances_off.empty?
           budget_diff = last_budget_diff
         else
           previous_switch_offs = count_start_schedules
@@ -555,7 +556,7 @@ class CostsPlotter
         end
       end
     end
-    
+
     return instances_off, budget_diff
   end
 
