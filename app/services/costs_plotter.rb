@@ -607,6 +607,7 @@ class CostsPlotter
       details = {starting_balance: balance_amount(Date.today), costs: 0,
                  costs_so_far: 0}
     end
+    details[:length] = @project.current_budget_policy.cycle_length
     details
   end
 

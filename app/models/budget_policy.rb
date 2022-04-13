@@ -19,6 +19,17 @@ class BudgetPolicy < ApplicationRecord
   validates :effective_at, presence: true
   default_scope { order(:effective_at, :created_at) }
 
+  def cycle_length
+    case cycle_interval
+    when "monthly"
+      "1 month"
+    when "weekly"
+      "1 week"
+    when "custom"
+      "#{days} days"
+    end
+  end
+
   private
 
   def has_days_if_custom
