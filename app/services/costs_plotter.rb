@@ -612,7 +612,7 @@ class CostsPlotter
         scheduled_actions = scheduled_actions << temp_as_one_off
       end
     end
-    scheuled_actions = scheduled_actions.select { |scheduled| scheduled.counts[group.to_s]} if group
+    scheuled_actions = scheduled_actions.select { |scheduled| scheduled.counts[group.to_s]}
     instance_logs = @project.instance_logs.where(date: date.to_s).where(compute_group: group)
     # In case no logs recorded on that day, use previous
     instance_logs = most_recent_instance_logs(date, group) if !instance_logs.any?
@@ -819,8 +819,6 @@ class CostsPlotter
     @latest_cost_log_date ||= @project.cost_logs.last&.date
   end
 
-  # To Do: calculate this as part of cost_breakdown, as doing
-  # many similar calculations.
   def estimated_balance_end_in_cycle(start_date=start_of_current_billing_interval,
                                      end_date=end_of_current_billing_interval,
                                      costs=nil,
