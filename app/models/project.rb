@@ -441,7 +441,7 @@ class Project < ApplicationRecord
     success = change.save
     if success
       msg = change.formatted_changes
-      off_msg = @costs_plotter.switch_off_schedule_msg
+      off_msg = @costs_plotter.switch_off_schedule_msg(true, false)
       msg << "\n\nTo meet budget, nodes must also be switched off during the billing cycle. Current recommendations:\n\n#{off_msg}" if off_msg
       send_slack_message(msg)
     end
@@ -538,7 +538,7 @@ class Project < ApplicationRecord
   end
 
   def budget_switch_off_schedule(slack=false)
-    off_msg = costs_plotter.switch_off_schedule_msg
+    off_msg = costs_plotter.switch_off_schedule_msg(true, false)
     if off_msg
       msg = "Based on latest forecasts, nodes must be switched off to meet this cycle's budget. Current planned switch offs:\n\n"
       msg << off_msg

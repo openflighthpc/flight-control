@@ -1018,24 +1018,24 @@ class CostsPlotter
     front_end_switch_offs
   end  
 
-  def front_end_switch_off_details(index_date=start_of_current_billing_interval, recalculate=true)
+  def front_end_switch_off_details(index_date=start_of_current_billing_interval, recalculate=true, customer_facing=true)
     front_end_switch_offs = {}
     switch_offs = switch_off_details(index_date, recalculate)
     switch_offs.each do |group, details|
       details.each do |instance_type, off_using_relative_index|
         if off_using_relative_index.any?
-          customer_facing_type = InstanceMapping.customer_facing_type(@project.platform, instance_type)
-          front_end_switch_offs["#{group} #{customer_facing_type}"] = off_using_relative_index
+          instance_type = InstanceMapping.customer_facing_type(@project.platform, instance_type) if customer_facing
+          front_end_switch_offs["#{group} #{instance_type}"] = off_using_relative_index
         end
       end
     end
     front_end_switch_offs
   end
 
-  def switch_off_schedule_msg(recalculate=true)
+  def switch_off_schedule_msg(recalculate=true, customer_facing=true)
     off_msg = nil
     start_date = start_of_current_billing_interval
-    switch_offs = front_end_switch_off_details(start_date, recalculate)
+    switch_offs = front_end_switch_off_details(start_date, recalculate, customer_facing)
     if switch_offs.any?
       off_msg = ""
       off_details = []
