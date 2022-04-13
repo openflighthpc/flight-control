@@ -7,7 +7,12 @@
           <label for="dataset-list" class="charts-form-label">Datasets:</label>
           <select multiple class="form-control cost-datasets-select" name="datasets[]" id="dataset-list">
             <% @possible_datasets.each do |dataset| %>
-              <option value='<%=dataset%>' <%= @datasets&.include?(dataset) ? 'selected' : '' if @datasets %>>
+              <% selected = @datasets && @datasets&.include?(dataset) %>
+              <option
+                value='<%=dataset%>'
+                <%= 'selected' if selected %>
+                data-already-selected=<%= selected %>
+              >
               <%= dataset %>
               </option>
             <% end %>
