@@ -15,7 +15,7 @@
               <% selected = @list && @list.filters["groups"]&.include?(group) %>
               <option
                 value=<%=group%> <%= 'selected' if selected %>
-                data-aleady-selected=<%= selected %>   
+                data-already-selected=<%= selected %>
               >
               <%= group %>
               </option>
@@ -26,7 +26,11 @@
           <label for="log-types" class="audit-form-label">Log Types:</label>
           <select multiple class="form-control audit-select" name="types[]" id="log-types-list">
             <% AuditLogList::LOG_TYPES.each do |klass, description| %>
-              <option value=<%=klass%> <%= @list.filters["types"]&.include?(klass) ? 'selected' : '' if @list %>>
+              <% selected = @list && @list.filters["types"]&.include?(klass) %>
+              <option
+                value=<%=klass%> <%= 'selected' if selected %>
+                data-already-selected=<%= selected %>
+              >
               <%= description %>
               </option>
             <% end %>
@@ -38,7 +42,11 @@
             <% users = @project.all_associated_users.pluck(:username) %>
             <% users << "automated" %>
             <% users.sort.each do |username| %>
-              <option value=<%=username%> <%= @list.users&.include?(username) ? 'selected' : '' if @list %>>
+              <% selected = @list && @list.users&.include?(username) %>
+              <option
+                value=<%=username%> <%= 'selected' if selected %>
+                data-already-selected=<%= selected %>
+              >
               <%= username %>
               </option>
             <% end %>
@@ -48,7 +56,11 @@
           <label for="users-list" class="audit-form-label">Status:</label>
            <select multiple class="form-control audit-select" name="statuses[]" id="status-list">
             <% AuditLogList::POSSIBLE_STATUSES.each do |status| %>
-              <option value=<%=status%> <%= @list.statuses&.include?(status) ? 'selected' : '' if @list %>>
+              <% selected = @list && @list.statuses&.include?(status) %>
+              <option
+                value=<%=status%> <%= 'selected' if selected %>
+                data-already-selected=<%= selected %>
+              >
                 <%= status %>
               </option>
             <% end %>
