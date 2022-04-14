@@ -4,6 +4,7 @@ class RepeatedChangeRequest < ChangeRequest
   validate :seven_days
   validate :at_least_one_day
   validate :end_date_not_before_start
+  validate :skip_dates_valid
 
   def parsed_end_date_time
     Time.parse("#{end_date.to_s} #{time}")
@@ -14,6 +15,7 @@ class RepeatedChangeRequest < ChangeRequest
       start = [date, Date.today].max
       start += 1.day if start == Date.today && actioned_at && actioned_at.to_date == Date.today
       @future_dates = (start..end_date).to_a.map { |d| d.to_s if d == date || named_weekdays.include?(d.strftime("%a")) }.compact
+      @future_dates -= skip_dates
     end
     @future_dates
   end
@@ -97,5 +99,13 @@ class RepeatedChangeRequest < ChangeRequest
     return if !date_changed?
     
     super
+  end
+
+  def skip_dates_valid
+    begin
+      skip_dates.each { |skip| Date.parse(skip) }
+    rescue
+      errors.add(:skip_dates, "must contain dates")     
+    end
   end
 end

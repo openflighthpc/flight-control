@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_01_161839) do
+ActiveRecord::Schema.define(version: 2022_04_14_145139) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -83,6 +83,8 @@ ActiveRecord::Schema.define(version: 2022_04_01_161839) do
     t.datetime "updated_at", precision: 6, null: false
     t.bigint "user_id"
     t.integer "monitor_override_hours"
+    t.boolean "over_budget_switch_offs", default: false
+    t.string "skip_dates", default: [], array: true
     t.index ["project_id"], name: "index_change_requests_on_project_id"
     t.index ["user_id"], name: "index_change_requests_on_user_id"
   end
