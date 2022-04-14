@@ -516,7 +516,7 @@ class Project < ApplicationRecord
     request.start
 
     instances_to_change = request.instances_to_change_with_pending
-    create_action_logs(instances_to_change)
+    create_action_logs(instances_to_change, "Change request", request)
     grouped_changes = group_instance_changes(instances_to_change)
     update_instance_statuses(grouped_changes)
   end
@@ -574,7 +574,7 @@ class Project < ApplicationRecord
       end
       send_slack_message(msg) if slack
       to_switch_off = {off: to_switch_off}
-      create_action_logs(to_switch_off)
+      create_action_logs(to_switch_off, "Switched off to meet budget")
       grouped_changes = group_instance_changes(to_switch_off)
       update_instance_statuses(grouped_changes)
     else
@@ -594,11 +594,11 @@ class Project < ApplicationRecord
     results
   end
 
-  def create_action_logs(instance_actions, request=nil)
+  def create_action_logs(instance_actions, reason, request=nil)
     instance_actions.each do |action, instances|
       instances.each do |instance|
         action_log = ActionLog.new(project_id: id, user_id: request&.user_id,
-                                   action: action, reason: "Change request",
+                                   action: action, reason: reason,
                                    instance_id: instance.instance_id,
                                    change_request_id: request&.actual_or_parent_id,
                                    automated: request.blank?)
