@@ -3,7 +3,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
   $('#load-more-logs').click(function() {
     loadLogs();
   });
-  setTimeout(checkForNewData, 30000);
 });
 
 function loadLogs(event) {
@@ -133,33 +132,4 @@ function addConfigLogCard(log) {
   $('.card-text', newCard).html(log.details);
   $('.log-status', newCard).html(log.status);
   newCard.insertAfter($('.audit-row').last());
-}
-
-window.checkForNewData = function() {
-  let xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      let response = JSON.parse(this.responseText);
-      if (response.changed === true) {
-        requestRefresh();
-      } else {
-        setTimeout(checkForNewData, 30000);
-      }
-    }
-  };
-  xhttp.onerror = function() {
-    alert("Unable to connect to server. Please check your connection and that the application is still running.");
-  };
-
-  let changeEl = $('#latest-change');
-  let projectName = changeEl.data('project');
-  let projectParam = `?project=${projectName}&`;
-  let latestChange = changeEl.data('value');
-  xhttp.open("GET", `/json/data-check${projectParam}timestamp=${latestChange}`, true);
-  xhttp.send();
-}
-
-window.requestRefresh = function() {
-  alert("Project data has been updated. The page will be refreshed to show the latest information.");
-  window.location.reload();
 }
