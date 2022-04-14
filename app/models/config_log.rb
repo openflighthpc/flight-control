@@ -1,4 +1,4 @@
-class ConfigLog < ActiveRecord::Base
+class ConfigLog < ApplicationRecord
   belongs_to :project
   belongs_to :user
   belongs_to :change_request, optional: true
