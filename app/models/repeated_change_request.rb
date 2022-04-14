@@ -19,7 +19,7 @@ class RepeatedChangeRequest < ChangeRequest
   end
 
   def action_on_date?(date)
-    future_dates.include?(date)
+    future_dates.include?(date.to_s)
   end
 
   def next_date_time
@@ -28,7 +28,7 @@ class RepeatedChangeRequest < ChangeRequest
   end
 
   def individual_request_on_date(date)
-    return nil if !future_dates.include?(date)
+    return nil if !future_dates.include?(date.to_s)
 
     request = OneOffChangeRequest.new(child_request_attributes(date))
     request.set_as_temporary_child(self.id)

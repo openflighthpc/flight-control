@@ -104,6 +104,10 @@ class OneOffChangeRequest < ChangeRequest
     end
   end
 
+  def link
+    "/events/#{actual_or_parent_id}/edit?project=#{project.name}"
+  end
+
   def complete
     return if temporary?
 
