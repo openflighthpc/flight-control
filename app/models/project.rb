@@ -516,7 +516,9 @@ class Project < ApplicationRecord
     request.start
 
     instances_to_change = request.instances_to_change_with_pending
-    update_instance_statuses(instances_to_change, request)
+    create_action_logs(instances_to_change)
+    grouped_changes = group_instance_changes(instances_to_change)
+    update_instance_statuses(grouped_changes)
   end
 
   def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
@@ -571,7 +573,10 @@ class Project < ApplicationRecord
         msg << "None\n" if !change
       end
       send_slack_message(msg) if slack
-      update_instance_statuses({off: to_switch_off})
+      to_switch_off = {off: to_switch_off}
+      create_action_logs(to_switch_off)
+      grouped_changes = group_instance_changes(to_switch_off)
+      update_instance_statuses(grouped_changes)
     else
       msg = "No switch offs required today for project #{self.name} to meet budget, based on current forecasts."
       send_slack_message(msg) if slack
@@ -589,9 +594,20 @@ class Project < ApplicationRecord
     results
   end
 
-  # This is perhaps doing too much, the grouping and action logs could
-  # be elsewhere
-  def update_instance_statuses(instances_to_change, request=nil)
+  def create_action_logs(instance_actions, request=nil)
+    instance_actions.each do |action, instances|
+      instances.each do |instance|
+        action_log = ActionLog.new(project_id: id, user_id: request&.user_id,
+                                   action: action, reason: "Change request",
+                                   instance_id: instance.instance_id,
+                                   change_request_id: request&.actual_or_parent_id,
+                                   automated: request.blank?)
+        action_log.save!
+      end
+    end    
+  end
+
+  def group_instance_changes(instances_to_change)
     actions = {on: {}, off: {}}
     instances_to_change.each do |action, instances|
       instances.each do |instance|
@@ -604,14 +620,14 @@ class Project < ApplicationRecord
         else
           actions[action][grouping] = [identifier]
         end
-        action_log = ActionLog.new(project_id: id, user_id: request&.user_id,
-                                   action: action, reason: "Change request",
-                                   instance_id: instance.instance_id,
-                                   change_request_id: request&.actual_or_parent_id,
-                                   automated: request.blank?)
-        action_log.save!
       end
     end
+    actions
+  end
+
+  # This is perhaps doing too much, the grouping and action logs could
+  # be elsewhere
+  def update_instance_statuses(actions)
     actions.each do |action, details|
       next if details.empty?
       # for aws grouping is region, for azure is resource group
