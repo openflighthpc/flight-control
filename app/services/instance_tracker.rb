@@ -108,7 +108,7 @@ class InstanceTracker
       requests = requests.to_a << temp_change_request.as_future_individual_requests
       requests = requests.flatten.compact.sort_by { |request| [request.date, request.time] }
     end
-    requests.each do |request|
+    requests.flatten.each do |request|
       next if exclude_request && (request.actual_or_parent_id == exclude_request.id)
 
       scheduled_counts[request.date] = {} if !scheduled_counts.has_key?(request.date)

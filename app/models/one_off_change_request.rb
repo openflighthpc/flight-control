@@ -49,6 +49,8 @@ class OneOffChangeRequest < ChangeRequest
     action_on_date?(date) ? self : nil
   end
 
+  # TODO: Update as not working correctly when minimum counts with same
+  # values as current, for today
   def check_and_update_target_counts(group, type, current_status)
     action = nil
     return action if !counts[group] || !counts[group][type]
@@ -90,12 +92,20 @@ class OneOffChangeRequest < ChangeRequest
     @comparison_counts[group][type] = 0 if @comparison_counts[group][type] < 0
   end
 
+  def reset_comparison_counts
+    @comparison_counts = {}
+  end
+
   def start
     if temporary?
       ChangeRequest.find(parent_id).start
     else
       super
     end
+  end
+
+  def link
+    "/events/#{actual_or_parent_id}/edit?project=#{project.name}"
   end
 
   def complete

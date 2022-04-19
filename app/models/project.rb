@@ -6,9 +6,11 @@ require_relative 'action_log'
 require_relative '../services/project_config_creator'
 require_relative '../services/costs_plotter'
 require_relative '../services/instance_tracker'
+require_relative '../decorators/budget_switch_off_decorator'
 require 'httparty'
 
 class Project < ApplicationRecord
+  BUDGET_SWITCH_OFF_TIME = "23:30"
   DEFAULT_COSTS_DATE = Date.today - 3
   SCOPES = %w[total data_out core core_storage]
   has_many :instance_logs
@@ -129,14 +131,16 @@ class Project < ApplicationRecord
   end
 
   # In future this will include over budget switch offs
-  def events(groups=nil)
-    events = pending_one_off_and_repeat_requests
+  def events(groups=nil, recalculate_budget_off=true)
+    events = pending_one_off_and_repeat_requests.concat(decorated_switch_offs(recalculate_budget_off))
     events = events.select { |event| event.included_in_groups?(groups) } if groups
     events
   end
 
   def events_on(date, groups=nil)
-    pending_one_off_and_repeat_requests_on(date, groups)
+    requests = pending_one_off_and_repeat_requests_on(date, groups)
+    switch_offs = decorated_switch_offs.select { |off| off.date == date && (!groups || off.included_in_groups?(groups)) }
+    requests.concat(switch_offs)
   end
 
   def events_by_date(chosen_events=events)
@@ -145,7 +149,7 @@ class Project < ApplicationRecord
 
   # within next 5 mins
   def upcoming_events(groups=nil)
-    today_events = events_on(Date.today.to_s, groups)
+    today_events = events_on(Date.today, groups)
     five_mins_from_now = Time.now + 5.minutes
     today_events.select { |event| event.date_time <= five_mins_from_now }
   end
@@ -155,14 +159,14 @@ class Project < ApplicationRecord
   end
 
   # after next 5 mins
-  def future_events(groups=nil)
+  def future_events(groups=nil, recalculate_budget_off=true)
     five_mins_from_now = Time.now + 5.minutes
-    future = events(groups)
+    future = events(groups, recalculate_budget_off)
     future.select { |event| event.date_time > five_mins_from_now }
   end
 
-  def future_events_by_date(groups=nil)
-    events_by_date(future_events(groups))
+  def future_events_by_date(groups=nil, recalculate_budget_off=true)
+    events_by_date(future_events(groups, recalculate_budget_off))
   end
 
   def events_by_id(events)
@@ -402,10 +406,12 @@ class Project < ApplicationRecord
     # This sets the future instance counts based on the
     # if the temp change request were carried out
     latest_instances(change)
-    results = {costs: costs_plotter.cumulative_change_request_costs(change)}
+    costs, chart_costs = costs_plotter.cumulative_change_request_costs(change)
+    results = {costs: chart_costs}
     start_date = costs_plotter.start_of_billing_interval(Date.today)
     end_date = costs_plotter.end_of_billing_interval(start_date)
-    results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, change)
+    results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, costs, change)
+    results[:budget_switch_offs] = costs_plotter.front_end_switch_offs_by_date(start_date, false)
     results
   end
 
@@ -433,8 +439,12 @@ class Project < ApplicationRecord
     change = make_change_request(params)
     change.project_id = self.id
     success = change.save
-    msg = change.formatted_changes
-    send_slack_message(msg) if success
+    if success
+      msg = change.formatted_changes
+      off_msg = @costs_plotter.switch_off_schedule_msg(true, false)
+      msg << "\n\nTo meet budget, nodes must also be switched off during the billing cycle. Current recommendations:\n\n#{off_msg}" if off_msg
+      send_slack_message(msg)
+    end
     change
   end
 
@@ -506,26 +516,9 @@ class Project < ApplicationRecord
     request.start
 
     instances_to_change = request.instances_to_change_with_pending
-    instance_list = {on: {}, off: {}}
-    instances_to_change.each do |action, instances|
-      instances.each do |instance|
-        # Platforms expect instances to be grouped by different criteria
-        # for efficient SDK/API queries, and to use id or name
-        grouping = instance.send(instance_grouping)
-        identifier = instance.send(instance_identifier)
-        if instance_list[action].has_key?(grouping)
-          instance_list[action][grouping] << identifier
-        else
-          instance_list[action][grouping] = [identifier]
-        end
-        action_log = ActionLog.new(project_id: id, user_id: request.user_id,
-                                   action: action, reason: "Change request",
-                                   instance_id: instance.instance_id,
-                                   change_request_id: request.actual_or_parent_id)
-        action_log.save!
-      end
-    end
-    update_instance_statuses(instance_list)
+    create_action_logs(instances_to_change, "Change request", request)
+    grouped_changes = group_instance_changes(instances_to_change)
+    update_instance_statuses(grouped_changes)
   end
 
   def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
@@ -546,6 +539,94 @@ class Project < ApplicationRecord
     change
   end
 
+  def budget_switch_off_schedule(slack=false)
+    off_msg = costs_plotter.switch_off_schedule_msg(true, false)
+    if off_msg
+      msg = "Based on latest forecasts, nodes must be switched off to meet this cycle's budget. Current planned switch offs:\n\n"
+      msg << off_msg
+    else
+      msg = "No budget switch offs required based on current forecasts."
+    end
+    msg = "Project *#{self.name}*\n" << msg
+    msg << "\n\n"
+    send_slack_message(msg) if slack
+    msg
+  end
+
+  def perform_budget_switch_offs(slack=true)
+    switch_offs = costs_plotter.today_budget_switch_offs
+    if switch_offs.any?
+      to_switch_off = []
+      msg = "To meet budget for project *#{self.name}*, instances submitted to automated scripts for switch off:\n\n"
+      switch_offs.each do |compute_group, instance_types|
+        msg << "*#{compute_group}*\n"
+        change = false
+        instance_types.each do |instance_type, number|
+          instances = latest_instance_logs.where(instance_type: instance_type, compute_group: compute_group)
+          instances.each {|instance| puts instance.pending_on?}
+          instances = instances.select { |instance| instance.pending_on? }
+          instances = instances.first(number)
+          to_switch_off = to_switch_off.concat(instances)
+          msg << "#{number} #{instance_type}\n" if instances.any?
+          change = true if instances.any?
+        end
+        msg << "None\n" if !change
+      end
+      send_slack_message(msg) if slack
+      to_switch_off = {off: to_switch_off}
+      create_action_logs(to_switch_off, "Switched off to meet budget")
+      grouped_changes = group_instance_changes(to_switch_off)
+      update_instance_statuses(grouped_changes)
+    else
+      msg = "No switch offs required today for project #{self.name} to meet budget, based on current forecasts."
+      send_slack_message(msg) if slack
+    end
+    msg
+  end
+
+  # Convert them into a format equivalent to a change request,
+  # for use in the front end.
+  def decorated_switch_offs(recalculate=true)
+    results = []
+    costs_plotter.switch_offs_by_date(recalculate).each do |date, details|
+      results << BudgetSwitchOffDecorator.new(Date.parse(date), details, platform)
+    end
+    results
+  end
+
+  def create_action_logs(instance_actions, reason, request=nil)
+    instance_actions.each do |action, instances|
+      instances.each do |instance|
+        action_log = ActionLog.new(project_id: id, user_id: request&.user_id,
+                                   action: action, reason: reason,
+                                   instance_id: instance.instance_id,
+                                   change_request_id: request&.actual_or_parent_id,
+                                   automated: request.blank?)
+        action_log.save!
+      end
+    end    
+  end
+
+  def group_instance_changes(instances_to_change)
+    actions = {on: {}, off: {}}
+    instances_to_change.each do |action, instances|
+      instances.each do |instance|
+        # Platforms expect instances to be grouped by different criteria
+        # for efficient SDK/API queries, and to use id or name
+        grouping = instance.send(instance_grouping)
+        identifier = instance.send(instance_identifier)
+        if actions[action].has_key?(grouping)
+          actions[action][grouping] << identifier
+        else
+          actions[action][grouping] = [identifier]
+        end
+      end
+    end
+    actions
+  end
+
+  # This is perhaps doing too much, the grouping and action logs could
+  # be elsewhere
   def update_instance_statuses(actions)
     actions.each do |action, details|
       next if details.empty?

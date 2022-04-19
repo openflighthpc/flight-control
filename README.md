@@ -148,7 +148,7 @@ If using the visualiser part of the application, once instance logs have been cr
 
 If overwrite is set to true, any existing file will be replaced using the latest instance logs.
 
-The resulting config file will be generated in `/config/projects`. Compute group colours (as used in charts) should be updated, as should compute group and instance type priorities (not currently used - for over budget switch offs).
+The resulting config file will be generated in `/config/projects`. Compute group colours (as used in charts) should be updated, as should compute group and instance type priorities.
 
 ### Recording instance logs
 
@@ -286,6 +286,32 @@ By default these charts will show the current billing cycle, but the date range 
 
 Datasets's visibility can be toggled on the charts by selected them in the chart's legend. They can also be filtered using the form at the top of the page. If a compute group or core is selected, the corresponding storage dataset will also be shown (e.g. selecting 'group1' will show both 'group1' and 'group1 storage').
 
+#### Budget Matching Switch Offs
+
+The system will aim to match a project's budget, estimating when best to switch off nodes to make the most of the remaining budget for this cycle.
+
+Switch offs are determined based on a weighted priority, calculated by multiplying a given instance type's priority by its compute group's priority, as defined in the project's config file. Instance types with a lower weighted priority are switched off first. However, if switch offs of more expensive, higher priority instances leave enough remaining budget, lower priority instances may then be switched off later (or not at all) to make the most of this surplus.
+
+Calculations are made based on the assumption that the suggested switch offs are made at 11:30pm on the given date.
+
+Any recommended switch offs will be displayed on the costs charts. These switch offs will also be highlighted to the user upon submitting a change request and details included in the resulting slack message. Switch offs to meet budget may change over time as actual costs and new instance logs update forecasts.
+
+These calculations may include switching off instances multiple times throughout the cycle, if they are turned back on by a subsequent change request.
+
+If you select a date range including future cycles, switch offs for those future cycles will also be calculated.
+
+##### Rake and cron tasks
+
+Budget matching switch offs for today can be carried out using the rake task `rake projects:budget_switch_offs:all[slack,text]` or `rake projects:budget_switch_offs:by_project[project_name,slack,text]`. The arguments `slack` and `text` must be `true` or `false`, indicating how to output the results.
+
+A cron task is also included in `config/schedule` that can be set using `whenever -w`. This will set the `:all` rake task to run at 11:30pm every day.
+
+When such a switch off is carried out, associated ActionLogs are created.
+
+A description of any upcoming budget switch offs can also be generated using the rake task `rake projects:budget_switch_off_schedule:all[slack,text]` or `rake projects:budget_switch_off_schedule:by_project[project_name,slack,text]`.
+
+A cron task is included in `config/schedule` to run the `:all` task at 12:30pm every day, outputting the result to slack.
+
 #### Current States
 
 At the bottom of the page the project's current compute groups and instance counts are displayed, with a summary of the resulting estimated daily costs. If any filtering for compute groups is in place, only those compute groups will be included.
@@ -294,7 +320,7 @@ These groups and types shown in this table are determined by the project's confi
 
 #### New Data Alert and Refresh
 
-If new costs are recorded, instance counts change or a change request is created/updated, this page will show an alert that when accepted refreshes the page, so this latest data can be shown. The application checks for new data every 30 seconds.
+If new costs are recorded, instance counts change, a change request is created/updated or an automated budget matching switch off carried out, this page will show an alert that when accepted refreshes the page, so this latest data can be shown. The application checks for new data every 30 seconds.
 
 ### Change Requests
 
@@ -306,7 +332,7 @@ These requests can either be carried out 'now', 5 minutes after submission(round
 
 If in the future, the user can also optionally choose to repeat the request on the chosen days of the week, until the chosen end date (inclusive of that date). Users may also specify a description for these requests, and if it should include an override to the CPU monitor for a specified number of hours.
 
-Once all request details have been selected, a chart will be displayed with the estimated resulting costs, for the current billing cycle.
+Once all request details have been selected, a chart will be displayed with the estimated resulting costs, for the current billing cycle. This will include displaying any required automated switch offs to best meet budget.
 
 If this forecast will take the project over budget or over balance, the user will be preventing from submitting the request.
 
@@ -315,6 +341,8 @@ Upon submission a slack message will be sent to the project's defined slack chan
 #### Managing Requests
 
 A project's active requests can be viewed on the Manage Events page. This shows the current node counts (excluding pending counts), any switch ons and switch offs in progress, any change requests starting in the next 5 minutes, and any change requests starting after the next 5 minutes.
+
+Tables also include any calculated budget matching switch offs, which are highlighted in red.
 
 This page updates automatically without needing to refresh, with data checked and updated every 30 seconds.
 

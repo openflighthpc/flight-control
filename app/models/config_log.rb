@@ -1,4 +1,4 @@
-class ConfigLog < ActiveRecord::Base
+class ConfigLog < ApplicationRecord
   belongs_to :project
   belongs_to :user
   belongs_to :change_request, optional: true
@@ -35,10 +35,6 @@ class ConfigLog < ActiveRecord::Base
       end
     end
     self.config_changes = full_details
-  end
-
-  def formatted_timestamp
-    created_at.strftime('%-I:%M%P %F')
   end
 
   def formatted_changes

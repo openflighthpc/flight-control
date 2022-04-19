@@ -6,18 +6,16 @@
     </h4>
   </div>
 </div>
-<div class="row mb-5" id="<%= locals[:type] %>-events-table-row" <%= "style=display:none;" if !locals[:requests].any? %>>
-  <div class="col-1"></div> 
-  <div class="col-10 text-center">
+<div class="row mb-5 future-events-table" id="<%= locals[:type] %>-events-table-row" <%= "style=display:none;" if !locals[:requests].any? %>>
+  <div class="col-12 text-center">
     <table class="table" id="<%= locals[:type] %>-events-table">
       <thead class="thead-dark" class="events-table-header">
         <tr>
-          <th colspan="3" class="events-table-explainer"></th>
-          <th colspan="<%= @project.front_end_compute_groups.length %>"
-              class="events-table-explainer">
-            Target counts
+          <th colspan="2" class="events-table-explainer"></th>
+          <th colspan="<%= @project.front_end_compute_groups.length + 2 %>"
+              class="events-table-explainer text-center">
+            Target counts / <span class="text-danger"> budget switch offs</span>
           </th>
-          <th class="events-table-explainer"></th>
           <th class="events-table-explainer"></th>
           <% if @editor %>
             <th class="events-table-explainer" id="edit-column"></th>
@@ -60,7 +58,7 @@
               <td>
                 <%= schedule.counts_criteria.capitalize %>
               </td>
-              <%= render '/change_requests/scheduled_request_event_details', locals: {schedule: schedule, compute_groups: @compute_groups} %>
+              <%= render "/change_requests/#{schedule.description_partial}", locals: {schedule: schedule, compute_groups: @compute_groups} %>
               <td>
                 <%= schedule.monitor_override_hours ? "#{schedule.monitor_override_hours} hour#{'s' if schedule.monitor_override_hours > 1}" : "-" if schedule %>
               </td>
@@ -69,7 +67,9 @@
               </td>
               <% if @editor %>
                 <td class="d-flex justify-content-center">
-                  <%= button_to "Cancel", {action: "cancel", id: schedule.actual_or_parent_id, project:  schedule.project.name}, {data: { confirm: 'Are you sure you want to cancel this request?' },class: "btn btn-sm btn-danger"} %>
+                  <% if schedule.cancellable? %>
+                    <%= button_to "Cancel", {action: "cancel", id: schedule.actual_or_parent_id, project:  schedule.project.name}, {data: { confirm: 'Are you sure you want to cancel this request?' },class: "btn btn-sm btn-danger"} %>
+                  <% end %>
                   <% if schedule.editable? %>
                     <button class="btn btn-sm btn-warning edit-button"
                             onclick="window.location.href='/events/<%= schedule.actual_or_parent_id %>/edit?project=<%= @project.name %>'">

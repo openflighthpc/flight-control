@@ -203,10 +203,11 @@ function updateChart(response) {
   actualTotalDataset.data = costs.actual.total;
   forecastTotalDataset.data = costs.forecast.total
   simple_chart.data.balance_end = response.balance_end;
+  simple_chart.data.off = response.budget_switch_offs;
   simple_chart.update();
   let submitButton = $('#wizard-submit-button');
   let overBudget = overBudgetDateIndexes().length > 0;
-  if(simple_chart.data.balance_end != null) {
+  if(simple_chart.data.balance_end.over) {
     submitButton.addClass('disabled');
     submitButton.attr('disabled', true);
     submitButton.prop('title', 'Cannot submit request that goes over balance');
@@ -219,7 +220,15 @@ function updateChart(response) {
     submitButton.attr('disabled', false);
     submitButton.prop('title', '');
   }
-  if(simple_chart.data.balance_end != null) {
+  if(Object.keys(simple_chart.data.off).length > 0) {
+    $('#over-budget-switch-off-details').html(overBudgetSwitchOffDetails());
+    $('#request-over-budget-switch-offs').css('display', 'block');
+    $('#over-budget-switch-offs-checkbox').val(true);
+  } else {
+    $('#request-over-budget-switch-offs').css('display', 'none');
+    $('#over-budget-switch-offs-checkbox').val(false);
+  }
+  if(simple_chart.data.balance_end.over) {
     $('#over-balance-warning').css('display', 'block');
   } else {
     $('#over-balance-warning').css('display', 'none');
@@ -229,6 +238,19 @@ function updateChart(response) {
   } else {
     $('#over-budget-warning').css('display', 'none');
   }
+}
+
+function overBudgetSwitchOffDetails() {
+  let dates = simple_chart.data.labels;
+  let dateGrouped = {};
+  let details = "To best meet budget with these changes, nodes will need to be switched off during the current billing cycle.";
+  details += " Based on current forecasts:<br>";
+  Object.keys(simple_chart.data.off).sort().forEach((daysInFuture, i) => {
+    simple_chart.data.off[daysInFuture].forEach((text, j) => {
+      details += `<br>- ${simple_chart.data.off[daysInFuture][j]} off by end of ${dates[daysInFuture]}.`;
+    });
+  });
+  return details;
 }
 
 window.updateRequestSummary = function() {

@@ -43,3 +43,11 @@ end
 every 20.minutes do
   rake "projects:monitor:all"
 end
+
+every :day, at: '12:30pm' do
+  rake "projects:budget_switch_off_schedule:all[true,false]"
+end
+
+every :day, at: '11:30pm' do
+  rake "projects:budget_switch_offs:all[true,false]"
+end

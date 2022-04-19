@@ -125,6 +125,10 @@ class ChangeRequest < ApplicationRecord
     'change_request_card'
   end
 
+  def description_partial
+    'change_request_event_details'
+  end
+
   def includes_instance_type?(group, instance_type)
     counts[group][instance_type]
   end
@@ -212,6 +216,7 @@ class ChangeRequest < ApplicationRecord
       descriptive_counts: descriptive_counts,
       status: status,
       editable: editable?,
+      cancellable: cancellable?,
       counts_criteria: counts_criteria.capitalize,
       frontend_id: front_end_id,
       description: description,
