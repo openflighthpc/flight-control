@@ -6,7 +6,11 @@
           <label for="groups-list">Compute Groups:</label>
           <select multiple class="form-control events-groups-select" name="groups[]" id="groups-list">
             <% @compute_groups.each do |group| %>
-              <option value='<%=group%>' <%= @filtered_groups&.include?(group) ? 'selected' : '' if @filtered_groups %>>
+              <% selected = @filtered_groups && @filtered_groups&.include?(group) %>
+              <option
+                value='<%=group%>' <%= 'selected' if selected %>
+                data-already-selected=<%= selected %>
+              >
               <%= group %>
               </option>
             <% end %>

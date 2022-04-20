@@ -22,7 +22,7 @@
     <div class="row">
       <div class="col-sm-3"></div>
       <div class="col-sm-3">
-        <strong>Cost This Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="As of the start of today. Includes some estimation." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:costs_so_far].to_i %>c.u.
+        <strong>Cost This Billing Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="As of the start of today. Includes some estimation." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:costs_so_far].to_i %>c.u.
       </div>
       <div class="col-sm-3">
         <strong>Cycle Budget</strong>: 
@@ -41,6 +41,7 @@
     <div class="row">
       <div class="col-sm-3"></div>
       <div class="col-sm-3">
+        <strong>Billing Cycle Length</strong>: <%= @latest_cycle_details[:length] %>
       </div>
       <div class="col-sm-3">
         <strong>Project End Date</strong>: <%= @project.end_date ? @project.end_date : "none" %>
