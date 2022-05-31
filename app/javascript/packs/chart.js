@@ -219,7 +219,7 @@ window.addCycleLines = function(){
 
     afterDatasetsDraw: function (chart, easing) {
       let cycle_thresholds = chart.data.cycle_thresholds;
-      for (let i = 0; i < cycle_thresholds.length; i++) {
+      for (let i = 0; i < cycle_thresholds.length && i < chart.data.labels.length; i++) {
         this.renderVerticalLine(chart, cycle_thresholds[i]);
       }
     }
@@ -361,14 +361,15 @@ window.addShutOffLines = function() {
     },
 
     afterDatasetsDraw: function (chart, easing) {
-      // this needs updating to accomodate individual switch offs
       if(chart.data.off != "undefined" && chart.data.off != null) {
         let index = 0;
         Object.keys(chart.data.off).sort().forEach((daysInFuture, i) => {
-          chart.data.off[daysInFuture].forEach((text, j) => {
-            this.renderVerticalLine(chart, daysInFuture, text, index);
-            index += 1;
-          });
+          if(daysInFuture < chart.data.labels.length) {
+            chart.data.off[daysInFuture].forEach((text, j) => {
+              this.renderVerticalLine(chart, daysInFuture, text, index);
+              index += 1;
+            });
+          }
         });
       }
     }
