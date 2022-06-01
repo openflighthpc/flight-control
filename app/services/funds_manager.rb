@@ -24,28 +24,41 @@ class FundsManager
         @project.send_slack_message(new_balance.description)
       end
       if balance > 0 && @project.continuous_budget?
-        request_log = @flight_hub_communicator.move_funds(
-          balance.to_i,
-          "receive",
-          "Budget for continuous project"
-        )
-        @project.send_slack_message(request_log.description)
-        if request_log.status == "completed"
-          # New budget is existing budget + additional received
-          existing_budget = budget = @project.budgets
-            .where("effective_at <= ?", Date.current)
-            .where("expiry_date IS NULL OR expiry_date > ?", Date.current).last
-          existing_budget_amount = existing_budget ? existing_budget.amount : 0 
-          create_cycle_budget(request_log.amount + existing_budget_amount)
-          balance = @flight_hub_communicator.check_balance # Should now be 0
-          new_balance = @project.hub_balances.create(amount: balance, date: Date.current)
-          @project.send_slack_message(new_balance.description)
-        end
+        check_out_and_update_continuous(balance.to_i)
       end
     rescue FlightHubApiError => error
-      msg = "Unable to check Hub Balance for project #{@project.name}: #{error}" 
+      msg = "Unable to check Hub Balance for project #{@project.name}: #{error}"
+      @project.send_slack_message(msg)
     end
   end
+
+  # TODO if try to check out and Hub does not have enough, kill all compute nodes.
+  # Perhaps by setting budget/ balance to zero and running over budget switch offs
+
+  def check_and_manage_funds
+    if @project.continuous_budget?
+      check_and_update_hub_balance
+    elsif @costs_plotter.active_billing_cycles.include?(Date.current) && !cycle_already_has_budget?
+      sent = send_back_unused_compute_units
+      if Date.current == @project.start_date || (sent && sent.valid? && sent.status == "completed")
+        result = check_out_cycle_budget
+        if result.status == "completed"
+          create_budget(result.amount)
+        end
+      else
+        msg = "Funds not requested from Hub for project *#{@project.name}*, as sending back to Hub failed."
+        @project.send_slack_message(msg)
+      end
+    end
+    
+    if @project.end_date && @project.end_date == Date.current
+      # send back remaining c.u.s
+      send_back_unused_compute_units
+      create_budget(0)
+    end
+  end
+
+  private
 
   def send_back_unused_compute_units
     end_of_project = @project.end_date && @project.end_date == Date.current
@@ -76,8 +89,6 @@ class FundsManager
   end
 
   # Assume only run on first day of cycle
-  # TODO: add validaton that is first day of cycle, and has not already
-  # been successfully run (i.e. transfer requests already completed)
   def check_out_cycle_budget
     # For continuous projects, we don't request at start of cycle, 
     # but whenever hub dept receives more compute units.
@@ -100,7 +111,26 @@ class FundsManager
     request_log
   end
 
-  def create_cycle_budget(amount)
+  def check_out_and_update_continuous(additional_compute_units)
+    request_log = @flight_hub_communicator.move_funds(
+      additional_compute_units,
+        "receive",
+        "Budget for continuous project"
+      )
+    @project.send_slack_message(request_log.description)
+
+    if request_log.status == "completed"
+      # New budget is existing budget + additional received
+      existing_budget = budget = @project.budgets
+        .where("effective_at <= ?", Date.current)
+        .where("expiry_date IS NULL OR expiry_date > ?", Date.current).last
+      existing_budget_amount = existing_budget ? existing_budget.amount : 0 
+      create_budget(request_log.amount + existing_budget_amount)
+      check_and_update_hub_balance
+    end
+  end
+
+  def create_budget(amount)
     # Expiry date is the first day it no longer applies.
     if @project.continuous_budget?
       expiry = @project.end_date
@@ -117,35 +147,10 @@ class FundsManager
       msg = "Unable to save budget for project *#{project.name}*: #{budget.errors.full_messages.join("; ") }"
       @project.send_slack_message()
     end
+    budget
   end
 
-  # TODO if try to check out and Hub does not have enough, kill all compute nodes.
-  # Perhaps by setting budget/ balance to zero and running over budget switch offs
-
-  def check_and_manage_funds
-    if @project.continuous_budget?
-      check_and_update_hub_balance
-    elsif @costs_plotter.active_billing_cycles.include?(Date.current)
-      sent = send_back_unused_compute_units
-      if Date.current == @project.start_date || (sent && sent.valid? && sent.status == "completed")
-        result = check_out_cycle_budget
-        if result.status == "completed"
-          create_cycle_budget(result.amount)
-        end
-      else
-        msg = "Funds not requested from Hub for project *#{@project.name}*, as sending back to Hub failed."
-        @project.send_slack_message(msg)
-      end
-    end
-    
-    if @project.end_date && @project.end_date == Date.current
-      # send back remaining c.u.s
-      send_back_unused_compute_units
-    end
-  end
-
-  # Make this more robust
-  def managed_this_cycle?
-    @project.funds_transfer_requests.completed.where(date: Date.current).exist?
+  def cycle_already_has_budget?
+    @project.budgets.find_by(effective_at: Date.current)
   end
 end
