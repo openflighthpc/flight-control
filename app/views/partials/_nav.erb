@@ -1,31 +1,31 @@
 <% if @nav_view != nil %>
-  <ul class="nav nav-tabs<%= current_user.multi_project_user? ? ' flush' : ''  %> view-selection">
-    <li class="nav-item">
-      <%= link_to "Billing Management", billing_management_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "billing"}" %>
+  <ul class="top nav nav-tabs<%= current_user.multi_project_user? ? ' flush' : ''  %> view-selection">
+    <li class="top nav-item">
+      <%= link_to "Billing Management", billing_management_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
     </li>
-    <li class="nav-item">
-      <%= link_to "Costs Breakdown", costs_breakdown_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "costs"}" %>
+    <li class="top nav-item">
+      <%= link_to "Costs Breakdown", costs_breakdown_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "costs"}" %>
     </li>
     <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create? %>
-      <li class="nav-item">
+      <li class="top nav-item">
         <% title = @request ? "Edit Event" : "Create Event" %>
-        <%= link_to title, events_new_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "event wizard"}" %>
+        <%= link_to title, events_new_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "event wizard"}" %>
       </li>
     <% end %>
     </li>
     <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).manage? %>
-      <li class="nav-item">
-        <%= link_to "Manage Events", events_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "manage events"}" %>
+      <li class="top nav-item">
+        <%= link_to "Manage Events", events_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "manage events"}" %>
       </li>
     <% end %>
     <% if ProjectPolicy.new(current_user, @project).policy_page? %>
-      <li class="nav-item">
-        <%= link_to "Policies", policies_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "policies"}" %>
+      <li class="top nav-item">
+        <%= link_to "Policies", policies_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "policies"}" %>
       </li>
     <% end %>
     <% if ProjectPolicy.new(current_user, @project).audit? %>
-      <li class="nav-item">
-        <%= link_to "Audit", audit_path(project: @project.name), class: "nav-link#{' active' if @nav_view == "audit"}" %>
+      <li class="top nav-item">
+        <%= link_to "Audit", audit_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "audit"}" %>
       </li>
     <% end %>
   </ul>
