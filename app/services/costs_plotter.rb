@@ -1001,13 +1001,20 @@ class CostsPlotter
     switch_offs
   end
 
-  def front_end_switch_offs_by_date(index_date=start_of_current_billing_interval, recalculate=true)
+  def front_end_switch_offs_by_date(
+    index_date=start_of_current_billing_interval,
+    end_date=end_of_current_billing_interval,
+    recalculate=true
+  )
     front_end_switch_offs = {}
     switch_offs = switch_off_details(index_date, recalculate)
+    end_date_index = (end_date - index_date).to_i
     switch_offs.each do |group, details|
       details.each do |instance_type, off_using_relative_index|
         customer_facing_type = InstanceMapping.customer_facing_type(@project.platform, instance_type)
         off_using_relative_index.each do |i, off|
+          next if i > end_date_index
+
           if front_end_switch_offs[i]
             front_end_switch_offs[i] << "#{off}x #{group} #{customer_facing_type} off"
           else
