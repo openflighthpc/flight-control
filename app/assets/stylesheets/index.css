@@ -135,7 +135,7 @@ td {
 }
 
 input[type=date] {
-  width: 11.5rem !important;
+  width: 10rem !important;
 }
 
 .day-checkbox {
@@ -212,12 +212,6 @@ input[type=date] {
 
 .extras-section {
   margin-top: 1rem;
-}
-
-
-.navbar-brand {
-  padding-top: 0.2rem !important;
-  padding-bottom: 0.2rem !important;
 }
 
 .toggle-handle {
@@ -297,4 +291,70 @@ input[type=date] {
 
 #over-budget-switch-offs-checkbox {
   display: none;
+}
+
+/* Top Bar Tweaks */
+.bg-dark {
+  background-color: rgba(0,0,0,0.9) !important;
+}
+
+.brand-bar {
+ background-color:rgba(0,0,0,0.9);
+ height:75px;
+ padding:0.25rem 1rem
+}
+
+.navbar-brand-wrapper {
+  position: relative;
+}
+
+.control-subtitle {
+ color:white;
+ position:absolute;
+ font-size:16px;
+ font-weight:700;
+ font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;
+ text-transform:lowercase;
+ left:203px;
+ top:35px
+}
+
+.brand-logo {
+  max-height: 50px
+}
+
+/* Page Nav Tweaks */
+.top.nav {
+  background-color: rgba(50,136,188,1) !important;
+}
+
+.top.nav-tabs {
+  border-bottom: 1px solid rgba(50,136,188,1) !important;
+}
+
+.top.nav-link {
+  color: white !important;
+  background-color: rgba(50,136,188,1) !important;
+  border: 0 !important;
+  border-radius: 0;
+}
+
+.top.nav-item:hover,
+.top.nav-link:hover {
+  color: #2C3E50 !important;
+}
+
+.top.nav-link.active {
+  color: white !important;
+  background-color: #2C3E50 !important;
+}
+
+.top.nav-item {
+  background-color: rgba(50,136,188,1) !important;
+}
+
+/* Fix Width Issues */
+.row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
