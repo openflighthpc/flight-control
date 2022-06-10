@@ -165,6 +165,7 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.date "archived_date"
+    t.bigint "flight_hub_id"
   end
 
   create_table "user_roles", force: :cascade do |t|

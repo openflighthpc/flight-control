@@ -116,6 +116,8 @@ Rails.application.configure do
   config.sso_domain = ""
   config.use_ssl = true
 
+  config.flight_hub_url = "https://hub.staging.alces-flight.com/"
+
   config.slack_token = Rails.application.credentials.config[:slack_token]
   config.usd_gbp_conversion = 0.77
   config.gbp_compute_conversion = 12.5
