@@ -6,7 +6,7 @@ require_relative 'action_log'
 require_relative '../services/project_config_creator'
 require_relative '../services/costs_plotter'
 require_relative '../services/instance_tracker'
-require_relative '../services/flight_hub_communicator'
+require_relative '../services/funds_manager'
 require_relative '../decorators/budget_switch_off_decorator'
 require 'httparty'
 
@@ -363,8 +363,8 @@ class Project < ApplicationRecord
     @costs_plotter ||= CostsPlotter.new(self)
   end
 
-  def flight_hub_communicator
-    @flight_hub_communicator ||= FlightHubCommunicator.new(self)
+  def funds_manager
+    @funds_manager ||= FundsManager.new(self)
   end
 
   def check_and_switch_off_idle_nodes(slack=false)

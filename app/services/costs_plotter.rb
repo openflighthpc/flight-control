@@ -1146,6 +1146,8 @@ class CostsPlotter
             sum + (costs[:total] ? costs[:total] : costs[:forecast_total])
           end
         else
+          puts start_date
+          puts end_date
           cost = costs_between_dates(start_date, end_date + 1.day).to_i
         end
         cycle_details = { start: start_date, end: end_date,

@@ -44,9 +44,9 @@ class FlightHubCommunicator
         body: transfer_request_body(amount, reference_text, reference_id, reference_url)
       )
       if response.success?
-        true
+        {success: true}
       else
-        puts response.body
+        {sucess: false, details: response.body}
       end
     rescue Errno::ECONNRESET, Errno::EPIPE => error
       raise FlightHubApiError.new("Unable to connect to flight hub: #{error}")
