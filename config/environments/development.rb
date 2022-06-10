@@ -65,7 +65,7 @@ Rails.application.configure do
   config.sso_uri = "http://accounts.alces-flight.lvh.me:4000"
   config.use_ssl = false
 
-  config.flight_hub_url = "http://hub.alces-flight.lvh.me:9300/"
+  config.flight_hub_url = "http://hub.alces-flight.lvh.me:9300"
 
   config.default_url_options = {
     host: "control.alces-flight.lvh.me",
