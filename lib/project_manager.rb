@@ -28,7 +28,7 @@ class ProjectManager
     elsif action == "list"
       formatter = NoMethodMissingFormatter.new
       tp.set :max_width, 100
-      tp Project.all, :id, :name, :platform, :start_date, :end_date, :archived_date,
+      tp Project.all, :id, :name, :flight_hub_id, :platform, :start_date, :end_date, :archived_date,
       :visualiser, :slack_channel, {regions: {:display_method => :describe_regions, formatters: [formatter]}},
       {resource_groups: {:display_method => :describe_resource_groups, formatters: [formatter]}}, {filter_level: {formatters: [formatter]}},
       {project_tag: {formatters: [formatter]}}, :monitor_active
@@ -553,6 +553,7 @@ class ProjectManager
 
   def show_attributes(project)
     puts project.name
+    puts "flight_hub_id: #{project.flight_hub_id}"
     puts "platform: #{project.platform}"
     puts "start_date: #{project.start_date}"
     puts "end_date: #{project.end_date}"
