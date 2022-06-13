@@ -1,5 +1,6 @@
 require 'httparty'
 require_relative '../models/project'
+require_relative '../models/funds_transfer_request'
 
 # This should just handle the communication, not the calcs of what to do or when
 # It should probably handle recording audit logs (?)
@@ -22,36 +23,60 @@ class FlightHubCommunicator
       else
         puts response.body
       end
-    rescue Errno::ECONNRESET, Errno::EPIPE => error
+    rescue Errno::ECONNRESET, Errno::ECONNREFUSED, Errno::EPIPE => error
       raise FlightHubApiError.new("Unable to connect to flight hub: #{error}")
-    end  
+    end
   end
 
-  def move_funds(amount, action, reference_text, reference_id, reference_url=nil)
+  def move_funds(amount, action, reference_text, reference_url=nil)
     # This is a bit confusing: if I 'send' a negative amount, that's how much I receive.
     # Would be clearer if one endpoint for sending to hub, and one for receiving from hub.
     if action == "receive"
-      amount = amount.abs * -1
-    elsif action = "send"
-      amount = amount.abs
+      adjusted_amount = amount.abs * -1
+    elsif action == "send"
+      adjusted_amount = amount.abs
     else
       raise ArgumentError.new("Invalid action")
     end
-    begin
-      response = HTTParty.post(
-        "#{department_path}/funds",
-        headers: headers,
-        body: transfer_request_body(amount, reference_text, reference_id, reference_url)
-      )
-      if response.success?
-        {success: true}
-      else
-        {sucess: false, details: response.body}
+    record = create_funds_transfer_request(amount, action, reference_text)
+    if record.save
+      begin
+        reference_id = "Control: #{record.id}"
+        response = HTTParty.post(
+          "#{department_path}/funds",
+          headers: headers,
+          body: transfer_request_body(adjusted_amount, reference_text, reference_id, reference_url)
+        )
+        if response.success?
+          record.status = "completed"
+          record.save
+        else
+          record.status = "failed"
+          record.request_errors = parse_response_errors(response.parsed_response)
+          record.save
+        end
+      rescue Errno::ECONNRESET, Errno::ECONNREFUSED, Errno::EPIPE, EOFError => error
+        error_message = "Unable to connect to flight hub: #{error}"
+        record.status = "failed"
+        record.request_errors = error_message
+        record.save
+      rescue => error
+        record.status = "failed"
+        record.request_errors = "Unable to complete request: #{error}"
+        record.save
       end
-    rescue Errno::ECONNRESET, Errno::EPIPE => error
-      raise FlightHubApiError.new("Unable to connect to flight hub: #{error}")
     end
+    record
   end
+
+  def create_funds_transfer_request(amount, action, reason)
+    FundsTransferRequest.new(
+      amount: amount, action: action,
+      reason: reason, project_id: @project.id
+    )
+  end
+
+  private
 
   def department_path
     "#{flight_hub_path}/departments/#{@project.flight_hub_id}"
@@ -79,6 +104,16 @@ class FlightHubCommunicator
       h[:reference_id] = reference_id
       h[:reference_url] = reference_url if reference_url
     end.to_json
+  end
+
+  # Currently expect errors to be a hash, with model attributes and an array
+  # of errors. This may become more sophisticated/ varied in the future
+  def parse_response_errors(response)
+    message = ""
+    response.each do |attribute, errors|
+      message << "#{attribute}: #{errors.join("; ")}\n"
+    end
+    message
   end
 end
 

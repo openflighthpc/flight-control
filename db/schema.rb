@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_07_07_092226) do
+ActiveRecord::Schema.define(version: 2022_06_13_075720) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -119,6 +119,19 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
   create_table "data_migrations", primary_key: "version", id: :string, force: :cascade do |t|
   end
 
+  create_table "funds_transfer_requests", force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.bigint "amount"
+    t.string "action"
+    t.string "status"
+    t.text "reason"
+    t.text "request_errors"
+    t.date "date"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["project_id"], name: "index_funds_transfer_requests_on_project_id"
+  end
+
   create_table "instance_logs", force: :cascade do |t|
     t.bigint "project_id"
     t.string "instance_type"
@@ -199,6 +212,7 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
   add_foreign_key "action_logs", "users"
   add_foreign_key "change_request_audit_logs", "users"
   add_foreign_key "change_requests", "users"
+  add_foreign_key "funds_transfer_requests", "projects"
   add_foreign_key "user_roles", "projects"
   add_foreign_key "user_roles", "users"
 end

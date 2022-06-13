@@ -24,6 +24,7 @@ class Project < ApplicationRecord
   has_many :repeated_change_requests
   has_many :balances
   has_many :budget_policies
+  has_many :funds_transfer_requests
   has_many :user_roles
 
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }

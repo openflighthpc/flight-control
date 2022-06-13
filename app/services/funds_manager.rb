@@ -17,7 +17,6 @@ class FundsManager
       # add better error handling.
       return "Unable to check balance: #{error}"
     end
-    return balance
     current_balance = @project.current_balance.amount
     if current_balance != balance
       new_balance = @project.balances.build(amount: balance, effective_at: Date.today)
@@ -47,7 +46,8 @@ class FundsManager
           "Control"
         )
         if result[:success]
-          # update/ create a log
+          # update/ create a log?
+          # send a slack message
         else
           # error handling
           puts result[:details]
@@ -79,14 +79,16 @@ class FundsManager
           "Control"
         )
         if result[:success]
-          # update/ create a log
+          # update/ create a log?
+          # send a slack message
         else
           # error handling
           puts result[:details]
         end
       rescue FlightHubApiError => error
+        puts error
         # add appropriate error handling
-        puts error.error_messages.full_messages.join("; ")
+        puts error.error_messages.join("; ")
       end
     elsif remaining < 0
       # how to handle this? Reduce next cycle's budget? Try to check the shortfall out?
@@ -94,4 +96,8 @@ class FundsManager
     end
   end
 
+  def start_of_cycle_actions
+    send_back_unused_compute_units
+    check_out_cycle_budget
+  end
 end
