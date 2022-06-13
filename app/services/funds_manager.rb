@@ -9,14 +9,10 @@ class FundsManager
     @costs_plotter = project.costs_plotter
   end
 
+  # Error handling (e.g. if unable to access flight hub)
+  # will be handled at a higher level
   def check_and_update_balance
-    balance =
-    begin
-      @flight_hub_communicator.check_balance
-    rescue FlightHubApiError => error
-      # add better error handling.
-      return "Unable to check balance: #{error}"
-    end
+    balance = @flight_hub_communicator.check_balance
     current_balance = @project.current_balance.amount
     if current_balance != balance
       new_balance = @project.balances.build(amount: balance, effective_at: Date.today)
@@ -38,24 +34,12 @@ class FundsManager
     starting_budget = @costs_plotter.budget_on_date(start_of_last_cycle)
     remaining = starting_budget - costs
     if remaining > 0
-      begin
-        result = @flight_hub_communicator.move_funds(
+      request_log = @flight_hub_communicator.move_funds(
           remaining.to_i,
           "send",
-          "Unused compute units at end of billing cycle",
-          "Control"
+          "Unused compute units at end of billing cycle"
         )
-        if result[:success]
-          # update/ create a log?
-          # send a slack message
-        else
-          # error handling
-          puts result[:details]
-        end
-      rescue FlightHubApiError => error
-        # add appropriate error handling
-        puts error.error_messages.full_messages.join("; ")
-      end
+      @project.send_slack_message(request_log.description)
     elsif remaining < 0
       # how to handle this? Reduce next cycle's budget? Try to check the shortfall out?
       # What if dept doesn't have enough?
@@ -71,28 +55,14 @@ class FundsManager
     requested_budget = @costs_plotter.budget_on_date(Date.parse("2022/05/01")).to_i
 
     if requested_budget > 0
-      begin
-        result = @flight_hub_communicator.move_funds(
-          requested_budget,
-          "receive",
-          "Budget for current billing cycle",
-          "Control"
-        )
-        if result[:success]
-          # update/ create a log?
-          # send a slack message
-        else
-          # error handling
-          puts result[:details]
-        end
-      rescue FlightHubApiError => error
-        puts error
-        # add appropriate error handling
-        puts error.error_messages.join("; ")
-      end
-    elsif remaining < 0
-      # how to handle this? Reduce next cycle's budget? Try to check the shortfall out?
-      # What if dept doesn't have enough?
+      request_log = @flight_hub_communicator.move_funds(
+        requested_budget,
+        "receive",
+        "Budget for current billing cycle",
+      )
+      @project.send_slack_message(request_log.description)
+    elsif requested_budget < 0
+      # What to do in this situation?
     end
   end
 

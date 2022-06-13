@@ -69,14 +69,14 @@ class FlightHubCommunicator
     record
   end
 
+  private
+
   def create_funds_transfer_request(amount, action, reason)
     FundsTransferRequest.new(
       amount: amount, action: action,
       reason: reason, project_id: @project.id
     )
   end
-
-  private
 
   def department_path
     "#{flight_hub_path}/departments/#{@project.flight_hub_id}"
@@ -106,9 +106,11 @@ class FlightHubCommunicator
     end.to_json
   end
 
-  # Currently expect errors to be a hash, with model attributes and an array
-  # of errors. This may become more sophisticated/ varied in the future
+  # Would be easier if hub gave a more consistent
+  # format, instead of sometimes a hash, sometimes a string.
   def parse_response_errors(response)
+    return message if response.is_a?(String)
+
     message = ""
     response.each do |attribute, errors|
       message << "#{attribute}: #{errors.join("; ")}\n"

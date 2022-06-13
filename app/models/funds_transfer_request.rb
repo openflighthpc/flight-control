@@ -12,6 +12,15 @@ class FundsTransferRequest < ApplicationRecord
     }
   default_scope { order(:created_at) }
 
+  def description
+    msg = "Funds transfer request *#{status}* for project *#{project.name}*:\n\n"
+    descriptive_action = action == "send" ? "Send #{amount}c.u. to" : "Receive #{amount}c.u. from"
+    msg << "*Action*: #{descriptive_action} Flight Hub\n"
+    msg << "*Reason*: #{reason}\n"
+    msg << "*Errors*: #{request_errors}\n" if status == "failed"
+    msg
+  end
+
   private
 
   def set_defaults
