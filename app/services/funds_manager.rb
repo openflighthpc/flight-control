@@ -9,15 +9,24 @@ class FundsManager
     @costs_plotter = project.costs_plotter
   end
 
-  # For continuous projects, we should request units from Hub as soon
+  # For continuous projects, we request units from Hub as soon
   # as they are seen (e.g. if hub has any c.u.s we request the whole amount).
   # If we used message queues this could be event driven, e.g. Hub broadcasts balance,
   # control reads and reacts by requesting the c.u.s
   def check_and_update_hub_balance
     balance = @flight_hub_communicator.check_balance
     current_balance = @project.current_hub_balance.amount
+    if balance > 0 && @project.continuous?
+      request_log = @flight_hub_communicator.move_funds(
+        balance.to_i,
+        "receive",
+        "Budget for start of continuous project"
+      )
+      @project.send_slack_message(request_log.description)
+      balance = @flight_hub_communicator.check_balance
+    end
     if current_balance != balance
-      new_balance = @project.hub_balances.build(amount: balance, effective_at: Date.parse("2022/05/01"))
+      new_balance = @project.hub_balances.build(amount: balance, effective_at: Date.today)
       if new_balance.save
         "Balance updated"
       else
@@ -26,14 +35,12 @@ class FundsManager
     end
   end
 
-  # Sending/ receiving c.u.s should probably update balance. And budget?
-
-  # For now assume only run on first day of cycle
+  # Assume only run on first day of cycle
   def send_back_unused_compute_units
     return if @project.continuous?
     return if Date.today <= @project.start_date # Don't attempt on first cycle
 
-    start_of_last_cycle = @costs_plotter.start_of_billing_interval(Date.parse("2022/05/01"))
+    start_of_last_cycle = @costs_plotter.start_of_billing_interval(Date.today - 1.day)
     end_of_last_cycle = @costs_plotter.end_of_billing_interval(start_of_last_cycle)
     costs = @costs_plotter.costs_between_dates(start_of_last_cycle, end_of_last_cycle + 1.day)
     starting_budget = @costs_plotter.budget_on_date(start_of_last_cycle)
@@ -54,12 +61,13 @@ class FundsManager
 
   # For now assume only run on first day of cycle
   def check_out_cycle_budget
-    return if @project.continuous?
+    # For continuous projects, we don't request at start of cycle, 
+    # but whenever hub dept receives more compute units.
+    return check_and_update_hub_balance if @project.continuous?
     return if @project.end_date && Date.today >= @project.end_date
 
-    # For some budget policies we need balance, for others we don't
     check_and_update_hub_balance
-    requested_budget = @costs_plotter.required_budget_for_cycle(Date.parse("2022/05/01")).to_i
+    requested_budget = @costs_plotter.required_budget_for_cycle(Date.today).to_i
 
     if requested_budget > 0
       request_log = @flight_hub_communicator.move_funds(
