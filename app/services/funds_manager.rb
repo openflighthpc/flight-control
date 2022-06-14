@@ -1,5 +1,5 @@
 require_relative 'flight_hub_communicator'
-require_relative '../models/balance'
+require_relative '../models/hub_balance'
 require_relative '../models/project'
 
 class FundsManager
@@ -9,17 +9,15 @@ class FundsManager
     @costs_plotter = project.costs_plotter
   end
 
-  # This logic isn't right: balance should be how many compute units
-  # the project has + how many hub dept has, not just how many hub has.
   # For continuous projects, we should request units from Hub as soon
   # as they are seen (e.g. if hub has any c.u.s we request the whole amount).
   # If we used message queues this could be event driven, e.g. Hub broadcasts balance,
   # control reads and reacts by requesting the c.u.s
-  def check_and_update_balance
+  def check_and_update_hub_balance
     balance = @flight_hub_communicator.check_balance
-    current_balance = @project.current_balance.amount
+    current_balance = @project.current_hub_balance.amount
     if current_balance != balance
-      new_balance = @project.balances.build(amount: balance, effective_at: Date.parse("2022/05/01"))
+      new_balance = @project.hub_balances.build(amount: balance, effective_at: Date.parse("2022/05/01"))
       if new_balance.save
         "Balance updated"
       else
@@ -60,7 +58,7 @@ class FundsManager
     return if @project.end_date && Date.today >= @project.end_date
 
     # For some budget policies we need balance, for others we don't
-    check_and_update_balance
+    check_and_update_hub_balance
     requested_budget = @costs_plotter.required_budget_for_cycle(Date.parse("2022/05/01")).to_i
 
     if requested_budget > 0

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_13_075720) do
+ActiveRecord::Schema.define(version: 2022_06_14_130100) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -31,15 +31,6 @@ ActiveRecord::Schema.define(version: 2022_06_13_075720) do
     t.index ["change_request_id"], name: "index_action_logs_on_change_request_id"
     t.index ["project_id"], name: "index_action_logs_on_project_id"
     t.index ["user_id"], name: "index_action_logs_on_user_id"
-  end
-
-  create_table "balances", force: :cascade do |t|
-    t.bigint "project_id"
-    t.integer "amount"
-    t.date "effective_at"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["project_id"], name: "index_balances_on_project_id"
   end
 
   create_table "budget_policies", force: :cascade do |t|
@@ -132,6 +123,16 @@ ActiveRecord::Schema.define(version: 2022_06_13_075720) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["date"], name: "index_funds_transfer_requests_on_date"
     t.index ["project_id"], name: "index_funds_transfer_requests_on_project_id"
+  end
+
+  create_table "hub_balances", force: :cascade do |t|
+    t.bigint "project_id"
+    t.integer "amount"
+    t.date "effective_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["effective_at"], name: "index_hub_balances_on_effective_at"
+    t.index ["project_id"], name: "index_hub_balances_on_project_id"
   end
 
   create_table "instance_logs", force: :cascade do |t|
