@@ -751,8 +751,7 @@ class CostsPlotter
     @latest_non_compute_costs
   end
 
-  # need to consider budget policies (and balances), project end date
-  # and when a cycle end/starts (unless continuous).
+  # This will now be based on cycle starts, funds transfers and balances (for some policy types)
   def budget_changes(start_date, end_date, for_cumulative_chart=false)
     # Assume policies only change at the start of a billing cycle
     budget_dates = (start_date..end_date).to_a & active_billing_cycles
@@ -767,6 +766,39 @@ class CostsPlotter
     changes
   end
 
+  # Balance of compute units received - compute units
+  def control_balance_on_date(date)
+    @project.funds_transfer_requests.completed.where("date <= ?", date).sum(:signed_amount)
+  end
+
+  # At start of cycle. Assume balance is hub's balance and it is up to date
+  def required_budget_for_cycle(cycle_start_date)
+    return nil if @project.end_date && cycle_start_date >= @project.end_date
+
+    policy = @project.budget_policies.where("effective_at <= ?", cycle_start_date).last
+    return nil if !policy
+
+    amount = 0.0
+    case policy.spend_profile
+    when "fixed"
+      amount = policy.cycle_limit
+    when "rolling"
+      amount = (cycle_number(cycle_start_date) * policy.cycle_limit) - costs_so_far(cycle_start_date)
+    when "continuous"
+      amount = balance_amount(cycle_start_date)
+    when "dynamic"
+      remaining = remaining_cycles(cycle_start_date)
+      if remaining < 1
+        amount = nil
+      else
+        amount = ((balance_amount(cycle_start_date)) / remaining).floor
+      end
+    end
+    amount
+  end
+
+  # For past cycles and current cycle, this should be based on actual
+  # balance of compute units received.
   def budget_on_date(date, for_cumulative_chart=false)
     amount = 0.0
     if @project.end_date && date >= @project.end_date
@@ -1146,8 +1178,6 @@ class CostsPlotter
             sum + (costs[:total] ? costs[:total] : costs[:forecast_total])
           end
         else
-          puts start_date
-          puts end_date
           cost = costs_between_dates(start_date, end_date + 1.day).to_i
         end
         cycle_details = { start: start_date, end: end_date,

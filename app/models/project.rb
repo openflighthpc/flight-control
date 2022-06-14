@@ -211,6 +211,10 @@ class Project < ApplicationRecord
     @budget_policy ||= budget_policies.where("effective_at <= ?", Date.current).last
   end
 
+  def continuous?
+    current_budget_policy.spend_profile == "continuous" 
+  end
+
   def cycle_days
     current_budget_policy.days
   end

@@ -122,6 +122,7 @@ ActiveRecord::Schema.define(version: 2022_06_13_075720) do
   create_table "funds_transfer_requests", force: :cascade do |t|
     t.bigint "project_id", null: false
     t.bigint "amount"
+    t.bigint "signed_amount"
     t.string "action"
     t.string "status"
     t.text "reason"
@@ -129,6 +130,7 @@ ActiveRecord::Schema.define(version: 2022_06_13_075720) do
     t.date "date"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["date"], name: "index_funds_transfer_requests_on_date"
     t.index ["project_id"], name: "index_funds_transfer_requests_on_project_id"
   end
 
