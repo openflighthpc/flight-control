@@ -789,65 +789,94 @@ class CostsPlotter
       if remaining < 1
         amount = nil
       else
+        # we can assume any excess has been returned to hub
+        # but this logic will be faulty if under/over spend
         amount = (hub_balance_amount(cycle_start_date) / remaining).floor
       end
     end
     amount
   end
 
-  # For past cycles and current cycle, this should be based on actual
+  # For past cycles and current cycle, this is based on actual
   # balance of compute units received.
   def budget_on_date(date, for_cumulative_chart=false)
-    amount = 0.0
     if @project.end_date && date >= @project.end_date
       if date == @project_end_date
-        return amount
+        return 0
       else
-        return amount - costs_between_dates(@project.end_date, date)
+        return 0 - costs_between_dates(@project.end_date, date)
       end
     end
 
+    if date > end_of_current_billing_interval # forecasts for future cycles
+      future_cycle_budget(date)
+    else
+      historic_or_current_cycle_budget(date)
+    end
+  end
+
+  def historic_or_current_cycle_budget(date)
+    amount = 0
     policy = @project.budget_policies.where("effective_at <= ?", date).last
     return amount if !policy
 
-    if date > end_of_current_billing_interval
-      case policy.spend_profile
-      when "fixed"
-        amount = policy.cycle_limit
-        # if not the start of a cycle, need to include spend this cycle so far
-        if !active_billing_cycles.include?(date) && !for_cumulative_chart
-          amount -= costs_between_dates(start_of_billing_interval(date), date)
-        end
-      when "rolling"
-        amount = (cycle_number(date) * policy.cycle_limit) - costs_so_far(date)
-      when "continuous"
-        amount = control_balance(date) - costs_so_far(date)
-      when "dynamic"
-        remaining = remaining_cycles(date)
-        if remaining < 1
-          amount = 0
-        else
-          start_of_cycle = start_of_billing_interval(date)
-          estimated_balance = total_balance(date) - costs_between_dates(start_of_current_billing_interval, start_of_cycle)
-          amount = (estimated_balance / remaining).floor
-          amount -= costs_between_dates(start_of_cycle, date)
-        end
-      end
+    start_of_cycle = start_of_billing_interval(date)
+    if policy.spend_profile == "continuous"
+      amount = @project.funds_transfer_requests.completed
+        .where("date <= ?", date)
+        .where(action: "receive")
+        .sum(:amount) - costs_so_far(date)
     else
-      start_of_cycle = start_of_billing_interval(date)
-      if policy.spend_profile == "continuous"
-        amount = @project.funds_transfer_requests.completed
-        .where("date <= ?", date).sum(:signed_amount) - costs_so_far(date)
-      else
-        # For non continuous, the compute units received at start of
-        # cycle are effectively the cycle's budget
-        available_at_start = @project.funds_transfer_requests.completed
+      # For non continuous, the compute units received at start of
+      # cycle are effectively the cycle's budget
+      available_at_start = @project.funds_transfer_requests.completed
         .where("date >= ? AND date <= ?", start_of_cycle, date)
         .where(action: "receive").sum(:amount)
-        amount = available_at_start - costs_between_dates(start_of_cycle, date)
-      end
+      amount = available_at_start - costs_between_dates(start_of_cycle, date)
     end
     amount
+  end
+
+  # This is getting v. complex/ dangerous with the multiple policy types
+  def future_cycle_budget(date)
+    amount = 0
+    policy = @project.budget_policies.where("effective_at <= ?", date).last
+    return amount if !policy
+
+    include_costs_so_far = !active_billing_cycles.include?(date) && !for_cumulative_chart
+    case policy.spend_profile
+    when "fixed"
+      amount = policy.cycle_limit
+    when "rolling"
+      amount = historic_or_current_cycle_budget(start_of_current_billing_interval)
+      additional_cycles = active_billing_cycles.select do |cycle|
+        cycle > start_of_current_billing_interval &&
+        cycle <= date
+      end.count
+      amount += policy.cycle_limit * additional_cycles
+    when "continuous"
+      amount = control_balance(date)
+      include_costs_so_far = false
+    when "dynamic"
+      cycles = remaining_cycles(date)
+      if cycles < 1
+        amount = 0
+      else
+        start_of_cycle = start_of_billing_interval(date)
+        current_cycle_balance = total_balance(start_of_current_billing_interval)
+        costs_to_cycle = costs_between_dates(
+          start_of_current_billing_interval, start_of_cycle
+        )
+        balance_at_start_of_cycle = current_cycle_balance - costs_to_cycle
+        amount = (balance_at_start_of_cycle / cycles).floor
+      end
+    end
+    amount -= costs_between_dates(start_of_cycle, date) if include_costs_so_far
+    amount
+  end
+
+  def total_balance(date)
+    hub_balance_amount(date) + control_balance(date)
   end
 
   # The total amount, not including any spend so far
@@ -858,17 +887,27 @@ class CostsPlotter
     balance ? balance.amount : 0.0
   end
 
-  # Balance of compute units received - compute units
+  # Available - spent
   def control_balance(date)
-    @project.funds_transfer_requests.completed.where("date <= ?", date).sum(:signed_amount).to_i
+    if @project.continuous_budget?
+      costs = costs_so_far(date)
+    else
+      costs = costs_between_dates(start_of_billing_interval(date), date)
+    end
+    control_compute_units_available(date) - costs
   end
-
-  def total_balance(date)
-    hub_balance_amount(date) + control_balance(date)
-  end
-
-  def remaining_balance(date)
-    total_balance(date) - costs_so_far(date)
+  
+  # For continous, this is sum of all received/sent. For non continuous,
+  # its how many were received at the start of the billing cycle.
+  # This will return 0 for non continuous projects, as no transfers.
+  def control_compute_units_available(date)
+    transfers = @project.funds_transfer_requests.completed.where("date <= ?", date)
+    if !@project.continuous_budget?
+      transfers = transfers
+        .where("date >= ?", start_of_billing_interval(date))
+        .where(action: "receive")
+    end
+    transfers.sum(:signed_amount).to_i
   end
 
   def costs_so_far(date)
@@ -948,9 +987,10 @@ class CostsPlotter
   end
 
   def latest_cycle_details
+    throw error
     details = historic_cycle_details.detect {|cycle| cycle[:current] }
     if !details
-      details = {starting_balance: remaining_balance(start_of_current_billing_interval), costs: 0,
+      details = {starting_balance: total_balance(start_of_current_billing_interval), costs: 0,
                  costs_so_far: 0}
     end
     details[:length] = @project.current_budget_policy.cycle_length
@@ -1215,7 +1255,7 @@ class CostsPlotter
                         }
         if current
           cycle_details[:costs_so_far] = costs_between_dates(start_date, Date.current).to_i
-          cycle_details[:starting_balance] = remaining_balance(start_date)
+          cycle_details[:starting_balance] = total_balance(start_date)
           cycle_details[:starting_budget] = budget_on_date(start_date)
         end
         @details << cycle_details

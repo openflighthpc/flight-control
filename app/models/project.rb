@@ -29,6 +29,7 @@ class Project < ApplicationRecord
 
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
   validates :name, presence: true, uniqueness: true
+  validates :flight_hub_id, presence: true, uniqueness: true
   validates :name, :format => { with: /\A[a-zA-Z]+[0-9a-zA-Z_-]*[0-9a-zA-Z]+\z/,
             message: 'Must start with letters and only include letters, numbers, dashes or underscores.' }
   validates :slack_channel, :start_date, :filter_level, :security_id, :security_key,
@@ -211,8 +212,12 @@ class Project < ApplicationRecord
     @budget_policy ||= budget_policies.where("effective_at <= ?", Date.current).last
   end
 
-  def continuous?
-    current_budget_policy.spend_profile == "continuous" 
+  def continuous_budget?
+    current_budget_policy.spend_profile == "continuous"
+  end
+
+  def fixed_budget?
+    current_budget_policy.spend_profile == "fixed" 
   end
 
   def cycle_days

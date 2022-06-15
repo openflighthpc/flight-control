@@ -25,22 +25,22 @@ namespace :funds do
     end
   end
 
-  namespace :send_and_receive do
-    desc "send back unused and request this cycle's budget from Hub, for one project"
+  namespace :check_and_update_funds do
+    desc "check and carry out fund transfers, if needed, for one project"
     task :by_project, [:project] => :environment do |task, args|
       project = Project.find_by(name: args["project"])
       if !project
         puts "No project found with that name"
       else
-        FundsManager.new(project).start_of_cycle_actions
+        FundsManager.new(project).check_and_manage_funds
       end
     end
 
-    desc "send back unused and request this cycle's budget from Hub, for one project"
+    desc "check and carry out fund transfers, if needed, for all projects"
     task :all => :environment do |task, args|
       Project.active.each do |project|
         begin
-          FundsManager.new(project).start_of_cycle_actions
+          FundsManager.new(project).check_and_manage_funds
         rescue
           # error handling?
         end
