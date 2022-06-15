@@ -875,6 +875,8 @@ class CostsPlotter
     amount
   end
 
+  # Warning: this cannot predict total balance for future cycles,
+  # if project is not continuous.
   def total_balance(date)
     hub_balance_amount(date) + control_balance(date)
   end
@@ -899,7 +901,8 @@ class CostsPlotter
   
   # For continous, this is sum of all received/sent. For non continuous,
   # its how many were received at the start of the billing cycle.
-  # This will return 0 for non continuous projects, as no transfers.
+  # This will return 0 for future cycles if a non continuous project,
+  # as no transfers for that cycle.
   def control_compute_units_available(date)
     transfers = @project.funds_transfer_requests.completed.where("date <= ?", date)
     if !@project.continuous_budget?
@@ -933,30 +936,36 @@ class CostsPlotter
     @latest_cost_log_date ||= @project.cost_logs.last&.date
   end
 
-  # Needs refactoring
   def estimated_balance_end_in_cycle(start_date=start_of_current_billing_interval,
                                      end_date=end_of_current_billing_interval,
                                      costs=nil,
                                      temp_change_request=nil)
-    return {cycle_index: nil, over: false, end_balance: 100000}
-
     costs ||= combined_cost_breakdown(start_date, end_date, temp_change_request, true)
-    balance = @project.hub_balances.where("amount > ?", 0).last
-    balance = balance ? balance.amount : 0.0
-    date_grouped = @project.cost_logs.where(scope: "total").group_by { |log| log.date }
-    balance_end_date = @project.start_date
-    date_grouped.each do |date, logs|
-      balance -= logs.reduce(0.0) { |sum, log| sum + log.risk_cost }
-      balance_end_date = date
-      break if balance <= 0
+    hub_balance_changes = {}
+    transfer_details = {}
+    if start_date > end_of_current_billing_interval
+      balance = total_balance(Date.today)
+      balance -= costs_between_dates(Date.today, start_date)
+    else
+      # In the past control and/or hub balances can change mid cycle
+      balance = total_balance(start_date)
+      balance_changes = determine_balance_changes(start_date, end_date)
     end
 
-    if balance > 0 && balance_end_date < end_date
+    hub_balance = hub_balance_amount(start_date)
+    if balance > 0
+      balance_end_date = start_date
       # Need to set a final date to avoid possibility of infinite/ very long loop if costs
       # are zero/ very low
       final_check_date = end_date
       while(balance > 0 && balance_end_date <= final_check_date)
         balance_end_date += 1.day
+        if balance_changes[:cycle_start][balance_end_date]
+          balance = balance_changes[:cycle_start][balance_end_date]
+        elsif balance_changes[:mid_cycle][balance_end_date]
+          balance += balance_changes[:mid_cycle][balance_end_date]
+        end
+
         day_costs = costs[balance_end_date.to_s]
         next if !day_costs
 
@@ -973,6 +982,41 @@ class CostsPlotter
     {cycle_index: cycle_index, over: balance < 0, end_balance: balance}
   end
 
+  # That this is required feels like something isn't quite right
+  def determine_balance_changes(start_date, end_date)
+    total_changes = { cycle_start: {}, mid_cycle: {} }
+    cycle_starts = (start_date..end_date).to_a & active_billing_cycles
+    cycle_starts.each do |start|
+      total_changes[:cycle_start][start] = total_balance(start) if start <= Date.today
+    end
+
+    transfers = @project.funds_transfer_requests.completed
+                  .where("date > ? AND date <= ?", start_date, end_date)
+                  .where.not("date in (?)", cycle_starts)
+                  .group_by { |transfer| transfer.date }
+    transfers.each do |date, transfers|
+      total_changes[:mid_cycle][date] = reduce(0) {|t| sum + t.signed_amount }
+    end
+    hub_balances = @project.hub_balances
+                  .where("effective_at > ? AND effective_at <= ?", start_date, end_date)
+                  .where.not("effective_at in (?)", cycle_starts)
+                  .group_by { |balance| balance.effective_at }
+    # If hub balance changes throughout day, use last
+    # E.g. on start of cycle, it receives and sends c.u.s
+    previous_amount = hub_balance_amount(start_date)
+    hub_balances.each do |date, balances|
+      amount = balances.sort_by { |b| b.id }.last.amount
+      change = amount - previous_amount
+      previous_amount = amount
+      if total_changes[:mid_cycle][date]
+        total_changes[:mid_cycle][date] += change
+      else
+        total_changes[:mid_cycle][date] = change
+      end
+    end
+    total_changes
+  end
+
   def cycle_thresholds(start_date, end_date)
     thresholds = []
     (start_date..(end_date + 1.day)).to_a.each_with_index do |date, index|
@@ -987,7 +1031,6 @@ class CostsPlotter
   end
 
   def latest_cycle_details
-    throw error
     details = historic_cycle_details.detect {|cycle| cycle[:current] }
     if !details
       details = {starting_balance: total_balance(start_of_current_billing_interval), costs: 0,

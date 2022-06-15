@@ -19,6 +19,10 @@ class FundsManager
     begin
       balance = @flight_hub_communicator.check_balance
       current_balance = @project.current_hub_balance.amount
+      if current_balance != balance
+        new_balance = @project.hub_balances.create(amount: balance, effective_at: Date.today)
+        @project.send_slack_message(new_balance.description)
+      end
       if balance > 0 && @project.continuous_budget?
         request_log = @flight_hub_communicator.move_funds(
           balance.to_i,
@@ -27,9 +31,7 @@ class FundsManager
         )
         @project.send_slack_message(request_log.description)
         balance = @flight_hub_communicator.check_balance # Should now be 0
-      end
-      if current_balance != balance
-        new_balance = @project.hub_balances.build(amount: balance, effective_at: Date.today)
+        new_balance = @project.hub_balances.create(amount: balance, effective_at: Date.today)
         @project.send_slack_message(new_balance.description)
       end
     rescue FlightHubApiError => error
