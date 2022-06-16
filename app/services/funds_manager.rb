@@ -27,7 +27,7 @@ class FundsManager
         request_log = @flight_hub_communicator.move_funds(
           balance.to_i,
           "receive",
-          "Budget for start of continuous project"
+          "Budget for continuous project"
         )
         @project.send_slack_message(request_log.description)
         balance = @flight_hub_communicator.check_balance # Should now be 0
