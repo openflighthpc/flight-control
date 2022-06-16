@@ -952,22 +952,22 @@ class CostsPlotter
       balance = total_balance(start_date)
       balance_changes = determine_balance_changes(start_date, end_date)
     end
-
-    hub_balance = hub_balance_amount(start_date)
     if balance > 0
       balance_end_date = start_date
       # Need to set a final date to avoid possibility of infinite/ very long loop if costs
       # are zero/ very low
       final_check_date = end_date
       while(balance > 0 && balance_end_date <= final_check_date)
-        balance_end_date += 1.day
-        if balance_changes[:cycle_start][balance_end_date]
-          balance = balance_changes[:cycle_start][balance_end_date]
-        elsif balance_changes[:mid_cycle][balance_end_date]
-          balance += balance_changes[:mid_cycle][balance_end_date]
+        if balance_changes
+          if balance_changes[:cycle_start][balance_end_date]
+            balance = balance_changes[:cycle_start][balance_end_date]
+          elsif balance_changes[:mid_cycle][balance_end_date]
+            balance += balance_changes[:mid_cycle][balance_end_date]
+          end
         end
 
         day_costs = costs[balance_end_date.to_s]
+        balance_end_date += 1.day
         next if !day_costs
 
         total_day_cost = day_costs[:total] ? day_costs[:total] : day_costs[:forecast_total]
@@ -996,7 +996,7 @@ class CostsPlotter
                   .where.not("date in (?)", cycle_starts)
                   .group_by { |transfer| transfer.date }
     transfers.each do |date, transfers|
-      total_changes[:mid_cycle][date] = reduce(0) {|t| sum + t.signed_amount }
+      total_changes[:mid_cycle][date] = transfers.reduce(0) {|sum, t| sum + t.signed_amount }
     end
     hub_balances = @project.hub_balances
                   .where("date > ? AND date <= ?", start_date, end_date)

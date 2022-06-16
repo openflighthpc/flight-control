@@ -678,9 +678,13 @@ class Project < ApplicationRecord
   end
 
   def send_slack_message(msg)
-    HTTParty.post("https://slack.com/api/chat.postMessage",
+    begin
+      HTTParty.post("https://slack.com/api/chat.postMessage",
                   headers: {"Authorization": "Bearer #{Project.slack_token}"},
                   body: {"text": msg, "channel": slack_channel, "as_user": true})
+    rescue
+      # Don't break actions if can't send a message
+    end
   end
 
   def all_associated_users

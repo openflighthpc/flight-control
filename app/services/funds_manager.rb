@@ -18,8 +18,8 @@ class FundsManager
 
     begin
       balance = @flight_hub_communicator.check_balance
-      current_balance = @project.current_hub_balance.amount
-      if current_balance != balance
+      current_balance = @project.current_hub_balance
+      if !current_balance || current_balance.amount != balance
         new_balance = @project.hub_balances.create(amount: balance, date: Date.today)
         @project.send_slack_message(new_balance.description)
       end
@@ -62,7 +62,7 @@ class FundsManager
       @project.send_slack_message(request_log.description)
       check_and_update_hub_balance
     elsif remaining < 0 # Gone over budget. For now just send a slack message
-      msg = "*Warning* project *#{@project.name} has gone over budget"
+      msg = "*Warning* project *#{@project.name}* has gone over budget"
       msg << "\n Compute units have not been transfered to/from Flight Hub"
       @project.send_slack_message(msg)
     end
@@ -102,7 +102,7 @@ class FundsManager
       check_and_update_hub_balance
     elsif @costs_plotter.active_billing_cycles.include?(Date.today)
       sent = send_back_unused_compute_units
-      if sent && sent.valid? && sent.status == "completed"
+      if Date.today == @project.start_date || (sent && sent.valid? && sent.status == "completed")
         check_out_cycle_budget
       else
         msg = "Funds not requested from Hub for project *#{@project.name}*, as sending back to Hub failed."
