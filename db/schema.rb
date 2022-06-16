@@ -128,10 +128,10 @@ ActiveRecord::Schema.define(version: 2022_06_14_130100) do
   create_table "hub_balances", force: :cascade do |t|
     t.bigint "project_id"
     t.integer "amount"
-    t.date "effective_at"
+    t.date "date"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["effective_at"], name: "index_hub_balances_on_effective_at"
+    t.index ["date"], name: "index_hub_balances_on_date"
     t.index ["project_id"], name: "index_hub_balances_on_project_id"
   end
 

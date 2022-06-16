@@ -798,7 +798,7 @@ class CostsPlotter
   end
 
   # For past cycles and current cycle, this is based on actual
-  # balance of compute units received.
+  # compute units received.
   def budget_on_date(date, for_cumulative_chart=false)
     if @project.end_date && date >= @project.end_date
       if date == @project_end_date
@@ -828,7 +828,8 @@ class CostsPlotter
         .sum(:amount) - costs_so_far(date)
     else
       # For non continuous, the compute units received at start of
-      # cycle are effectively the cycle's budget
+      # cycle are effectively the cycle's budget. As sending back
+      # unused effectively resets balance.
       available_at_start = @project.funds_transfer_requests.completed
         .where("date >= ? AND date <= ?", start_of_cycle, date)
         .where(action: "receive").sum(:amount)
@@ -885,7 +886,7 @@ class CostsPlotter
   def hub_balance_amount(date)
     return 0.0 if @project.archived_date && date >= @project.archived_date
 
-    balance = @project.hub_balances.where("effective_at <= ?", date).last
+    balance = @project.hub_balances.where("date <= ?", date).last
     balance ? balance.amount : 0.0
   end
 
@@ -998,9 +999,9 @@ class CostsPlotter
       total_changes[:mid_cycle][date] = reduce(0) {|t| sum + t.signed_amount }
     end
     hub_balances = @project.hub_balances
-                  .where("effective_at > ? AND effective_at <= ?", start_date, end_date)
-                  .where.not("effective_at in (?)", cycle_starts)
-                  .group_by { |balance| balance.effective_at }
+                  .where("date > ? AND date <= ?", start_date, end_date)
+                  .where.not("date in (?)", cycle_starts)
+                  .group_by { |balance| balance.date }
     # If hub balance changes throughout day, use last
     # E.g. on start of cycle, it receives and sends c.u.s
     previous_amount = hub_balance_amount(start_date)

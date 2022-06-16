@@ -205,7 +205,7 @@ class Project < ApplicationRecord
   end
 
   def current_hub_balance
-    hub_balances.where("effective_at <= ?", Date.current).last
+    hub_balances.where("date <= ?", Date.current).last
   end
 
   def current_budget_policy
@@ -736,9 +736,9 @@ class Project < ApplicationRecord
       end_balance.delete
     else
       if !end_balance
-        HubBalance.create(project: self, amount: 0, effective_at: end_date)
-      elsif end_balance && end_balance.effective_at != end_date
-        end_balance.effective_at = end_date
+        HubBalance.create(project: self, amount: 0, date: end_date)
+      elsif end_balance && end_balance.date != end_date
+        end_balance.date = end_date
         end_balance.save!
       end
     end
