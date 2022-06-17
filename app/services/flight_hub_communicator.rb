@@ -103,7 +103,7 @@ class FlightHubCommunicator
       h[:reference_text] = reference_text
       h[:reference_id] = reference_id
       h[:reference_url] = reference_url if reference_url
-      h[:effective_at] = Date.today
+      h[:effective_at] = Date.current
     end.to_json
   end
 

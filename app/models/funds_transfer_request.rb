@@ -26,7 +26,7 @@ class FundsTransferRequest < ApplicationRecord
 
   def set_defaults
     self.status ||= "submitted"
-    self.date ||= Date.today
+    self.date ||= Date.current
     self.signed_amount ||= self.action == "send" ? self.amount * -1 : self.amount
   end
 end
