@@ -24,6 +24,7 @@ class Project < ApplicationRecord
   has_many :repeated_change_requests
   has_many :hub_balances
   has_many :budget_policies
+  has_many :budgets
   has_many :funds_transfer_requests
   has_many :user_roles
 

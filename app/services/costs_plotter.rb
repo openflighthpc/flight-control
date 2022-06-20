@@ -821,21 +821,19 @@ class CostsPlotter
     return amount if !policy
 
     start_of_cycle = start_of_billing_interval(date)
-    if policy.spend_profile == "continuous"
-      amount = @project.funds_transfer_requests.completed
-        .where("date <= ?", date)
-        .where(action: "receive")
-        .sum(:amount) - costs_so_far(date)
-    else
-      # For non continuous, the compute units received at start of
-      # cycle are effectively the cycle's budget. As sending back
-      # unused effectively resets balance.
-      available_at_start = @project.funds_transfer_requests.completed
-        .where("date >= ? AND date <= ?", start_of_cycle, date)
-        .where(action: "receive").sum(:amount)
-      amount = available_at_start - costs_between_dates(start_of_cycle, date)
+    if @project.start_date > start_of_cycle && @project.start_date <= date
+      start_of_cycle = @project.start_date
     end
-    amount
+
+    if policy.spend_profile == "continuous"
+      costs = costs_so_far(date)
+      budget = @project.budgets.where("expiry_date IS NULL OR expiry_date > ?", date).last
+    else
+      costs = costs_between_dates(start_of_cycle, date)
+      budget = @project.budgets.find_by(effective_at: start_of_cycle)
+    end
+    budget_amount = budget ? budget.amount : 0
+    budget_amount - costs
   end
 
   # This is getting v. complex/ dangerous with the multiple policy types
