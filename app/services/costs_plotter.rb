@@ -755,11 +755,13 @@ class CostsPlotter
   # balances (for some policy types)
   def budget_changes(start_date, end_date, for_cumulative_chart=false)
     # Assume policies only change at the start of a billing cycle
-    budget_dates = (start_date..end_date).to_a & active_billing_cycles
-    budget_dates = [start_date] | budget_dates
-    budget_dates << @project.start_date if @project.start_date < end_date
+    cycle_thresholds = (start_date..end_date).to_a & active_billing_cycles
+    change_dates = [start_date] | cycle_thresholds
+    change_dates << @project.start_date if @project.start_date < end_date
+    budget_dates = @project.budgets.pluck(:effective_at).uniq
+    change_dates = change_dates | budget_dates
     changes = {}
-    budget_dates.each do |date|
+    change_dates.each do |date|
       break if @project.end_date && date >= @project.end_date && date != start_date
       changes[date.to_s] = budget_on_date(date, for_cumulative_chart)
     end
@@ -809,7 +811,7 @@ class CostsPlotter
     end
 
     if date > end_of_current_billing_interval # forecasts for future cycles
-      future_cycle_budget(date)
+      future_cycle_budget(date, for_cumulative_chart)
     else
       historic_or_current_cycle_budget(date)
     end
@@ -827,7 +829,9 @@ class CostsPlotter
 
     if policy.spend_profile == "continuous"
       costs = costs_so_far(date)
-      budget = @project.budgets.where("expiry_date IS NULL OR expiry_date > ?", date).last
+      budget = @project.budgets
+        .where("effective_at <= ?", date)
+        .where("expiry_date IS NULL OR expiry_date > ?", date).last
     else
       costs = costs_between_dates(start_of_cycle, date)
       budget = @project.budgets.find_by(effective_at: start_of_cycle)
@@ -837,7 +841,7 @@ class CostsPlotter
   end
 
   # This is getting v. complex/ dangerous with the multiple policy types
-  def future_cycle_budget(date)
+  def future_cycle_budget(date, for_cumulative_chart)
     amount = 0
     policy = @project.budget_policies.where("effective_at <= ?", date).last
     return amount if !policy

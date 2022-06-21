@@ -31,11 +31,15 @@ class FundsManager
         )
         @project.send_slack_message(request_log.description)
         if request_log.status == "completed"
+          # New budget is existing budget + additional received
+          existing_budget = budget = @project.budgets
+            .where("effective_at <= ?", Date.current)
+            .where("expiry_date IS NULL OR expiry_date > ?", Date.current).last
+          existing_budget_amount = existing_budget ? existing_budget.amount : 0 
+          create_cycle_budget(request_log.amount + existing_budget_amount)
           balance = @flight_hub_communicator.check_balance # Should now be 0
           new_balance = @project.hub_balances.create(amount: balance, date: Date.current)
           @project.send_slack_message(new_balance.description)
-          # amount should be existing budget + new amount
-          create_cycle_budget(request_log.amount)
         end
       end
     rescue FlightHubApiError => error
@@ -43,8 +47,6 @@ class FundsManager
     end
   end
 
-  # TODO: add validaton that is first day of cycle/ project end date, and has not already
-  # been successfully run (i.e. transfer requests already completed)
   def send_back_unused_compute_units
     end_of_project = @project.end_date && @project.end_date == Date.current
     # For continuous projects, we only send back at end of project
