@@ -13,97 +13,67 @@ class ProjectsController < ApplicationController
   end
 
   def costs_breakdown
-    get_project
-    if !@project
-      no_project_redirect
-    else
-      authorize @project, policy_class: ProjectPolicy
-      @nav_view = "costs"
-      get_costs_data
-    end
+    authorize @project, policy_class: ProjectPolicy
+    @nav_view = "costs"
+    get_costs_data
   end
 
   def policy_page
-    get_project
-    if !@project
-      no_project_redirect
-    else
-      authorize @project, policy_class: ProjectPolicy
-      @nav_view = "policies"
-    end
+    authorize @project, policy_class: ProjectPolicy
+    @nav_view = "policies"
   end
 
   def audit
-    get_project
-    if !@project
-      no_project_redirect
-    else
-      authorize @project, policy_class: ProjectPolicy
-      @list = AuditLogList.new(@project, params)
-      @nav_view = "audit"
-    end
+    authorize @project, policy_class: ProjectPolicy
+    @list = AuditLogList.new(@project, params)
+    @nav_view = "audit"
   end
 
   def audit_logs
-    get_project
-    if !@project
-      no_project_redirect
-    else
-      authorize @project, policy_class: ProjectPolicy
-      latest_timestamp = Time.parse(params['timestamp'])
-      log_count = params['log_count'].to_i
-      filters = {"groups" => params['groups'],
-                 "types" => params['types'],
-                 "users" => params['users'],
-                 "statuses" => params['statuses'],
-                 "start_date" => params["start_date"],
-                 "end_date" => params["end_date"]
-                }
-      list = AuditLogList.new(@project, filters)
-      logs, more = list.next_logs(log_count, latest_timestamp)
-      render json: {logs: logs, more: more}
-    end
+    authorize @project, policy_class: ProjectPolicy
+    latest_timestamp = Time.parse(params['timestamp'])
+    log_count = params['log_count'].to_i
+    filters = {"groups" => params['groups'],
+                "types" => params['types'],
+                "users" => params['users'],
+                "statuses" => params['statuses'],
+                "start_date" => params["start_date"],
+                "end_date" => params["end_date"]
+              }
+    list = AuditLogList.new(@project, filters)
+    logs, more = list.next_logs(log_count, latest_timestamp)
+    render json: {logs: logs, more: more}
   end
 
   def config_update
-    get_project
-    if !@project
-      no_project_redirect
+    authorize @project, policy_class: ProjectPolicy
+    details = params.permit(config: {})["config"]
+    result = @project.submit_config_change(details, current_user)
+    if result.valid? && result.persisted?
+      flash[:success] = "Config change submitted"
     else
-      authorize @project, policy_class: ProjectPolicy
-      details = params.permit(config: {})["config"]
-      result = @project.submit_config_change(details, current_user)
-      if result.valid? && result.persisted?
-        flash[:success] = "Config change submitted"
-      else
-        flash[:danger] = result.errors.full_messages.join(", ")
-      end
-      redirect_to policies_path(project: @project.name)
+      flash[:danger] = result.errors.full_messages.join(", ")
     end
+    redirect_to policies_path(project: @project.name)
   end
 
   def billing_management
-    get_project
-    if !@project
-      no_project_redirect
-    else
-      @nav_view = "billing"
-      authorize @project, policy_class: ProjectPolicy
-      get_billing_data
-      @billing_cycles = cost_plotter.historic_cycle_details
-    end
+    @nav_view = "billing"
+    authorize @project, policy_class: ProjectPolicy
+    cost_plotter = CostsPlotter.new(@project)
+    @billing_cycles = cost_plotter.historic_cycle_details
+    @policy = @project.budget_policies.last
+    @billing_date = cost_plotter.billing_date
+    @latest_cycle_details = cost_plotter.latest_cycle_details
   end
 
   def data_check
-    get_project
-    if !@project
-      no_project_redirect
-    else
-      authorize @project, policy_class: ProjectPolicy
-      timestamp = Time.parse(params['timestamp'])
-      render json: {changed: @project.data_changed?(timestamp)}
-    end
+    authorize @project, policy_class: ProjectPolicy
+    timestamp = Time.parse(params['timestamp'])
+    render json: {changed: @project.data_changed?(timestamp)}
   end
+
+  private
 
   def get_billing_data
     @policy = @project.budget_policies.last
@@ -156,8 +126,6 @@ class ProjectsController < ApplicationController
     filter_current_instances if @datasets
   end
 
-  private
-
   # Only include filtered groups, or all if none selected
   def filter_current_instances
     original = @current_instances.clone
@@ -167,9 +135,5 @@ class ProjectsController < ApplicationController
 
   def cost_plotter
     @cost_plotter ||= CostsPlotter.new(@project)
-  end
-
-  def no_project_redirect
-    render "projects/no_project"
   end
 end

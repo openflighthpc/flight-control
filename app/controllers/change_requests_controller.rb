@@ -1,6 +1,5 @@
 class ChangeRequestsController < ApplicationController
   def manage
-    get_project
     authorize ChangeRequest.new(project: @project)
     @compute_groups = @project.front_end_compute_groups.keys
     @filtered_groups = params[:groups]
@@ -17,13 +16,11 @@ class ChangeRequestsController < ApplicationController
   end
 
   def latest
-    get_project
     authorize ChangeRequest.new(project: @project)
     render json: @project.current_events_data(params[:groups]).to_json({original: false})
   end
 
   def new
-    get_project
     authorize ChangeRequest.new(project: @project)
     @current_instances = @project.latest_instances
     cost_plotter = CostsPlotter.new(@project)
@@ -35,7 +32,6 @@ class ChangeRequestsController < ApplicationController
   end
 
   def edit
-    get_project
     @change_request = ChangeRequest.find_by_id(params[:id])
     unless @change_request
       flash[:danger] = "Request not found"
@@ -52,14 +48,13 @@ class ChangeRequestsController < ApplicationController
     start_date = cost_plotter.start_of_billing_interval(Date.current)
     end_date = cost_plotter.end_of_billing_interval(Date.current)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
-    @existing_timings = @project.request_dates_and_times(@request)
+    @existing_timings = @project.request_dates_and_times(@change_request)
     @nav_view = "event wizard"
     render :new
   end
 
   def create
     parameters = filtered_change_request_params
-    @project = Project.find_by_name(parameters[:project])
     if !@project
       flash[:danger] = "Project not found"
     else
@@ -78,7 +73,6 @@ class ChangeRequestsController < ApplicationController
   end
 
   def update
-    get_project
     parameters = filtered_change_request_params
     request = ChangeRequest.find_by_id(params[:id])
     if !request
@@ -111,7 +105,6 @@ class ChangeRequestsController < ApplicationController
   end
 
   def cancel
-    get_project
     change_request = ChangeRequest.find_by_id(params[:id])
     if !change_request
       flash[:danger] = "Request not found"
@@ -129,10 +122,11 @@ class ChangeRequestsController < ApplicationController
 
   def costs_forecast
     parameters = filtered_change_request_params
-    @project = Project.find_by_name(parameters[:project])
     authorize ChangeRequest.new(project: @project)
     render json: @project.change_request_cumulative_costs(parameters)
   end
+
+  private
 
   def filtered_change_request_params
     permitted = params.permit(

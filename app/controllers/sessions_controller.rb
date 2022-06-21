@@ -1,4 +1,6 @@
 class SessionsController < Devise::SessionsController
+  skip_before_action  :check_user_has_project!, :get_project!, :check_project_budget_status!
+
   def new
     super
   end

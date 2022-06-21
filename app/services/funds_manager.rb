@@ -38,7 +38,7 @@ class FundsManager
   def check_and_manage_funds
     if @project.continuous_budget?
       check_and_update_hub_balance
-    elsif @costs_plotter.active_billing_cycles.include?(Date.current) && !cycle_already_has_budget?
+    elsif @costs_plotter.active_billing_cycles.include?(Date.current) && !already_have_budget?
       sent = send_back_unused_compute_units
       if Date.current == @project.start_date || (sent && sent.valid? && sent.status == "completed")
         result = check_out_cycle_budget
@@ -56,6 +56,15 @@ class FundsManager
       send_back_unused_compute_units
       create_budget(0)
     end
+  end
+
+  def pending_budget_updates?
+    !already_have_budget? &&
+    (
+      (!@project.continuous_budget? && @costs_plotter.active_billing_cycles.include?(Date.current)) ||
+      @project.end_date && @project.end_date == Date.current ||
+      @project.continuous_budget? && @project.start_date == Date.current
+    )
   end
 
   private
@@ -150,7 +159,7 @@ class FundsManager
     budget
   end
 
-  def cycle_already_has_budget?
+  def already_have_budget?
     @project.budgets.find_by(effective_at: Date.current)
   end
 end
