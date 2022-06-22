@@ -358,3 +358,16 @@ input[type=date] {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
+
+.list-group-item {
+  padding: 0px;
+  border: 0px;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+.card {
+  margin: 0 auto !important;
+}

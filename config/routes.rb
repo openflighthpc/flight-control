@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   devise_scope :user do
     # When user authenticated, root page is as normal
     authenticated :user do
-      root 'projects#costs_breakdown', as: :authenticated_root
+      root 'projects#dashboard', as: :authenticated_root
     end
 
     # When no authenticated user, root page is the sign in page
@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   end
 
   # Projects
+  get '/dashboard', to: 'projects#dashboard'
   get '/costs-breakdown', to: 'projects#costs_breakdown'
   get '/billing-management', to: 'projects#billing_management'
   get '/policies', to: 'projects#policy_page'

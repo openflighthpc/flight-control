@@ -39,10 +39,12 @@ lib/platform_files/aws_instance_details.txt
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
+.yarn*
 
 # Ignore project config files, except for default which is used as a template
 /config/projects/*.yaml
 !/config/projects/default.yaml
 
-# Rubymine
 *.idea*
+
+>>>>>>> 4421c18 (Add Overview card to dashboard)

@@ -1,4 +1,15 @@
 class ProjectsController < ApplicationController
+  def dashboard
+    get_project
+    if !@project
+      no_project_redirect
+    else
+      authorize @project, policy_class: ProjectPolicy
+    end
+    @nav_view = ""
+    get_billing_data
+  end
+
   def costs_breakdown
     get_project
     if !@project
@@ -76,11 +87,7 @@ class ProjectsController < ApplicationController
     else
       @nav_view = "billing"
       authorize @project, policy_class: ProjectPolicy
-      cost_plotter = CostsPlotter.new(@project)
-      @billing_cycles = cost_plotter.historic_cycle_details
-      @policy = @project.budget_policies.last
-      @billing_date = cost_plotter.billing_date
-      @latest_cycle_details = cost_plotter.latest_cycle_details
+      get_billing_data
     end
   end
 
@@ -93,6 +100,14 @@ class ProjectsController < ApplicationController
       timestamp = Time.parse(params['timestamp'])
       render json: {changed: @project.data_changed?(timestamp)}
     end
+  end
+
+  def get_billing_data
+    cost_plotter = CostsPlotter.new(@project)
+    @policy = @project.budget_policies.last
+    @billing_date = cost_plotter.billing_date
+    @latest_cycle_details = cost_plotter.latest_cycle_details
+    @billing_cycles = cost_plotter.historic_cycle_details
   end
 
   def get_costs_data
