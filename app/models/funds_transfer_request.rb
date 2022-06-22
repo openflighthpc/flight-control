@@ -13,6 +13,18 @@ class FundsTransferRequest < ApplicationRecord
   default_scope { order(:created_at) }
   scope :completed, -> { where(status: "completed") }
 
+  def completed?
+    status == "completed"
+  end
+
+  def failed?
+    status == "failed"
+  end
+
+  def not_enough_balance?
+    failed? && request_errors.include?("exceeds the dept's balance")
+  end
+
   def description
     msg = "Funds transfer request *#{status}* for project *#{project.name}*:\n\n"
     descriptive_action = action == "send" ? "Send #{amount}c.u. to" : "Receive #{amount}c.u. from"

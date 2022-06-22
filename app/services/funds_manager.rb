@@ -28,17 +28,15 @@ class FundsManager
     end
   end
 
-  # TODO if try to check out and Hub does not have enough, kill all compute nodes.
-  # Perhaps by setting budget/ balance to zero and running over budget switch offs
-
   def check_and_manage_funds
-    if @project.continuous_budget?
-      check_and_update_hub_balance
-    elsif @costs_plotter.active_billing_cycles.include?(Date.current) && !already_have_budget?
+    check_and_update_hub_balance
+    return if @project.continuous_budget?
+
+    if @costs_plotter.active_billing_cycles.include?(Date.current) && !already_have_budget?
       sent = send_back_unused_compute_units
-      if Date.current == @project.start_date || (sent && sent.valid? && sent.status == "completed")
+      if Date.current == @project.start_date || (sent && sent.valid? && sent.completed?)
         result = check_out_cycle_budget
-        if result.status == "completed"
+        if sent.valid? && result.completed?
           create_budget(result.amount)
         end
       else
@@ -101,15 +99,19 @@ class FundsManager
     return if @project.end_date && Date.current >= @project.end_date
 
     requested_budget = @costs_plotter.required_budget_for_cycle(Date.current).to_i
-
+    
     if requested_budget > 0
       request_log = @flight_hub_communicator.move_funds(
         requested_budget,
-        "receive",
-        "Budget for current billing cycle",
+          "receive",
+          "Budget for current billing cycle",
       )
       @project.send_slack_message(request_log.description)
-      check_and_update_hub_balance
+      if request_log.not_enough_balance?
+        insufficient_balance_handling(requested_budget)
+      else
+        check_and_update_hub_balance
+      end
     elsif requested_budget < 0
       # What to do in this situation?
     end
@@ -124,7 +126,7 @@ class FundsManager
       )
     @project.send_slack_message(request_log.description)
 
-    if request_log.status == "completed"
+    if request_log.completed?
       # New budget is existing budget + additional received
       existing_budget = budget = @project.budgets
         .where("effective_at <= ?", Date.current)
@@ -167,6 +169,15 @@ class FundsManager
       previous.expiry_date = Date.current
       previous.save
     end
+  end
+
+  def insufficient_balance_handling(required)
+    available_balance = @project.current_hub_balance
+    available_balance = available_balance ? available_balance.amount : 0
+    msg = "*WARNING:* Hub has insufficient compute units for latest cycle for project *#{@project.name}*"
+    msg << "\n Running budget switch offs"
+    @project.send_slack_message(msg)
+    @project.perform_budget_switch_offs(true)
   end
 
   def already_have_budget?
