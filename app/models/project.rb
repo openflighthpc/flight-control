@@ -134,7 +134,6 @@ class Project < ApplicationRecord
     results
   end
 
-  # In future this will include over budget switch offs
   def events(groups=nil, recalculate_budget_off=true)
     events = pending_one_off_and_repeat_requests.concat(decorated_switch_offs(recalculate_budget_off))
     events = events.select { |event| event.included_in_groups?(groups) } if groups

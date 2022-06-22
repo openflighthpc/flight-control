@@ -54,7 +54,7 @@ class FundsManager
     if @project.end_date && @project.end_date == Date.current
       # send back remaining c.u.s
       send_back_unused_compute_units
-      create_budget(0)
+      create_budget(0, true)
     end
   end
 
@@ -139,9 +139,11 @@ class FundsManager
     end
   end
 
-  def create_budget(amount)
+  def create_budget(amount, final=false)
     # Expiry date is the first day it no longer applies.
-    if @project.continuous_budget?
+    if final
+      expiry = nil
+    elsif @project.continuous_budget?
       expiry = @project.end_date
     else
       expiry = @costs_plotter.end_of_billing_interval(Date.current) + 1.day
@@ -155,8 +157,20 @@ class FundsManager
     if !budget.valid?
       msg = "Unable to save budget for project *#{project.name}*: #{budget.errors.full_messages.join("; ") }"
       @project.send_slack_message()
+    else
+      expire_previous_budget(budget) if @project.continuous_budget?
     end
-    budget
+  end
+
+  def expire_previous_budget(latest_budget)
+    previous = @project.budgets
+                 .where("effective_at <= ?", Date.current)
+                 .where("expiry_date IS NULL")
+                 .where.not(id: latest_budget.id).last
+    if previous
+      previous.expiry_date = Date.current
+      previous.save
+    end
   end
 
   def already_have_budget?

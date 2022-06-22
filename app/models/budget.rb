@@ -8,9 +8,12 @@ class Budget < ApplicationRecord
 
   private
 
+  # We may have continuous project budgets that are expired on the same
+  # day they are effective (e.g. if new c.u.s retrieved from the department
+  # multiple times on one day).
   def expiry_after_effective
-    if expiry_date <= effective_at
-      errors.add(:expiry_date, "must be after effective at date")
+    if expiry_date < effective_at
+      errors.add(:expiry_date, "must be after on same day as effective at date")
     end
   end
 end
