@@ -1,7 +1,3 @@
-require_relative 'flight_hub_communicator'
-require_relative '../models/hub_balance'
-require_relative '../models/project'
-
 class FundsManager
   def initialize(project)
     @project = project

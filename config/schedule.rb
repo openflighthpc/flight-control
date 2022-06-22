@@ -26,6 +26,10 @@ every :day, at: '12:00pm' do
 end
 
 every :day, at: '12:00am' do
+  rake "funds:check_and_update_funds:all"
+end
+
+every :day, at: '12:00am' do
   rake "instance_details:record"
 end
 
@@ -33,16 +37,20 @@ every :day, at: '12:00am' do
   rake "sso:sync"
 end
 
-every 5.minutes do
-  rake "instance_logs:record:all[true]"
-end
-
 every 1.minute do
   rake "change_requests:all[true,false]"
 end
 
+every 5.minutes do
+  rake "instance_logs:record:all[true]"
+end
+
 every 20.minutes do
   rake "projects:monitor:all"
+end
+
+every 1.hour do
+  rake "funds:check_balance:all"
 end
 
 every :day, at: '12:30pm' do
