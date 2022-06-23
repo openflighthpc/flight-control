@@ -1,6 +1,6 @@
 class CostCalculator
 
-  attr_reader :total
+  attr_reader :total, :forecast_costs
 
   def initialize
     @total = 0.0
@@ -13,7 +13,7 @@ class CostCalculator
   end
 
   def add_cost_to_total(cost)
-    @total += cost
+    @total += (cost || 0.0)
   end
 
   def append_total_to_array(is_actual:)

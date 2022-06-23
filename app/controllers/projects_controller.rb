@@ -113,7 +113,7 @@ class ProjectsController < ApplicationController
 
   def get_group_data
     cost_plotter = CostsPlotter.new(@project)
-    @group_costs = cost_plotter.group_costs_this_cycle(%w[core compute_groups])
+    @group_costs = cost_plotter.costs_this_cycle(%w[core compute_groups])
   end
 
   def get_costs_data

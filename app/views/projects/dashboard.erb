@@ -68,19 +68,19 @@
   <br>
   <div class="row">
     <div class="col">
-      <%= @group_costs %>
-      <%= render '/partials/dashboard_group_card', locals: { compute_group: "Core",
-                                                             status: "UP",
-                                                             cost_this_cycle: "" } # @group_costs[:core].total %>
+      <% locals = { compute_group: "Core",
+                      status: "UP",
+                      cost_this_cycle: @group_costs[:core].total + @group_costs[:core_storage].total } %>
+      <%= render '/partials/dashboard_group_card', locals: locals %>
     </div>
-    <%# @group_costs.except(:core).keys.each do |group| %>
-<!--      <div class="col">-->
-<!--        <% locals = { compute_group: group.capitalize,-->
-<!--                       status: "UP",-->
-                       cost_this_cycle: @group_costs[group].total } %>
-        <%#= render '/partials/dashboard_group_card', locals: locals %>
-<!--      </div>-->
-    <%# end %>
+    <% @project.front_end_compute_groups.keys.each do |group| %>
+      <div class="col">
+        <% locals = { compute_group: group.capitalize,
+                      status: "UP",
+                      cost_this_cycle: @group_costs[group.to_sym].total + @group_costs["#{group}_storage".to_sym].total } %>
+        <%= render '/partials/dashboard_group_card', locals: locals %>
+      </div>
+    <% end %>
   </div>
 </div>
 

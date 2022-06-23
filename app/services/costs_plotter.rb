@@ -75,88 +75,49 @@ class CostsPlotter
     results
   end
 
-  def core_costs_this_cycle_old
+  def costs_this_cycle(compute_groups)
     start_date = start_of_current_billing_interval
-    end_date = Date.yesterday
-    cost_entries ||= cost_breakdown(start_date, end_date)
-
-    core = []
-    forecast_core = []
-    core_total = 0.0
-    first_forecast = true
-
-    cost_entries.each do |k, v|
-      k = Date.parse(k)
-      break if (@project.archived_date && k >= @project.archived_date) || k > end_date
-      if v.has_key?(:compute)
-        # Reset totals to zero at start of each cycle
-        if active_billing_cycles.include?(k)
-          core_total = 0.0
-        end
-        core_total += v[:core]
-        if k >= start_date
-          core << core_total
-          forecast_core << nil
-        end
-      else
-        if first_forecast == true && forecast_core.length > 0 && k > @project.start_date
-          first_forecast = false
-          forecast_core[-1] = core_total
-        end
-        # Reset totals to zero at start of each cycle
-        if active_billing_cycles.include?(k)
-          core_total = 0.0
-        end
-        core_total += v[:forecast_core]
-        if k >= start_date
-          forecast_core << core_total
-          core << nil
-        end
-      end
-    end
-    {core: core, forecast_core: forecast_core, core_total: core_total}
-  end
-
-  def group_costs_this_cycle(compute_groups)
-    start_date = start_of_current_billing_interval
-    end_date = Date.yesterday
+    end_date = [Date.yesterday, start_date].max
     cost_entries ||= cost_breakdown(start_date, end_date)
 
     if compute_groups.include?('compute_groups')
       compute_groups.delete('compute_groups')
       compute_groups += @project.front_end_compute_groups.keys
     end
-
-    compute_groups.map { |group| compute_groups.append("#{group}_storage") }
-
-    return compute_groups
+    compute_groups.dup.each { |group| compute_groups << "#{group}_storage" }
 
     costs = {}
     compute_groups.each do |group|
-      group_costs= CostCalculator.new
-      first_forecast = true
-
-      cost_entries.each do |k, v|
-        k = Date.parse(k)
-        break if (@project.archived_date && k >= @project.archived_date) || k > end_date
-
-        if v.has_key?(:compute) #is actual
-          group_costs.reset if active_billing_cycles.include?(k)
-          group_costs.add_cost_to_total(v[group.to_sym])
-          group_costs.append_total_to_array(is_actual: true) if k >= start_date
-        else #is a forecast
-          if first_forecast == true && group_costs.forecast_length > 0 && k > @project.start_date
-            first_forecast = false
-            group_costs.set_first_forecast
-          end
-          group_costs.reset if active_billing_cycles.include?(k)
-          group_costs.add_cost_to_total(v["forecast_#{group}".to_sym])
-          group_costs.append_total_to_array(is_actual: false) if k >= start_date
-        end
-      end
-      costs[group.to_sym] = group_costs
+      costs[group.to_sym] = costs_this_cycle_per_group(group, cost_entries)
     end
     costs
+  end
+
+  def costs_this_cycle_per_group(group, cost_entries)
+    group_costs= CostCalculator.new
+    start_date = Date.parse(cost_entries.keys.first)
+    end_date = Date.parse(cost_entries.keys.last)
+    first_forecast = true
+
+    cost_entries.each do |k, v|
+      k = Date.parse(k)
+      break if (@project.archived_date && k >= @project.archived_date) || k > end_date
+
+      if v.has_key?(:compute) # actual costs
+        group_costs.reset if active_billing_cycles.include?(k) # reset total at start of cycle
+        group_costs.add_cost_to_total(v[group.to_sym])
+        group_costs.append_total_to_array(is_actual: true) if k >= start_date
+      else # forecasted costs
+        if first_forecast == true && group_costs.forecast_length > 0 && k > @project.start_date
+          first_forecast = false
+          group_costs.set_first_forecast
+        end
+        group_costs.reset if active_billing_cycles.include?(k) # reset total at start of cycle
+        group_costs.add_cost_to_total(v["forecast_#{group}".to_sym])
+        group_costs.append_total_to_array(is_actual: false) if k >= start_date
+      end
+    end
+    group_costs
   end
 
   def chart_cumulative_costs(start_date, end_date, temp_change_request=nil, cost_entries=nil)
@@ -1220,7 +1181,7 @@ class CostsPlotter
                           estimate: !latest_cost_log_date || end_date > latest_cost_log_date
                         }
         if current
-          cycle_details[:costs_so_far] = costs_between_dates(start_date, Date.today + 1.day).to_i
+          cycle_details[:costs_so_far] = costs_between_dates(start_date, Date.today).to_i
           cycle_details[:starting_balance] = remaining_balance(start_date)
           cycle_details[:starting_budget] = budget_on_date(start_date)
         end
