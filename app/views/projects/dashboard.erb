@@ -5,7 +5,7 @@
 <br>
 
 <div class="container-fluid">
-  <div class="row">
+  <div class="row justify-content-center">
 
     <!-- Overview -->
     <div class="col d-flex align-items-stretch" style="min-width: 285px; max-width:350px;">
@@ -39,6 +39,7 @@
           </div>
         </div>
       </div>
+      <br>
     </div>
 
     <!-- Upcoming events -->
@@ -61,21 +62,24 @@
       </div>
     </div>
   </div>
+</div>
 
-  <br><br>
+<br><br>
 
+<div class="container">
   <!-- Groups cards -->
   <h3 class="text-center">Groups</h3>
   <br>
-  <div class="row">
-    <div class="col">
+  <div class="row justify-content-center">
+    <div class="col" style="min-width: 200px; max-width:300px; border-right: 5px double rgba(50,136,188,1);">
       <% locals = { compute_group: "Core",
                       status: "UP",
                       cost_this_cycle: @group_costs[:core].total + @group_costs[:core_storage].total } %>
       <%= render '/partials/dashboard_group_card', locals: locals %>
     </div>
+    <div class="vertical"></div>
     <% @project.front_end_compute_groups.keys.each do |group| %>
-      <div class="col">
+      <div class="col" style="min-width: 200px; max-width:300px;">
         <% locals = { compute_group: group.capitalize,
                       status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
                       cost_this_cycle: @group_costs[group.to_sym].total + @group_costs["#{group}_storage".to_sym].total } %>
