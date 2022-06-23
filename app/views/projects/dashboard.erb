@@ -64,6 +64,7 @@
 
   <br><br>
 
+  <!-- Groups cards -->
   <h3 class="text-center">Groups</h3>
   <br>
   <div class="row">
@@ -76,11 +77,10 @@
     <% @project.front_end_compute_groups.keys.each do |group| %>
       <div class="col">
         <% locals = { compute_group: group.capitalize,
-                      status: "UP",
+                      status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
                       cost_this_cycle: @group_costs[group.to_sym].total + @group_costs["#{group}_storage".to_sym].total } %>
         <%= render '/partials/dashboard_group_card', locals: locals %>
       </div>
     <% end %>
   </div>
 </div>
-

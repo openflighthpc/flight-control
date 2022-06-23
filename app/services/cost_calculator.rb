@@ -1,6 +1,6 @@
 class CostCalculator
 
-  attr_reader :total, :forecast_costs
+  attr_reader :total
 
   def initialize
     @total = 0.0

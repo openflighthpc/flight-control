@@ -113,7 +113,9 @@ class ProjectsController < ApplicationController
 
   def get_group_data
     cost_plotter = CostsPlotter.new(@project)
-    @group_costs = cost_plotter.costs_this_cycle(%w[core compute_groups])
+    compute_groups = @project.front_end_compute_groups.keys
+    @group_costs = cost_plotter.costs_this_cycle( ['core'] + compute_groups )
+    @nodes_up = nodes_up(compute_groups)
   end
 
   def get_costs_data
@@ -142,10 +144,6 @@ class ProjectsController < ApplicationController
     filter_current_instances if @datasets
   end
 
-  def get_compute_groups_data
-
-  end
-
   private
 
   # Only include filtered groups, or all if none selected
@@ -153,6 +151,22 @@ class ProjectsController < ApplicationController
     original = @current_instances.clone
     @current_instances.select! { |group, instances| @datasets.include?(group) }
     @current_instances = original if @current_instances.empty?
+  end
+
+  def nodes_up(compute_groups)
+    nodes_up = {}
+    compute_groups.each do |group|
+      instances = @project.latest_instances[group]
+      on = 0
+      total = 0
+      instances.each do |instance|
+        next if instance.node_limit == 0
+        on += instance.count[:on]
+        total += on + instance.count[:off]
+      end
+      nodes_up[group] = {on: on, total: total}
+    end
+    nodes_up
   end
 
   def no_project_redirect

@@ -79,11 +79,6 @@ class CostsPlotter
     start_date = start_of_current_billing_interval
     end_date = [Date.yesterday, start_date].max
     cost_entries ||= cost_breakdown(start_date, end_date)
-
-    if compute_groups.include?('compute_groups')
-      compute_groups.delete('compute_groups')
-      compute_groups += @project.front_end_compute_groups.keys
-    end
     compute_groups.dup.each { |group| compute_groups << "#{group}_storage" }
 
     costs = {}
