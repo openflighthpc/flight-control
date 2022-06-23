@@ -64,17 +64,23 @@
 
   <br><br>
 
-  <div class="text-center">
-    <h3>Groups</h3>
-    <br>
-    <div class="row">
-      <div class="col">
-        <p> Here we have some text. </p>
-      </div>
-      <div class="col">
-        <p> Here we have some more text. </p>
-      </div>
+  <h3 class="text-center">Groups</h3>
+  <br>
+  <div class="row">
+    <div class="col">
+      <%= @group_costs %>
+      <%= render '/partials/dashboard_group_card', locals: { compute_group: "Core",
+                                                             status: "UP",
+                                                             cost_this_cycle: "" } # @group_costs[:core].total %>
     </div>
+    <%# @group_costs.except(:core).keys.each do |group| %>
+<!--      <div class="col">-->
+<!--        <% locals = { compute_group: group.capitalize,-->
+<!--                       status: "UP",-->
+                       cost_this_cycle: @group_costs[group].total } %>
+        <%#= render '/partials/dashboard_group_card', locals: locals %>
+<!--      </div>-->
+    <%# end %>
   </div>
 </div>
 

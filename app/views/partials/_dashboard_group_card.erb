@@ -1,0 +1,20 @@
+<div class="card w-100" >
+  <div class="card-body">
+    <h4 class="card-title text-center"><%= locals[:compute_group] %></h4>
+
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        <strong>Status:</strong> <%= locals[:status] %>
+      </li>
+      <li class="list-group-item pb-3">
+        <strong>Cost this cycle:</strong> <%= locals[:cost_this_cycle] %>c.u.
+      </li>
+<!--      <li><%#= @project.latest_instances.inspect %></li>-->
+    </ul>
+
+    <!-- Links -->
+    <div class="row justify-content-md-center" style="text-align:center">
+        <a href="events">More info</a>
+    </div>
+  </div>
+</div>

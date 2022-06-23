@@ -8,6 +8,7 @@ class ProjectsController < ApplicationController
     end
     @nav_view = ""
     get_billing_data
+    get_group_data
   end
 
   def costs_breakdown
@@ -110,6 +111,11 @@ class ProjectsController < ApplicationController
     @billing_cycles = cost_plotter.historic_cycle_details
   end
 
+  def get_group_data
+    cost_plotter = CostsPlotter.new(@project)
+    @group_costs = cost_plotter.group_costs_this_cycle(%w[core compute_groups])
+  end
+
   def get_costs_data
     cost_plotter = CostsPlotter.new(@project)
     if params['start_date'] && params['start_date'] != ""
@@ -134,6 +140,10 @@ class ProjectsController < ApplicationController
     @switch_offs = cost_plotter.front_end_switch_offs_by_date(@start_date, @end_date, false)
     @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date, costs)
     filter_current_instances if @datasets
+  end
+
+  def get_compute_groups_data
+
   end
 
   private
