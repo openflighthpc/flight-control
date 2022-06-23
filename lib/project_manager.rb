@@ -274,25 +274,10 @@ class ProjectManager
         puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
       end
     end
-    valid_date = false
-    while !valid_date
-      print "End date (YYYY-MM-DD). Press enter to leave blank: "
-      date = STDIN.gets.chomp.strip
-      break if date.empty?
-      valid_date = begin
-        Date.parse(date)
-      rescue ArgumentError
-        false
-      end
-      if valid_date
-        attributes[:end_date] = valid_date
-      else
-        puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
-      end
-    end
+    attributes[:flight_hub_id] = get_non_blank("Flight Hub Dept Id")
     attributes[:slack_channel] = get_non_blank("Slack Channel")
     attributes[:monitor_active] = get_non_blank("Monitor active")
-    if attributes[:monitor_active]
+    if attributes[:monitor_active] == "true"
       attributes[:utilisation_threshold] = get_non_blank("Utilisation threshold")
     end
 
@@ -315,10 +300,33 @@ class ProjectManager
     end
     project.save!
     puts "Project #{project.name} created"
-    puts "A new project requires a balance."
-    add_balance(project, true)
     puts "A new project requies a budget policy"
     add_budget_policy(project, true)
+    if !project.end_date
+      # End date needs to be done once we have a budget policy,
+      # as triggers various budget actions.
+      valid_date = false
+      while !valid_date
+        print "Set project End date (YYYY-MM-DD). Press enter to leave blank: "
+        date = STDIN.gets.chomp.strip
+        break if date.empty?
+        valid_date = begin
+          Date.parse(date)
+        rescue ArgumentError
+          false
+        end
+        if valid_date
+          end_date = valid_date
+        else
+          puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
+        end
+      end
+      if end_date
+        project.end_date = end_date
+        project.save!
+        puts "Project end date added"
+      end
+    end
   
     credentials = nil
     valid = false
@@ -351,7 +359,7 @@ class ProjectManager
           project = Project.find(project.id)
           begin
             project.record_instance_logs
-            project.record_cost_logs(project.start_date, Project::DEFAULT_COSTS_DATE - 1.day)
+            project.record_cost_logs_for_range(project.start_date, Project::DEFAULT_COSTS_DATE - 1.day)
           rescue AzureApiError, AwsSdkError => e
             puts "Generation of logs for project #{project.name} stopped due to error: "
             puts e

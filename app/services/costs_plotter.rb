@@ -781,9 +781,8 @@ class CostsPlotter
     when "fixed"
       amount = policy.cycle_limit
     when "rolling"
-      # we can assume any excess has been returned to hub
-      # but this logic will be faulty if under/over spend
-      amount = policy.cycle_limit + hub_balance_amount(cycle_start_date)
+      # This will be inaccurate if under/over spend
+      amount = (policy.cycle_limit * cycle_number(cycle_start_date)) - costs_so_far(cycle_start_date)
     when "continuous"
       amount = hub_balance_amount(cycle_start_date)
     when "dynamic"
@@ -857,6 +856,7 @@ class CostsPlotter
         cycle <= date
       end.count
       amount += policy.cycle_limit * additional_cycles
+      amount -= costs_between_dates(start_of_current_billing_interval, date)
     when "continuous"
       amount = control_balance(date)
       include_costs_so_far = false

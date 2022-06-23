@@ -36,7 +36,7 @@ class FundsManager
       sent = send_back_unused_compute_units
       if Date.current == @project.start_date || (sent && sent.valid? && sent.completed?)
         result = check_out_cycle_budget
-        if sent.valid? && result.completed?
+        if result.completed?
           create_budget(result.amount)
         end
       else
@@ -172,7 +172,7 @@ class FundsManager
       expiry = @costs_plotter.end_of_billing_interval(Date.current) + 1.day
       expiry = [expiry, @project.end_date].min if @project.end_date
     end
-    budget = @project.budgets.create(
+    budget = @project.budgets.create!(
       amount: amount,
       effective_at: effective_at,
       expiry_date: expiry,
@@ -211,6 +211,7 @@ class FundsManager
   # This logic will become brittle if we start manually
   # creating budgets
   def already_have_budget?
-    @project.budgets.where("expiry_date IS NULL").find_by(effective_at: Date.current)
+    @project.budgets.where("expiry_date IS NULL OR expiry_date > ?", Date.current)
+                    .find_by(effective_at: Date.current)
   end
 end
