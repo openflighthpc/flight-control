@@ -730,21 +730,7 @@ class Project < ApplicationRecord
     return true
   end
 
-  # If an end date, ensure we have a corresponding balance
-  # with an amount of 0.
-  def update_end_balance
-    end_balance = hub_balances.where(amount: 0).last
-    return if !end_date && !end_balance
-
-    if !end_date && end_balance
-      end_balance.delete
-    else
-      if !end_balance
-        HubBalance.create(project: self, amount: 0, date: end_date)
-      elsif end_balance && end_balance.date != end_date
-        end_balance.date = end_date
-        end_balance.save!
-      end
-    end
+  def update_end_budget
+    FundsManager.new(self).update_end_budget
   end
 end

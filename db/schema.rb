@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_20_143253) do
+ActiveRecord::Schema.define(version: 2022_06_23_094035) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -52,6 +52,7 @@ ActiveRecord::Schema.define(version: 2022_06_20_143253) do
     t.date "expiry_date"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.boolean "final", default: false
     t.index ["effective_at"], name: "index_budgets_on_effective_at"
     t.index ["project_id"], name: "index_budgets_on_project_id"
   end

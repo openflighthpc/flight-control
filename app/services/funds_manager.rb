@@ -48,7 +48,7 @@ class FundsManager
     if @project.end_date && @project.end_date == Date.current
       # send back remaining c.u.s
       send_back_unused_compute_units
-      create_budget(0, true)
+      create_budget(0, true) if !already_have_budget?
     end
   end
 
@@ -59,6 +59,31 @@ class FundsManager
       @project.end_date && @project.end_date == Date.current ||
       @project.continuous_budget? && @project.start_date == Date.current
     )
+  end
+
+  def update_end_budget
+    end_date = @project.end_date
+    end_budget = @project.budgets.find_by(final: true)
+    return if !end_date && !end_budget
+
+    if !end_date && end_budget
+      # Basic handling if project is being restarted. But true handling
+      # will require more work/thought, and perhaps involve manual updates.
+      if end_budget.effective_at < Date.current
+        end_budget.final = false
+        end_budget.expiry_date ||= Date.current
+        end_budget.save!
+      else
+        end_budget.delete
+      end
+    else
+      if !end_budget
+        create_budget(0, true, end_date)
+      elsif end_budget && end_budget.effective_at != end_date
+        end_budget.effective_at = end_date
+        end_budget.save!
+      end
+    end
   end
 
   private
@@ -137,7 +162,7 @@ class FundsManager
     end
   end
 
-  def create_budget(amount, final=false)
+  def create_budget(amount, final=false, effective_at=Date.current)
     # Expiry date is the first day it no longer applies.
     if final
       expiry = nil
@@ -149,21 +174,24 @@ class FundsManager
     end
     budget = @project.budgets.create(
       amount: amount,
-      effective_at: Date.current,
-      expiry_date: expiry
+      effective_at: effective_at,
+      expiry_date: expiry,
+      final: final
     )
     if !budget.valid?
-      msg = "Unable to save budget for project *#{project.name}*: #{budget.errors.full_messages.join("; ") }"
-      @project.send_slack_message()
+      msg = "Unable to save budget for project *#{@project.name}*: #{budget.errors.full_messages.join("; ") }"
+      @project.send_slack_message(msg)
     else
       expire_previous_budget(budget) if @project.continuous_budget?
     end
   end
 
+  # For continuous project the budgets are across cycles (and at any time),
+  # so we expire them when a new one is created.
   def expire_previous_budget(latest_budget)
     previous = @project.budgets
                  .where("effective_at <= ?", Date.current)
-                 .where("expiry_date IS NULL")
+                 .where("expiry_date IS NULL OR expiry_date >= ?", Date.current)
                  .where.not(id: latest_budget.id).last
     if previous
       previous.expiry_date = Date.current
@@ -180,7 +208,9 @@ class FundsManager
     @project.perform_budget_switch_offs(true)
   end
 
+  # This logic will become brittle if we start manually
+  # creating budgets
   def already_have_budget?
-    @project.budgets.find_by(effective_at: Date.current)
+    @project.budgets.where("expiry_date IS NULL").find_by(effective_at: Date.current)
   end
 end

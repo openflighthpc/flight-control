@@ -46,7 +46,7 @@ class ProjectManager
     while !valid
       puts "What would you like to update?"
       attribute = STDIN.gets.chomp.strip
-      if project.respond_to?(attribute.downcase) || attribute == "balance" || attribute == "budget_policy"
+      if project.respond_to?(attribute.downcase) || attribute == "budget_policy"
         valid = true
       else
         puts "That is not a valid attribute for this project. Please try again."
@@ -57,8 +57,6 @@ class ProjectManager
       update_regions(project)
     elsif attribute == "resource_groups" || attribute == "resource groups"
       update_resource_groups(project)
-    elsif attribute == "balance"
-      add_balance(project)
     elsif attribute == "budget_policy"
       add_budget_policy(project)
     else
@@ -435,36 +433,6 @@ class ProjectManager
   def validate_credentials(project_id)
     project = Project.find(project_id)
     project.validate_credentials
-  end
-
-  def add_balance(project, first=false)
-    valid = false
-    while !valid
-      amount = get_non_blank("Balance amount", "Balance")
-      valid = begin
-        Integer(amount, 10)
-      rescue ArgumentError, TypeError
-        false
-      end
-      puts "Please enter a number" if !valid
-    end
-    valid_date = false
-    if first
-      valid_date = project.start_date
-    else
-      while !valid_date
-        print "Effective at (YYYY-MM-DD): "
-        valid_date = begin
-          Date.parse(STDIN.gets.chomp.strip)
-        rescue ArgumentError
-          false
-        end
-        puts "Invalid date. Please ensure it is in the format YYYY-MM-DD" if !valid_date
-      end
-    end
-    budget = Balance.new(project_id: project.id, amount: amount, effective_at: valid_date)
-    budget.save!
-    puts "Balance created"
   end
 
   def add_budget_policy(project, first=false)
