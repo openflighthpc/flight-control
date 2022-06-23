@@ -153,7 +153,7 @@ class FundsManager
 
     if request_log.completed?
       # New budget is existing budget + additional received
-      existing_budget = budget = @project.budgets
+      existing_budget = @project.budgets
         .where("effective_at <= ?", Date.current)
         .where("expiry_date IS NULL OR expiry_date > ?", Date.current).last
       existing_budget_amount = existing_budget ? existing_budget.amount : 0 
