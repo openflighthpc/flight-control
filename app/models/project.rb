@@ -1,8 +1,3 @@
-require_relative 'hub_balance'
-require_relative 'budget_policy'
-require_relative 'instance_log'
-require_relative 'cost_log'
-require_relative 'action_log'
 require_relative '../services/project_config_creator'
 require_relative '../services/costs_plotter'
 require_relative '../services/instance_tracker'
@@ -42,7 +37,7 @@ class Project < ApplicationRecord
       in: %w(aws azure),
       message: "%{value} is not a valid platform"
     }
-  after_save :update_end_balance
+  after_save :update_end_budget
   scope :active, -> { where("archived_date IS NULL OR archived_date > ?", Date.current) }
   scope :visualiser, -> { where(visualiser: true) }
 
@@ -682,8 +677,8 @@ class Project < ApplicationRecord
       HTTParty.post("https://slack.com/api/chat.postMessage",
                   headers: {"Authorization": "Bearer #{Project.slack_token}"},
                   body: {"text": msg, "channel": slack_channel, "as_user": true})
-    rescue
-      # Don't break actions if can't send a message
+    rescue => error
+      Rails.logger.error "Unable to send slack message: #{error}"
     end
   end
 

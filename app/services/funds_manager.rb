@@ -29,14 +29,16 @@ class FundsManager
   end
 
   def check_and_manage_funds
-    check_and_update_hub_balance
-
     if @project.end_date && @project.end_date == Date.current
-      # send back remaining c.u.s
       send_back_unused_compute_units
       create_budget(0, true) if !already_have_budget?
       return
     end
+
+    # For continuous projects we retrieve any c.u. added to a department as
+    # soon as this is detected, and we don't send any back until the project is
+    # over.
+    check_and_update_hub_balance
 
     if !@project.continuous_budget? && @costs_plotter.active_billing_cycles.include?(Date.current) &&
        !already_have_budget?
@@ -124,22 +126,25 @@ class FundsManager
     return if @project.continuous_budget?
     return if @project.end_date && Date.current >= @project.end_date
 
-    requested_budget = @costs_plotter.required_budget_for_cycle(Date.current).to_i
+    required_budget = @costs_plotter.required_budget_for_current_cycle.to_i
     
-    if requested_budget > 0
+    if required_budget > 0
       request_log = @flight_hub_communicator.move_funds(
-        requested_budget,
+        required_budget,
           "receive",
           "Budget for current billing cycle",
       )
       @project.send_slack_message(request_log.description)
       if request_log.not_enough_balance?
-        insufficient_balance_handling(requested_budget)
+        insufficient_balance_handling(required_budget)
       else
         check_and_update_hub_balance
       end
-    elsif requested_budget < 0
-      # What to do in this situation?
+    elsif required_budget < 0
+      # This should only be reachable if a dynamic or rolling project goes
+      # extremely over budget.
+      msg = "Project #{@project.name} has a negative budget for this cyle. "
+      msg << "No compute units have been requested from hub."
     end
     request_log
   end

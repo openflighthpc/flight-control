@@ -21,7 +21,8 @@ class FlightHubCommunicator
       if response.success?
         response["data"]["attributes"]["compute_unit_balance"]
       else
-        puts response.body
+        msg = "Unable to query Hub dept balance for project #{@project.name}: #{response.body}"
+        raise FlightHubApiError.new(msg)
       end
     rescue Errno::ECONNRESET, Errno::ECONNREFUSED, Errno::EPIPE => error
       raise FlightHubApiError.new("Unable to connect to flight hub: #{error}")

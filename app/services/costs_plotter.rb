@@ -769,8 +769,9 @@ class CostsPlotter
     changes
   end
 
-  # At start of cycle.
-  def required_budget_for_cycle(cycle_start_date)
+  # At start of current cycle.
+  def required_budget_for_current_cycle
+    cycle_start_date = start_of_current_billing_interval
     return nil if @project.end_date && cycle_start_date >= @project.end_date
 
     policy = @project.budget_policies.where("effective_at <= ?", cycle_start_date).last
@@ -798,8 +799,6 @@ class CostsPlotter
     amount
   end
 
-  # For past cycles and current cycle, this is based on actual
-  # compute units received.
   def budget_on_date(date, for_cumulative_chart=false)
     if @project.end_date && date >= @project.end_date
       if date == @project_end_date

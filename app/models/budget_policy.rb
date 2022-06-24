@@ -1,5 +1,3 @@
-require_relative 'project'
-
 class BudgetPolicy < ApplicationRecord
   belongs_to :project
   validates :cycle_interval,

@@ -1,5 +1,3 @@
-require_relative 'project'
-
 class HubBalance < ApplicationRecord
   belongs_to :project
   validates :amount, :date, :project_id, presence: true

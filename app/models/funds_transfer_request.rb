@@ -1,7 +1,7 @@
 class FundsTransferRequest < ApplicationRecord
   after_initialize :set_defaults
   belongs_to :project
-  validates :project_id, :amount, :signed_amount, :reason, presence: true
+  validates :project_id, :date, :amount, :signed_amount, :reason, presence: true
   validates :amount, numericality: { greater_than_or_equal_to: 0 }
   validates :created_at, :updated_at, presence: true, on: :save
   validates :action,
@@ -10,7 +10,7 @@ class FundsTransferRequest < ApplicationRecord
       in: %w(send receive),
       message: "must be 'send' or 'receive'"
     }
-  default_scope { order(:created_at) }
+  default_scope { order(:date) }
   scope :completed, -> { where(status: "completed") }
 
   def completed?
