@@ -1,19 +1,47 @@
 <div class="card" >
   <div class="card-body">
-    <h4 class="card-title text-center"><%= locals[:compute_group] %></h4>
+    <div class="row justify-content-center">
 
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item">
-        <strong>Status:</strong> <%= locals[:status] %>
-      </li>
-      <li class="list-group-item pb-3">
-        <strong>Cost this cycle:</strong> <%= locals[:cost_this_cycle] %>c.u.
-      </li>
-    </ul>
+      <!-- To balance settings button-->
+      <% unless locals[:compute_group] == "core" %>
+        <div class="col-2"></div>
+      <% end %>
 
-    <!-- Links -->
-    <div class="row justify-content-md-center" style="text-align:center">
-        <a href="events">More info</a>
+      <!-- Card heading button-->
+      <div class="col-8">
+        <h4 class="card-title text-center"><%= locals[:compute_group].capitalize %></h4>
+      </div>
+
+      <!-- Settings button-->
+      <% unless locals[:compute_group] == "core" %>
+        <div class="col-2">
+          <a href="events" aria-label="Settings">
+            <i class="fa fa-cog fa-lg"></i>
+          </a>
+        </div>
+      <% end %>
     </div>
+
+      <!-- Group data -->
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          <strong>Status:</strong> <%= locals[:status] %>
+        </li>
+        <li class="list-group-item pb-3">
+          <strong>Cost this cycle:</strong> <%= locals[:cost_this_cycle] %>c.u.
+        </li>
+      </ul>
+
+      <!-- Links -->
+      <div class="row justify-content-md-center" style="text-align:center">
+        <% unless locals[:compute_group] == "core" %>
+          <div class="col">
+            <a href="events?groups[]=<%= locals[:compute_group] %>&project=<%= locals[:project_name]%>">Events</a>
+          </div>
+        <% end %>
+        <div class="col">
+          <a href="costs-breakdown?datasets[]=<%= locals[:compute_group] %>">More info</a>
+        </div>
+      </div>
   </div>
 </div>

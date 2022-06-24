@@ -64,23 +64,24 @@
   </div>
 </div>
 
-<br><br>
+<br><br><br>
 
 <div class="container">
   <!-- Groups cards -->
   <h3 class="text-center">Groups</h3>
   <br>
   <div class="row justify-content-center">
-    <div class="col" style="min-width: 200px; max-width:300px; border-right: 5px double rgba(50,136,188,1);">
-      <% locals = { compute_group: "Core",
-                      status: "UP",
-                      cost_this_cycle: @group_costs[:core].total + @group_costs[:core_storage].total } %>
+    <div class="col" style="min-width: 200px; max-width:300px;"> <!-- border-right: 5px double rgba(50,136,188,1); -->
+      <% locals = { compute_group: "core",
+                    status: "UP",
+                    cost_this_cycle: @group_costs[:core].total + @group_costs[:core_storage].total } %>
       <%= render '/partials/dashboard_group_card', locals: locals %>
     </div>
     <div class="vertical"></div>
     <% @project.front_end_compute_groups.keys.each do |group| %>
       <div class="col" style="min-width: 200px; max-width:300px;">
-        <% locals = { compute_group: group.capitalize,
+        <% locals = { project_name: @project.name,
+                      compute_group: group,
                       status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
                       cost_this_cycle: @group_costs[group.to_sym].total + @group_costs["#{group}_storage".to_sym].total } %>
         <%= render '/partials/dashboard_group_card', locals: locals %>
