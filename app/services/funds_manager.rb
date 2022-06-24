@@ -30,9 +30,16 @@ class FundsManager
 
   def check_and_manage_funds
     check_and_update_hub_balance
-    return if @project.continuous_budget?
 
-    if @costs_plotter.active_billing_cycles.include?(Date.current) && !already_have_budget?
+    if @project.end_date && @project.end_date == Date.current
+      # send back remaining c.u.s
+      send_back_unused_compute_units
+      create_budget(0, true) if !already_have_budget?
+      return
+    end
+
+    if !@project.continuous_budget? && @costs_plotter.active_billing_cycles.include?(Date.current) &&
+       !already_have_budget?
       sent = send_back_unused_compute_units
       if Date.current == @project.start_date || (sent && sent.valid? && sent.completed?)
         result = check_out_cycle_budget
@@ -43,12 +50,6 @@ class FundsManager
         msg = "Funds not requested from Hub for project *#{@project.name}*, as sending back to Hub failed."
         @project.send_slack_message(msg)
       end
-    end
-    
-    if @project.end_date && @project.end_date == Date.current
-      # send back remaining c.u.s
-      send_back_unused_compute_units
-      create_budget(0, true) if !already_have_budget?
     end
   end
 
