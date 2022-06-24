@@ -1,6 +1,9 @@
 <% if @nav_view != nil %>
   <ul class="top nav nav-tabs view-selection">
     <li class="top nav-item">
+      <%= link_to "Dashboard", dashboard_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "dashboard"}" %>
+    </li>
+    <li class="top nav-item">
       <%= link_to "Billing Management", billing_management_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
     </li>
     <li class="top nav-item">

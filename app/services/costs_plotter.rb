@@ -89,7 +89,7 @@ class CostsPlotter
   end
 
   def costs_this_cycle_per_group(group, cost_entries)
-    group_costs= CostCalculator.new
+    group_costs = CostCalculator.new
     start_date = Date.parse(cost_entries.keys.first)
     end_date = Date.parse(cost_entries.keys.last)
     first_forecast = true

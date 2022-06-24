@@ -14,16 +14,16 @@
           <h4 class="card-title text-center">Overview</h4>
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
-              <strong>Balance:</strong> <%= @latest_cycle_details[:starting_balance] %>c.u.
+              <strong>Balance:</strong> <%= @latest_cycle_details[:starting_balance] %> c.u.
             </li>
             <li class="list-group-item pb-3">
-              <strong>Cost this cycle:</strong> <%= @latest_cycle_details[:costs_so_far] %>c.u.
+              <strong>Cost this cycle:</strong> <%= @latest_cycle_details[:costs_so_far] %> c.u.
             </li>
             <li class="list-group-item">
               <strong>Spend profile:</strong> <%= @policy.spend_profile.capitalize %>
             </li>
             <li class="list-group-item">
-              <strong>Fixed cycle budget:</strong> <%= @latest_cycle_details[:starting_budget] %>c.u.
+              <strong>Fixed cycle budget:</strong> <%= @latest_cycle_details[:starting_budget] %> c.u.
             </li>
             <li class="list-group-item pb-3">
               <strong>Billing date:</strong> <%= @billing_date || 'N/A'%>
@@ -47,7 +47,8 @@
       <div class="card w-100" >
         <div class="card-body">
           <h4 class="card-title text-center">Upcoming events</h4>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+          <% locals = { events: @project.events.take(5) } %>
+          <%=  render '/change_requests/dashboard_upcoming_events_table', locals: locals %>
 
           <!-- Links -->
           <div class="row justify-content-md-center" style="text-align:center">
@@ -80,8 +81,7 @@
     <div class="vertical"></div>
     <% @project.front_end_compute_groups.keys.each do |group| %>
       <div class="col" style="min-width: 200px; max-width:300px;">
-        <% locals = { project_name: @project.name,
-                      compute_group: group,
+        <% locals = { compute_group: group,
                       status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
                       cost_this_cycle: @group_costs[group.to_sym].total + @group_costs["#{group}_storage".to_sym].total } %>
         <%= render '/partials/dashboard_group_card', locals: locals %>
@@ -89,3 +89,5 @@
     <% end %>
   </div>
 </div>
+
+<br><br>

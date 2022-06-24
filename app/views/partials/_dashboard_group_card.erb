@@ -15,7 +15,7 @@
       <!-- Settings button-->
       <% unless locals[:compute_group] == "core" %>
         <div class="col-2">
-          <a href="events" aria-label="Settings">
+          <a href="policies" aria-label="Settings">
             <i class="fa fa-cog fa-lg"></i>
           </a>
         </div>
@@ -28,7 +28,7 @@
           <strong>Status:</strong> <%= locals[:status] %>
         </li>
         <li class="list-group-item pb-3">
-          <strong>Cost this cycle:</strong> <%= locals[:cost_this_cycle] %>c.u.
+          <strong>Cost this cycle:</strong> <%= locals[:cost_this_cycle] %> c.u.
         </li>
       </ul>
 
@@ -36,7 +36,7 @@
       <div class="row justify-content-md-center" style="text-align:center">
         <% unless locals[:compute_group] == "core" %>
           <div class="col">
-            <a href="events?groups[]=<%= locals[:compute_group] %>&project=<%= locals[:project_name]%>">Events</a>
+            <a href="events?groups[]=<%= locals[:compute_group] %>">Events</a>
           </div>
         <% end %>
         <div class="col">
