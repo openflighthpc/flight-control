@@ -33,9 +33,11 @@
             </li>
           </ul>
 
-          <!-- Links -->
+          <!-- Buttons -->
           <div style="text-align:center">
-            <a href="billing-management">View spending breakdown</a>
+            <a class="btn btn-info" href="billing-management" role="button">
+              <strong>View spending breakdown</strong>
+            </a>
           </div>
         </div>
       </div>
@@ -50,13 +52,17 @@
           <% locals = { events: @project.events.take(5) } %>
           <%=  render '/change_requests/dashboard_upcoming_events_table', locals: locals %>
 
-          <!-- Links -->
+          <!-- Buttons -->
           <div class="row justify-content-md-center" style="text-align:center">
             <div class="col col-lg-3">
-              <a href="events">Create/Manage events</a>
+              <a class="btn btn-warning" href="events" role="button">
+                <strong>Create/Manage events</strong>
+              </a>
             </div>
             <div class="col col-lg-3">
-              <a href="audit">View audit log</a>
+              <a class="btn btn-info" href="audit" role="button">
+                <strong>View audit log</strong>
+              </a>
             </div>
           </div>
         </div>
@@ -72,7 +78,7 @@
   <h3 class="text-center">Groups</h3>
   <br>
   <div class="row justify-content-center">
-    <div class="col" style="min-width: 200px; max-width:300px;"> <!-- border-right: 5px double rgba(50,136,188,1); -->
+    <div class="col" style="min-width: 200px; max-width:300px;">
       <% locals = { compute_group: "core",
                     status: "UP",
                     cost_this_cycle: @group_costs[:core].total + @group_costs[:core_storage].total } %>
@@ -80,7 +86,7 @@
     </div>
     <div class="vertical"></div>
     <% @project.front_end_compute_groups.keys.each do |group| %>
-      <div class="col" style="min-width: 200px; max-width:300px;">
+      <div class="col col-group">
         <% locals = { compute_group: group,
                       status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
                       cost_this_cycle: @group_costs[group.to_sym].total + @group_costs["#{group}_storage".to_sym].total } %>

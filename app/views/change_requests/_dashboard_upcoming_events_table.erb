@@ -1,6 +1,5 @@
-
-<div class="row my-4 future-events-table">
-  <table class="table">
+<div class="row my-4 future-events-table text-center">
+  <table class="table table-striped">
 
     <!-- Headers -->
     <thead class="thead-dark events-table-header">
@@ -26,7 +25,13 @@
           <%= event[:description] || "-" %>
         </td>
         <td>
-          <%= event[:description] || "-" %>
+          <% if true %> <!-- test whether editable -->
+            <a href="events/<%= event[:id] %>/edit" aria-label="Edit">
+              <i class="fa fa-cog fa-lg"></i>
+            </a>
+          <% else %>
+            <i class="fa fa-cog fa-lg" style="color: grey;"></i>
+          <% end %>
         </td>
       </tr>
     <% end %>

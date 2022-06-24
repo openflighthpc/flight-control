@@ -361,6 +361,17 @@ input[type=date] {
 
 .card {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  margin: 0 auto !important;
+}
+
+.col-group {
+  min-width: 250px;
+  max-width:350px;
+}
+
+.core, .core > .list-group-item {
+  color: white;
+  background-color: #343a40 !important;
 }
 
 .list-group-item {
@@ -368,14 +379,22 @@ input[type=date] {
   border: 0px;
 }
 
+a .fa-cog {
+  color: rgba(50,136,188,1);
+}
+
 a:hover {
   text-decoration: none;
 }
 
-.btn:focus {
-  box-shadow: none;
+.btn-info {
+  background-color: rgba(50,136,188,1) !important;
 }
 
-.card {
-  margin: 0 auto !important;
+.btn-info:hover {
+  background-color: rgba(35,110,160,1) !important;
+}
+
+.btn:focus {
+  box-shadow: none;
 }

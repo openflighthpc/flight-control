@@ -1,4 +1,4 @@
-<div class="card" >
+<div class="card <%= "core" if locals[:compute_group] == "core" %>" >
   <div class="card-body">
     <div class="row justify-content-center">
 
@@ -23,7 +23,7 @@
     </div>
 
       <!-- Group data -->
-      <ul class="list-group list-group-flush">
+      <ul class="list-group list-group-flush <%= "core" if locals[:compute_group] == "core" %>">
         <li class="list-group-item">
           <strong>Status:</strong> <%= locals[:status] %>
         </li>
@@ -32,15 +32,19 @@
         </li>
       </ul>
 
-      <!-- Links -->
+      <!-- Buttons -->
       <div class="row justify-content-md-center" style="text-align:center">
         <% unless locals[:compute_group] == "core" %>
           <div class="col">
-            <a href="events?groups[]=<%= locals[:compute_group] %>">Events</a>
+            <a class="btn btn-warning" href="events?groups[]=<%= locals[:compute_group] %>" role="button">
+              <strong>Events</strong>
+            </a>
           </div>
         <% end %>
         <div class="col">
-          <a href="costs-breakdown?datasets[]=<%= locals[:compute_group] %>">More info</a>
+          <a class="btn btn-info" href="costs-breakdown?datasets[]=<%= locals[:compute_group] %>" role="button">
+              <strong>More info</strong>
+            </a>
         </div>
       </div>
   </div>
