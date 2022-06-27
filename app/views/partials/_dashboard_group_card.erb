@@ -36,7 +36,10 @@
       <div class="row justify-content-md-center mt-auto" style="text-align:center">
         <% unless locals[:compute_group] == "core" %>
           <div class="col">
-            <a class="btn btn-warning" href="events?groups[]=<%= locals[:compute_group] %>" role="button">
+            <% if locals[:end_date] && locals[:end_date] < Date.today %>
+              <% disable = true %>
+            <% end %>
+            <a class="btn btn-warning <%= "disabled" if disable %>" href="<%= disable ? "#" : "events?groups[]=#{locals[:compute_group]}" %>" role="button">
               Events
             </a>
           </div>
