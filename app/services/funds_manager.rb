@@ -60,7 +60,7 @@ class FundsManager
     (
       (!@project.continuous_budget? && @costs_plotter.active_billing_cycles.include?(Date.current)) ||
       @project.end_date && @project.end_date == Date.current ||
-      @project.continuous_budget? && @project.start_date == Date.current
+      @project.start_date == Date.current
     )
   end
 
