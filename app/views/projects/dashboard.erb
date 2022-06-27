@@ -4,7 +4,7 @@
 
 <br>
 
-<div class="container-fluid">
+<div class="container">
   <div class="row justify-content-center">
 
     <!-- Overview -->
@@ -49,17 +49,17 @@
       <div class="card w-100" >
         <div class="card-body">
           <h4 class="card-title text-center">Upcoming events</h4>
-          <% locals = { events: @project.events.take(5) } %>
+          <% locals = { events: @project.events_by_date(@project.events.take(5)) } %>
           <%=  render '/change_requests/dashboard_upcoming_events_table', locals: locals %>
 
           <!-- Buttons -->
           <div class="row justify-content-md-center" style="text-align:center">
-            <div class="col col-lg-3">
+            <div class="col col-lg-5">
               <a class="btn btn-warning" href="events" role="button">
                 <strong>Create/Manage events</strong>
               </a>
             </div>
-            <div class="col col-lg-3">
+            <div class="col col-lg-5">
               <a class="btn btn-info" href="audit" role="button">
                 <strong>View audit log</strong>
               </a>
@@ -69,11 +69,9 @@
       </div>
     </div>
   </div>
-</div>
 
-<br><br><br>
+  <br><br><br>
 
-<div class="container">
   <!-- Groups cards -->
   <h3 class="text-center">Groups</h3>
   <br>

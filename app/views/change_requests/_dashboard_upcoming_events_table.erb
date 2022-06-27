@@ -1,40 +1,48 @@
-<div class="row my-4 future-events-table text-center">
-  <table class="table table-striped">
+<% if locals[:events].empty? %>
+  <br>
+  <p class="text-center">No events</p>
 
-    <!-- Headers -->
-    <thead class="thead-dark events-table-header">
-    <th scope="col" class="events-sub-header">Date</th>
-    <th scope="col" class="events-sub-header">
-      Time<a href="#" class="scheduled-tooltip" id="timezone-tooltip" data-placement="top" title="In timezone GMT<%= Time.now.to_s.split(" ")[2] %>" onClick="return false;"><sup>?</sup>
-    </a>
-    <th scope="col" class="events-sub-header"> Description </th>
-    <th scope="col" class="events-sub-header"> Manage </th>
-    </thead>
+<% else %>
+  <div class="row my-4 future-events-table text-center">
+    <table class="table table-striped">
 
-    <!-- Event data -->
-    <tbody class="border">
-    <% locals[:events].each do |event| %>
-      <tr>
-        <td>
-          <%= event[:date] %>
-        </td>
-        <td>
-          <%= event[:time] %>
-        </td>
-        <td>
-          <%= event[:description] || "-" %>
-        </td>
-        <td>
-          <% if true %> <!-- test whether editable -->
-            <a href="events/<%= event[:id] %>/edit" aria-label="Edit">
-              <i class="fa fa-cog fa-lg"></i>
-            </a>
-          <% else %>
-            <i class="fa fa-cog fa-lg" style="color: grey;"></i>
-          <% end %>
-        </td>
-      </tr>
-    <% end %>
-    </tbody>
-  </table>
-</div>
+      <!-- Headers -->
+      <thead class="thead-dark events-table-header">
+      <th scope="col" class="events-sub-header">Date</th>
+      <th scope="col" class="events-sub-header">
+        Time<a href="#" class="scheduled-tooltip" id="timezone-tooltip" data-placement="top" title="In timezone GMT<%= Time.now.to_s.split(" ")[2] %>" onClick="return false;"><sup>?</sup>
+      </a>
+      <th scope="col" class="events-sub-header"> Description </th>
+      <th scope="col" class="events-sub-header"> Edit </th>
+      </thead>
+
+      <!-- Event data -->
+      <tbody class="border">
+      <% locals[:events].each_value do |events| %>
+        <% events.each do |event| %>
+          <tr>
+            <td>
+              <%= event[:date] %>
+            </td>
+            <td>
+              <%= event[:time] %>
+            </td>
+            <td>
+              <%= event[:description] || "-" %>
+            </td>
+            <td>
+              <% if event.editable? %>
+                <a href="events/<%= event[:id] %>/edit" aria-label="Edit">
+                  <i class="fa fa-cog fa-lg"></i>
+                </a>
+              <% else %>
+                <i class="fa fa-cog fa-lg" style="color: grey;"></i>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
