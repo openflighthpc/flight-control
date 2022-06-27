@@ -22,13 +22,13 @@
         <% events.each do |event| %>
           <tr>
             <td>
-              <%= event[:date] %>
+              <%= event.date %>
             </td>
             <td>
-              <%= event[:time] %>
+              <%= event.time %>
             </td>
             <td>
-              <%= event[:description] || "-" %>
+              <%= event.description || event.auto_description %>
             </td>
             <td>
               <% if event.editable? %>

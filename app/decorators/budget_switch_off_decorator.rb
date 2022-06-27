@@ -48,7 +48,7 @@ class BudgetSwitchOffDecorator
   end
 
   def description
-    "-"
+    'Automated budget switch off'
   end
 
   def monitor_override_hours

@@ -104,14 +104,14 @@ class ChangeRequest < ApplicationRecord
       if slack
         additional << "*Description*: #{description}\n"
       else
-        additional <<"<strong>Description</strong>: #{description}<br>"
+        additional << "<strong>Description</strong>: #{description}<br>"
       end
     end
     if monitor_override_hours
       if slack
         additional << "*Override CPU monitor for*: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}\n"
       else
-        additional <<"<strong>Override CPU monitor for</strong>: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}<br>"
+        additional << "<strong>Override CPU monitor for</strong>: #{monitor_override_hours} hour#{'s' if monitor_override_hours > 1}<br>"
       end
     end
     additional
@@ -127,6 +127,10 @@ class ChangeRequest < ApplicationRecord
 
   def description_partial
     'change_request_event_details'
+  end
+
+  def auto_description
+    "Match #{counts_criteria == 'min' ? 'minimum' : 'exact'} counts"
   end
 
   def includes_instance_type?(group, instance_type)
