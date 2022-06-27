@@ -37,13 +37,13 @@
         <% unless locals[:compute_group] == "core" %>
           <div class="col">
             <a class="btn btn-warning" href="events?groups[]=<%= locals[:compute_group] %>" role="button">
-              <strong>Events</strong>
+              Events
             </a>
           </div>
         <% end %>
         <div class="col">
           <a class="btn btn-info" href="costs-breakdown?datasets[]=<%= locals[:compute_group] %>" role="button">
-              <strong>More info</strong>
+              More info
             </a>
         </div>
       </div>
