@@ -4,8 +4,8 @@
 
 <br>
 
-<div class="container">
-  <div class="card-deck mb-3">
+<div class="container-fluid">
+  <div class="card-deck mb-3 justify-content-md-center">
 
     <!-- Overview -->
     <div class="card mb-4" style="min-width: 285px; max-width:320px;">
@@ -13,7 +13,10 @@
         <h4 class="card-title text-center">Overview</h4>
         <ul class="list-group list-group-flush my-3">
           <li class="list-group-item">
-            <strong>Balance:</strong> <%= @latest_cycle_details[:starting_balance] %> c.u.
+            <strong>Balance:</strong>
+            <span  <%= 'class=text-danger' if @latest_cycle_details[:starting_balance] <= 0 %>>
+              <%= @latest_cycle_details[:starting_balance].to_i %> c.u.
+            </span>
           </li>
           <li class="list-group-item pb-3">
             <strong>Cost this cycle:</strong> <%= @latest_cycle_details[:costs_so_far] %> c.u.
@@ -21,9 +24,11 @@
           <li class="list-group-item">
             <strong>Spend profile:</strong> <%= @policy.spend_profile.capitalize %>
           </li>
-          <li class="list-group-item">
-            <strong>Fixed cycle budget:</strong> <%= @latest_cycle_details[:starting_budget] %> c.u.
-          </li>
+          <% unless @policy.spend_profile.downcase == 'continuous' %>
+            <li class="list-group-item">
+              <strong>Fixed cycle budget:</strong> <%= @latest_cycle_details[:starting_budget] %> c.u.
+            </li>
+          <% end %>
           <li class="list-group-item pb-3">
             <strong>Billing date:</strong> <%= @billing_date || 'N/A'%>
           </li>
@@ -66,28 +71,23 @@
     </div>
   </div>
 
-  <br><br>
+  <br>
 
   <!-- Groups cards -->
   <h3 class="text-center">Groups</h3>
   <br>
-  <div class="row justify-content-center">
-    <div class="col" style="min-width: 200px; max-width:300px;">
-      <% locals = { compute_group: "core",
-                    status: "UP",
-                    cost_this_cycle: @group_costs[:core].total + @group_costs[:core_storage].total } %>
-      <%= render '/partials/dashboard_group_card', locals: locals %>
-    </div>
-    <div class="vertical"></div>
+  <div class="card-deck mb-3 justify-content-center">
+    <% locals = { compute_group: "core",
+                  status: "UP",
+                  cost_this_cycle: @group_costs[:core].total + @group_costs[:core_storage].total } %>
+    <%= render '/partials/dashboard_group_card', locals: locals %>
+
     <% @project.front_end_compute_groups.keys.each do |group| %>
-      <div class="col col-group">
-        <% locals = { compute_group: group,
-                      status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
-                      cost_this_cycle: @group_costs[group.to_sym].total + @group_costs["#{group}_storage".to_sym].total } %>
-        <%= render '/partials/dashboard_group_card', locals: locals %>
-      </div>
+      <% locals = { compute_group: group,
+                    status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
+                    cost_this_cycle: @group_costs[group.to_sym].total + @group_costs["#{group}_storage".to_sym].total } %>
+      <%= render '/partials/dashboard_group_card', locals: locals %>
     <% end %>
   </div>
-</div>
 </div>
 <br><br>

@@ -24,10 +24,12 @@
       <div class="col-sm-3">
         <strong>Cost This Billing Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="As of the start of today. Includes some estimation." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:costs_so_far].to_i %>c.u.
       </div>
-      <div class="col-sm-3">
-        <strong>Cycle Budget</strong>: 
-        <%= @latest_cycle_details[:starting_budget].to_i %>c.u.
-      </div>
+      <% unless @policy.spend_profile.downcase == 'continuous' %>
+        <div class="col-sm-3">
+          <strong>Cycle Budget</strong>:
+          <%= @latest_cycle_details[:starting_budget].to_i %>c.u.
+        </div>
+      <% end %>
     </div>
     <div class="row">
       <div class="col-sm-3"></div>

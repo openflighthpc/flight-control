@@ -363,9 +363,9 @@ input[type=date] {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
-.col-group {
-  min-width: 250px;
-  max-width:350px;
+.card.groups {
+  min-width: 300px;
+  max-width: 300px;
 }
 
 .core, .core > .list-group-item {
@@ -388,6 +388,7 @@ a:hover {
 
 .btn-info {
   background-color: rgba(50,136,188,1) !important;
+  white-space: nowrap;
 }
 
 .btn-info:hover {
