@@ -6,6 +6,8 @@ A tool for tracking costs and managing instances on AWS and Azure.
 
 A Ruby on Rails application for recording and viewing costs for projects hosted on AWS and Azure, and for recording, viewing and managing instance statuses.
 
+The application has a hard dependency on https://github.com/alces-flight/flight-hub for managing budgets.
+
 ## Initial Setup
 
 - Esure Ruby (2.5.1) and Bundler are installed on your device
@@ -113,9 +115,9 @@ A `Project` must be created for each project you wish to track. These can be cre
 
 Project names must start with a letter, only include lower or uppercase letters, numbers, dashes or underscores, and must end in a letter or number.
 
-#### Balances and budgets
+#### Budget Policies
 
-As part of creating and updating a project, a balance and budget policy must be set. Balances represent the total amount of compute units assigned to the project and budget policies describe how those compute units will be allocated over time.
+As part of creating and updating a project, a budget policy must be set. Budget policies describe how those compute units will be allocated over time.
 
 Budget policies include a number of attributes:
 - Cycle interval: length of a billing cycle. Can be monthly, weekly or custom
@@ -127,7 +129,31 @@ Budget policies include a number of attributes:
   - Dynamic: (balance - total spend so far) / remaining cycles
 - Cycle limit: compute units assigned to the cycle, for fixed and rolling spend profiles.
 
-Both balances and budget policies have an `effective_at` date. When a project reaches its end date, the balance will become zero.
+Budget policies have an `effective_at` date. When a project reaches its end date, the balance will become zero.
+
+#### Flight Hub Integration and Budgets
+
+Budget policies are used to determine how many compute units a project should have over its lifetime, but before a `Budget` can be created, the required amount of compute units must be withdrawn from the [Flight Hub](https://github.com/alces-flight/flight-hub) application.
+
+To integrate the two applications, a Department must be created in Flight Hub that represents the Control project (and only the project), and the two linked by using the Department's numerical ID to set the Control project's `flight_hub_id`. In Flight Hub, compute units must be transfered into the department before the project starts.
+
+At the start of the project, Control will calulate the project's required compute units and request that amount from Hub. If successful, a new Budget object will be created. If this fails, no Budget will be created. Any attempts are saved in a `FundsTransferRequest` and their result, including any errors, sent as a slack message.
+
+For continuous projects compute units will be requested from Hub whenever new compute units are detected in the Hub Department (see Balances, below).
+
+For non continuous projects, at the start of each cycle, any unused compute units from the previous cycle will be sent back to Hub. Compute units will be requested from Hub for the current billing cycle.
+
+For all project types, any remaining compute units are sent back to Hub at the end of the project and a new Budget of 0 created.
+
+Checks for budget management actions can be run using the task `rake funds:check_and_update_funds:all` or `rake funds:check_and_update_funds:by_project[project_name`. This is scheduled to run for all active projects every day at midnight.
+
+If a user tries to access a project when it has pending budget management actions (e.g. at midnight at the start of a new billing cycle), they will be prevented from taking actions and shown a page asking them to try again in 5 minutes.
+
+#### Balances
+
+Control will also make regular queries of the associated Hub Department's remaining compute units, saving this in a `HubBalance` object. This is used in combination with the number of compute units received by the control project and its actual & forecast costs to estimate when the project's total compute units are forecast to run out.
+
+Balance checks can be made using `rake funds:check_balance:all` or `rake funds:check_balance:by_project[project_name`. This is scheduled to run for all active projects every hour.
 
 ### Instance Mappings
 
