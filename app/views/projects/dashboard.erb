@@ -1,11 +1,9 @@
-<div class="mt-4 text-center mb-4">
+<div class="mt-4 text-center mb-5">
   <h2><%= @project.name %> - Dashboard</h2>
 </div>
 
-<br>
-
 <div class="container-fluid">
-  <div class="card-deck mb-3 justify-content-md-center">
+  <div class="card-deck mb-5 justify-content-md-center">
 
     <!-- Overview -->
     <div class="card dashboard-card overview mb-4">
@@ -73,12 +71,9 @@
     </div>
   </div>
 
-  <br>
-
   <!-- Groups cards -->
-  <h3 class="text-center">Groups</h3>
-  <br>
-  <div class="card-deck mb-3 justify-content-center">
+  <h3 class="text-center mb-4">Groups</h3>
+  <div class="card-deck mb-5 pt-1 justify-content-center">
     <% locals = { compute_group: "core",
                   status: "UP",
                   cost_this_cycle: @group_costs[:core].total + @group_costs[:core_storage].total } %>
@@ -92,5 +87,5 @@
       <%= render '/partials/dashboard_group_card', locals: locals %>
     <% end %>
   </div>
+
 </div>
-<br><br>
