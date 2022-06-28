@@ -33,4 +33,5 @@ Rails.application.routes.draw do
   post '/events/', to: 'change_requests#create'
   post '/events/:id/cancel', to: 'change_requests#cancel'
   post '/events/:id/update', to: 'change_requests#update'
+  post '/dashboard/:id/cancel', to: 'projects#cancel'
 end
