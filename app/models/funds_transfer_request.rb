@@ -25,13 +25,35 @@ class FundsTransferRequest < ApplicationRecord
     failed? && request_errors.include?("exceeds the dept's balance")
   end
 
+  def partial
+    'funds_transfer_request_card'
+  end
+
   def description
     msg = "Funds transfer request *#{status}* for project *#{project.name}*:\n\n"
     descriptive_action = action == "send" ? "Send #{amount}c.u. to" : "Receive #{amount}c.u. from"
-    msg << "*Action*: #{descriptive_action} Flight Hub\n"
+    msg << "*Action*: #{descriptive_action}\n"
     msg << "*Reason*: #{reason}\n"
-    msg << "*Errors*: #{request_errors}\n" if status == "failed"
+    msg << "*Errors*: #{request_errors}\n" if failed?
     msg
+  end
+
+   def card_description
+    html = "Funds transfer request submitted.<br><br>"
+    html << "<div class='transfer-details'>"
+    html << "<strong>Action:</strong> #{descriptive_action}<br>"
+    html << "<strong>Reason:</strong> #{reason}<br>"
+    if failed?
+      html << "<strong>Errors:</strong> "
+      html << "<span class='text-danger'>#{request_errors}</span><br>"
+    end
+    html << "</div>"
+    html
+  end
+
+  def descriptive_action
+    descriptive_action = action == "send" ? "Send #{amount}c.u. to" : "Receive #{amount}c.u. from"
+    descriptive_action << " Flight Hub"
   end
 
   private

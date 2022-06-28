@@ -282,11 +282,20 @@ input[type=date] {
   color: white;
 }
 
+.funds-transfer-header {
+  background-color: #2C3E50 !important;
+  color: white;
+}
+
 .card-footer {
   padding: 0.5rem !important;
 }
 
 .change-details {
+  padding-left: 2rem;
+}
+
+.transfer-details {
   padding-left: 2rem;
 }
 

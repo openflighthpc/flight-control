@@ -1,0 +1,16 @@
+<% log = locals[:log] %>
+<div class="card audit-log funds-transfer-log">
+  <div class="card-header funds-transfer-header text-white d-inline-flex justify-content-between align-items-center">
+    Funds Transfer Request
+    <span class="log-timestamp" data-value='<%=log.created_at if log%>'><%= log.formatted_timestamp if log%></span>
+  </div>
+  <div class="card-body">
+    <p class="card-text">
+      <%= log.card_description.html_safe if log%>
+    </p>
+  </div>
+  <div class="card-footer text-right">
+    Status:
+    <strong class="action-status <%= "text-danger" if log && log.failed? %>"><%= log.status if log%></strong>
+  </div>
+</div>
