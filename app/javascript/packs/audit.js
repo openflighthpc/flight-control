@@ -6,20 +6,20 @@ window.addEventListener('DOMContentLoaded', (event) => {
 });
 
 function loadLogs(event) {
-  let xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      let response = JSON.parse(this.responseText);
-      addLogs(response);
-      $('.tool-tip').tooltip();
-    }
-  };
-  xhttp.onerror = function() {
-    alert("Unable to connect to server. Please check your connection and that the application is still running.");
-  };
+  // let xhttp = new XMLHttpRequest();
+  // xhttp.onreadystatechange = function() {
+  //   if (this.readyState == 4 && this.status == 200) {
+  //     let response = JSON.parse(this.responseText);
+  //     addLogs(response);
+  //     $('.tool-tip').tooltip();
+  //   }
+  // };
+  // xhttp.onerror = function() {
+  //   alert("Unable to connect to server. Please check your connection and that the application is still running.");
+  // };
 
   let dataElement = $('#load-more-logs');
-  const latestTimestamp = $('.log-timestamp').eq(4).data("value");
+  const latestTimestamp = $('.log-timestamp').eq(5).data("value");
   const logCount = $('.audit-row').length;
   const projectName = dataElement.data('project');
   const projectParam = `?project=${projectName}`;
@@ -37,8 +37,16 @@ function loadLogs(event) {
       }
     }
   }
-  xhttp.open("GET", `/json/audit-logs${projectParam}&timestamp=${latestTimestamp}&log_count=${logCount}${filtersParam}`, true);
-  xhttp.send();
+  $.ajax({
+    type: "GET",
+    url: `/json/audit-logs${projectParam}&timestamp=${latestTimestamp}&log_count=${logCount}${filtersParam}`,
+    error: function(xhr, status, error){
+      let errorMessage = xhr.status + ': ' + xhr.statusText
+      alert(`Unable to connect to the server: #{errorMessage}`);
+     }
+  })
+  // xhttp.open("GET", , true);
+  // xhttp.send();
 }
 
 function addLogs(response){
