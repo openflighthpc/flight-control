@@ -359,42 +359,38 @@ input[type=date] {
   margin-right: 0 !important;
 }
 
-.card {
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+.dashboard-card {
+  box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
-.card.groups {
+.dashboard-card.groups {
   min-width: 300px;
   max-width: 300px;
 }
 
-.core, .core > .list-group-item {
+.core, .core > .dashboard-list-item {
   color: white;
   background-color: #343a40 !important;
 }
 
-.list-group-item {
+.dashboard-list-item {
   padding: 0px;
   border: 0px;
 }
 
-a .fa-cog {
+a > .fa-cog {
   color: rgba(50,136,188,1);
 }
 
-a:hover {
-  text-decoration: none;
-}
-
-.btn-info {
+.dashboard-btn.btn-info {
   background-color: rgba(50,136,188,1) !important;
   white-space: nowrap;
 }
 
-.btn-info:hover {
+.dashboard-btn.btn-info:hover {
   background-color: rgba(35,110,160,1) !important;
 }
 
-.btn:focus {
+.dashboard-btn:focus {
   box-shadow: none;
 }
