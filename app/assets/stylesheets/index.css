@@ -378,6 +378,12 @@ input[type=date] {
   max-width: 18.75rem;
 }
 
+.groups-card-heading {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis !important;
+}
+
 .core, .core > .dashboard-list-item {
   color: white;
   background-color: #343a40 !important;
