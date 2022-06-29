@@ -1,3 +1,8 @@
+<% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'billing'%>
+  <%= javascript_pack_tag 'new_data_check'%>
+<% end %>
+
 <div class="mt-4 text-center mb-5">
   <h2><%= @project.name %> - Dashboard</h2>
 </div>
@@ -51,7 +56,9 @@
     <div class="card dashboard-card events mb-4">
       <div class="card-body d-flex flex-column">
         <h4 class="card-title text-center">Upcoming events</h4>
-        <% locals = { events: @sorted_events, project_name: @project.name } %>
+        <% locals = { events: @sorted_events,
+                      project_name: @project.name,
+                      editor: @editor } %>
         <%=  render '/change_requests/dashboard_upcoming_events_table', locals: locals %>
 
         <!-- Buttons -->
