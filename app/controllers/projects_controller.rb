@@ -8,6 +8,7 @@ class ProjectsController < ApplicationController
     end
     @nav_view = "dashboard"
     get_billing_data
+    get_upcoming_events
     get_group_data
   end
 
@@ -108,6 +109,12 @@ class ProjectsController < ApplicationController
     @policy = @project.budget_policies.last
     @billing_date = cost_plotter.billing_date
     @latest_cycle_details = cost_plotter.latest_cycle_details
+  end
+
+  def get_upcoming_events
+    @sorted_events = @project.events_by_date(@project.events)
+                             .first(5)
+                             .to_h
   end
 
   def get_group_data

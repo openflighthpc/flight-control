@@ -48,7 +48,7 @@
     <div class="card dashboard-card events mb-4">
       <div class="card-body d-flex flex-column">
         <h4 class="card-title text-center">Upcoming events</h4>
-        <% locals = { events: @project.events_by_date(@project.events.take(5)) } %>
+        <% locals = { events: @sorted_events } %>
         <%=  render '/change_requests/dashboard_upcoming_events_table', locals: locals %>
 
         <!-- Buttons -->
