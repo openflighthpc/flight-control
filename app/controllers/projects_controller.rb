@@ -25,10 +25,6 @@ class ProjectsController < ApplicationController
   end
 
   def audit_logs
-    get_project
-    if !@project
-      no_project_redirect
-    else
     respond_to do |format|
       authorize @project, policy_class: ProjectPolicy
       latest_timestamp = Time.parse(params['timestamp'])
