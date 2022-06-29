@@ -75,44 +75,22 @@ class CostsPlotter
     results
   end
 
-  def costs_this_cycle(compute_groups)
+  def total_costs_this_cycle(compute_groups)
     start_date = start_of_current_billing_interval
     end_date = [Date.yesterday, start_date].max
     cost_entries ||= cost_breakdown(start_date, end_date)
     compute_groups.dup.each { |group| compute_groups << "#{group}_storage" }
 
-    costs = {}
+    total_costs = {}
     compute_groups.each do |group|
-      costs[group.to_sym] = costs_this_cycle_per_group(group, cost_entries)
-    end
-    costs
-  end
-
-  def costs_this_cycle_per_group(group, cost_entries)
-    group_costs = CostCalculator.new
-    start_date = Date.parse(cost_entries.keys.first)
-    end_date = Date.parse(cost_entries.keys.last)
-    first_forecast = true
-
-    cost_entries.each do |k, v|
-      k = Date.parse(k)
-      break if (@project.archived_date && k >= @project.archived_date) || k > end_date
-
-      if v.has_key?(:compute) # actual costs
-        group_costs.reset if active_billing_cycles.include?(k) # reset total at start of cycle
-        group_costs.add_cost_to_total(v[group.to_sym])
-        group_costs.append_total_to_array(is_actual: true) if k >= start_date
-      else # forecasted costs
-        if first_forecast == true && group_costs.forecast_length > 0 && k > @project.start_date
-          first_forecast = false
-          group_costs.set_first_forecast
-        end
-        group_costs.reset if active_billing_cycles.include?(k) # reset total at start of cycle
-        group_costs.add_cost_to_total(v["forecast_#{group}".to_sym])
-        group_costs.append_total_to_array(is_actual: false) if k >= start_date
+      total_costs[group.to_sym] = 0
+      cost_entries.each do |k, v|
+        k = Date.parse(k)
+        break if (@project.archived_date && k >= @project.archived_date) || k > end_date
+        total_costs[group.to_sym] += v.has_key?(:compute) ? v[group.to_sym] : v["forecast_#{group}".to_sym]
       end
     end
-    group_costs
+    total_costs
   end
 
   def chart_cumulative_costs(start_date, end_date, temp_change_request=nil, cost_entries=nil)
