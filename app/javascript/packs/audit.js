@@ -27,7 +27,7 @@ function loadLogs(event) {
   }
   $.ajax({
     type: "GET",
-    url: `/json/audit-logs${projectParam}&timestamp=${latestTimestamp}&log_count=${logCount}${filtersParam}`,
+    url: `/more-audit-logs${projectParam}&timestamp=${latestTimestamp}&log_count=${logCount}${filtersParam}`,
     error: function(xhr, status, error){
       alert(`Unable to connect to the server`);
     }
