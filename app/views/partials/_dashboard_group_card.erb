@@ -36,18 +36,20 @@
       <div class="row justify-content-md-center mt-auto text-center">
         <% unless locals[:compute_group] == "core" %>
           <div class="col">
-            <% if locals[:end_date] && locals[:end_date] < Date.today %>
-              <% disable = true %>
-            <% end %>
-            <a class="btn btn-warning dashboard-btn <%= "disabled" if disable %>" href="<%= disable ? "#" : "events?groups[]=#{locals[:compute_group]}" %>" role="button">
+            <% disable = locals[:end_date] && locals[:end_date] < Date.today %>
+            <a class="btn btn-warning dashboard-btn <%= "disabled" if disable %>"
+               href="<%= disable ? "#" : "events?groups[]=#{ locals[:compute_group] }?project=#{ locals[:project_name] }" %>"
+               role="button">
               Events
             </a>
           </div>
         <% end %>
         <div class="col">
-          <a class="btn btn-info dashboard-btn" href="costs-breakdown?datasets[]=<%= locals[:compute_group] %>" role="button">
-              More info
-            </a>
+          <a class="btn btn-info dashboard-btn"
+             role="button"
+             href=<%= "costs-breakdown?datasets[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>>
+            More info
+          </a>
         </div>
       </div>
   </div>

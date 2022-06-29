@@ -37,7 +37,7 @@
 
         <!-- Button -->
         <div class="mt-auto text-center">
-          <a class="btn btn-info dashboard-btn" href="billing-management" role="button">
+          <a class="btn btn-info dashboard-btn" href="billing-management?project=<%= @project.name %>" role="button">
             View spending breakdown
           </a>
         </div>
@@ -48,7 +48,7 @@
     <div class="card dashboard-card events mb-4">
       <div class="card-body d-flex flex-column">
         <h4 class="card-title text-center">Upcoming events</h4>
-        <% locals = { events: @sorted_events } %>
+        <% locals = { events: @sorted_events, project_name: @project.name } %>
         <%=  render '/change_requests/dashboard_upcoming_events_table', locals: locals %>
 
         <!-- Buttons -->
@@ -57,12 +57,14 @@
             <% if @project.end_date && @project.end_date < Date.today %>
               <% disable = true %>
             <% end %>
-            <a class="btn btn-warning dashboard-btn mt-auto <%= "disabled" if disable %>" href="<%= disable ? "#" : "events" %>" role="button">
+            <a class="btn btn-warning dashboard-btn mt-auto <%= "disabled" if disable %>"
+               href="<%= disable ? "#" : "events?project=#{@project.name}" %>"
+               role="button">
               Create/Manage events
             </a>
           </div>
           <div class="col col-lg-5">
-            <a class="btn btn-info dashboard-btn mt-auto" href="audit" role="button">
+            <a class="btn btn-info dashboard-btn mt-auto" href="audit?project=<%= @project.name %>" role="button">
               View audit log
             </a>
           </div>
@@ -75,12 +77,14 @@
   <h3 class="text-center mb-4">Groups</h3>
   <div class="card-deck mb-5 pt-1 justify-content-center">
     <% locals = { compute_group: "core",
+                  project_name: @project.name,
                   status: "UP",
                   cost_this_cycle: @group_costs[:core] + @group_costs[:core_storage] } %>
     <%= render '/partials/dashboard_group_card', locals: locals %>
 
     <% @project.front_end_compute_groups.keys.each do |group| %>
       <% locals = { compute_group: group,
+                    project_name: @project.name,
                     end_date: @project.end_date,
                     status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
                     cost_this_cycle: @group_costs[group.to_sym] + @group_costs["#{group}_storage".to_sym] } %>

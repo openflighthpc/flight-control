@@ -31,7 +31,7 @@
             </td>
             <td>
               <% if event.editable? %>
-                <a href="events/<%= event.actual_or_parent_id %>/edit" aria-label="Edit" title="Edit">
+                <a href="events/<%= event.actual_or_parent_id %>/edit?project=<%=locals[:project_name]%>" aria-label="Edit" title="Edit">
                   <i class="fa fa-cog fa-lg"></i>
                 </a>
               <% end %>
