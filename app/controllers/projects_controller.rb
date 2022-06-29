@@ -112,6 +112,7 @@ class ProjectsController < ApplicationController
   end
 
   def get_upcoming_events
+    @editor = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create?
     @sorted_events = @project.events_by_date(@project.events)
                              .first(5)
                              .to_h

@@ -398,8 +398,8 @@ a > .fa-cog {
   color: rgba(50,136,188,1);
 }
 
-.fa-cog.disabled {
-  color: grey;
+a > .fa-times {
+  color: rgba(227,30,0,1);
 }
 
 .dashboard-btn.btn-info {
