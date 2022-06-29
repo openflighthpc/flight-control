@@ -21,14 +21,7 @@
         </h3>
       </div>
     </div>
-    <% @list.first_logs.each do |log| %>
-      <div class="row audit-row">
-        <div class="col-sm-3"></div>
-        <div class="col-sm-6">
-          <%= render "partials/#{log.partial}", locals: {log: log} %>
-        </div>
-      </div>
-    <% end %>
+    <%= render "partials/audit_logs", locals: {logs: @list.first_logs} %>
     <% if @list.more_logs? %>
       <div class="row">
         <div class="col-sm-3"></div>

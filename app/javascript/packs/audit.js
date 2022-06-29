@@ -37,6 +37,7 @@ function loadLogs(event) {
       }
     }
   }
+  filtersParam += `${startDateParam}${endDateParam}`;
   $.ajax({
     type: "GET",
     url: `/json/audit-logs${projectParam}&timestamp=${latestTimestamp}&log_count=${logCount}${filtersParam}`,
