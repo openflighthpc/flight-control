@@ -258,16 +258,15 @@ class Project < ApplicationRecord
   end
 
   def time_of_latest_change
-    latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.exists?
-    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.exists?
-    latest_action_log = action_logs.maximum("updated_at") if action_logs.exists?
-    latest_change_request = change_requests.maximum("updated_at") if change_requests.exists?
-    if latest_cost_data || latest_instance_data || latest_action_log || latest_change_request
-      latest = [latest_cost_data, latest_instance_data, latest_action_log, latest_change_request].compact.max
+    latests = %w[cost_logs instance_logs action_logs change_requests budgets].map do |log_type|
+      self.send(log_type).maximum("updated_at")
+    end.compact
+
+    if latests.empty?
+      Date.current.to_time
     else
-      latest = Date.current.to_time
+      latests.max
     end
-    latest
   end
 
   # Timestamps are stored in db with more precision than can be easily represented,
