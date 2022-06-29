@@ -6,7 +6,7 @@ class ProjectsController < ApplicationController
     else
       authorize @project, policy_class: ProjectPolicy
     end
-    @nav_view = ""
+    @nav_view = "dashboard"
     get_billing_data
     get_group_data
   end
@@ -89,6 +89,7 @@ class ProjectsController < ApplicationController
       @nav_view = "billing"
       authorize @project, policy_class: ProjectPolicy
       get_billing_data
+      @billing_cycles = cost_plotter.historic_cycle_details
     end
   end
 
@@ -104,22 +105,18 @@ class ProjectsController < ApplicationController
   end
 
   def get_billing_data
-    cost_plotter = CostsPlotter.new(@project)
     @policy = @project.budget_policies.last
     @billing_date = cost_plotter.billing_date
     @latest_cycle_details = cost_plotter.latest_cycle_details
-    @billing_cycles = cost_plotter.historic_cycle_details
   end
 
   def get_group_data
-    cost_plotter = CostsPlotter.new(@project)
     compute_groups = @project.front_end_compute_groups.keys
     @group_costs = cost_plotter.costs_this_cycle( ['core'] + compute_groups )
-    @nodes_up = nodes_up(compute_groups)
+    @nodes_up = @project.nodes_up
   end
 
   def get_costs_data
-    cost_plotter = CostsPlotter.new(@project)
     if params['start_date'] && params['start_date'] != ""
       @start_date = Date.parse(params['start_date'])
     else
@@ -153,20 +150,8 @@ class ProjectsController < ApplicationController
     @current_instances = original if @current_instances.empty?
   end
 
-  def nodes_up(compute_groups)
-    nodes_up = {}
-    compute_groups.each do |group|
-      instances = @project.latest_instances[group]
-      on = 0
-      total = 0
-      instances.each do |instance|
-        next if instance.node_limit == 0
-        on += instance.count[:on]
-        total += on + instance.count[:off]
-      end
-      nodes_up[group] = {on: on, total: total}
-    end
-    nodes_up
+  def cost_plotter
+    @cost_plotter ||= CostsPlotter.new(@project)
   end
 
   def no_project_redirect

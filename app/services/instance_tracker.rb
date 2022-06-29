@@ -60,6 +60,21 @@ class InstanceTracker
     @latest_instances
   end
 
+  def nodes_up
+    {}.tap do |nodes|
+      (@latest_instances || latest_instances(nil)).each do |group, instances|
+        on = 0
+        total = 0
+        instances.each do |instance|
+          next if instance.node_limit == 0
+          on += instance.count[:on]
+          total += on + instance.count[:off]
+        end
+        nodes[group] = {on: on, total: total}
+      end
+    end
+  end
+
   def set_future_changes(temp_change_request=nil)
     latest_instances if !@latest_instances
 
