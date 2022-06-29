@@ -31,11 +31,9 @@
             </td>
             <td>
               <% if event.editable? %>
-                <a href="events/<%= event[:id] %>/edit" aria-label="Edit">
+                <a href="events/<%= event.actual_or_parent_id %>/edit" aria-label="Edit" title="Edit">
                   <i class="fa fa-cog fa-lg"></i>
                 </a>
-              <% else %>
-                <i class="fa fa-cog fa-lg disabled"></i>
               <% end %>
             </td>
           </tr>
