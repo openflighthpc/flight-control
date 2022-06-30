@@ -375,8 +375,13 @@ input[type=date] {
 }
 
 .dashboard-card.groups {
-  min-width: 18.75rem;
-  max-width: 18.75rem;
+  min-width: 19.5rem;
+  max-width: 19.5rem;
+}
+
+.dashboard-card.groups.core {
+  min-width: 17.5rem;
+  max-width: 17.5rem;
 }
 
 .groups-card-heading {
@@ -395,12 +400,8 @@ input[type=date] {
   border: 0;
 }
 
-a > .fa-cog {
+a > .fa {
   color: rgba(50,136,188,1);
-}
-
-a > .fa-times {
-  color: rgba(227,30,0,1);
 }
 
 .dashboard-btn.btn-info {
@@ -414,4 +415,8 @@ a > .fa-times {
 
 .dashboard-btn:focus {
   box-shadow: none;
+}
+
+.dashboard-btn.groups {
+  margin-inline: 0.25rem;
 }
