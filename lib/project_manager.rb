@@ -535,7 +535,7 @@ class ProjectManager
     puts "end_date: #{project.end_date}"
     puts "archived_date: #{project.archived_date}"
     puts "visualiser: #{project.visualiser}"
-    puts "hub balance: #{project.current_hub_balance.amount}c.u."
+    puts "hub balance: #{project.current_hub_balance&.amount}c.u."
     puts "filter_level: #{project.filter_level}"
     puts "slack_channel: #{project.slack_channel}"
     show_class_specific_fields(project)
