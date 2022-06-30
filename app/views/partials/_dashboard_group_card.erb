@@ -28,7 +28,13 @@
           <strong>Status:</strong> <%= locals[:status] %>
         </li>
         <li class="list-group-item dashboard-list-item pb-3">
-          <strong>Cost this cycle:</strong> <%= locals[:cost_this_cycle] %> c.u.
+          <strong>
+            Cost this cycle<a href="#"
+                              class="tool-tip <%= "core" if locals[:compute_group] == "core"%>"
+                              data-placement="top"
+                              title="As of the start of today. Includes some estimation."
+                              onClick="return false;"><sup>?</sup></a>:
+          </strong> <%= locals[:cost_this_cycle] %> c.u.
         </li>
       </ul>
 

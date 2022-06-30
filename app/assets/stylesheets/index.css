@@ -61,6 +61,14 @@ td {
   margin-bottom: 6rem;
 }
 
+.tool-tip {
+  color: rgba(50,136,188,1);
+}
+
+.tool-tip.core {
+  color: white;
+}
+
 .tool-tip:hover {
   text-decoration: none;
 }
