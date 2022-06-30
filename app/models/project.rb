@@ -31,6 +31,7 @@ class Project < ApplicationRecord
   validates :slack_channel, :start_date, :filter_level, :security_id, :security_key,
             :type, presence: true
   validate :end_date_after_start, on: [:update, :create], if: -> { end_date != nil }
+  validate :start_date_if_monthly
   validates :platform,
     presence: true,
     inclusion: {
@@ -711,6 +712,12 @@ class Project < ApplicationRecord
   def end_date_after_start
     if start_date && end_date && end_date <= start_date    
       errors.add(:end_date, "Must be after start date")
+    end
+  end
+
+  def start_date_if_monthly
+    if cycle_interval == "monthly" && start_date.day != 1
+      errors.add(:start_date, "Must be first of a month if budget policy is monthly")
     end
   end
 

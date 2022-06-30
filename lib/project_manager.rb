@@ -262,7 +262,7 @@ class ProjectManager
     attributes[:type] = "#{attributes[:platform].capitalize}Project"
     valid_date = false
     while !valid_date
-      print "Start date (YYYY-MM-DD): "
+      print "Start date (YYYY-MM-DD). If a monthly billing cycle, please enter the 1st of a month: "
       valid_date = begin
         Date.parse(STDIN.gets.chomp.strip)
       rescue ArgumentError
