@@ -33,11 +33,11 @@
               <% if locals[:editor] %>
                 <% if event.editable? %>
                   <a href="events/<%= event.actual_or_parent_id %>/edit?project=<%=locals[:project_name]%>" aria-label="Edit" title="Edit">
-                    <i class="fa fa-cog fa-lg"></i>
+                    <i class="fa fa-pencil fa-lg"></i>
                   </a>
                 <% end %>
                 <% if event.cancellable? %>
-                  <%= link_to(raw('<i class="fa fa-times fa-lg"></i>'),
+                  <%= link_to(raw('<i class="fa fa-trash fa-lg"></i>'),
                               {action: 'cancel',
                                id: event.actual_or_parent_id,
                                project: event.project.name},

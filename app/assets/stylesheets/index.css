@@ -400,8 +400,13 @@ input[type=date] {
   border: 0;
 }
 
-a > .fa {
+.fa-pencil, .fa-cog {
   color: rgba(50,136,188,1);
+}
+
+.fa-trash {
+  color: rgba(227,30,0,1);
+  margin-left: 0.8rem;
 }
 
 .dashboard-btn.btn-info {
@@ -419,4 +424,8 @@ a > .fa {
 
 .dashboard-btn.groups {
   margin-inline: 0.25rem;
+}
+
+a:hover {
+  text-decoration: none;
 }
