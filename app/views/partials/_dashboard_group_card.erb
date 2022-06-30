@@ -22,50 +22,44 @@
       <% end %>
     </div>
 
-      <!-- Group data -->
-      <ul class="list-group list-group-flush <%= "core" if locals[:compute_group] == "core" %>">
-        <li class="list-group-item dashboard-list-item">
-          <strong>Status:</strong> <%= locals[:status] %>
-        </li>
-        <li class="list-group-item dashboard-list-item pb-3">
-          <strong>
-            Cost this cycle<a href="#"
-                              class="tool-tip <%= "core" if locals[:compute_group] == "core"%>"
-                              data-placement="top"
-                              title="As of the start of today. Includes some estimation."
-                              onClick="return false;"><sup>?</sup></a>:
-          </strong> <%= locals[:cost_this_cycle] %> c.u.
-        </li>
-      </ul>
+    <!-- Group data -->
+    <ul class="list-group list-group-flush <%= "core" if locals[:compute_group] == "core" %>">
+      <li class="list-group-item dashboard-list-item">
+        <strong>Status:</strong> <%= locals[:status] %>
+      </li>
+      <li class="list-group-item dashboard-list-item pb-3">
+        <strong>
+          Cost this cycle<a href="#"
+                            class="tool-tip <%= "core" if locals[:compute_group] == "core"%>"
+                            data-placement="top"
+                            title="As of the start of today. Includes some estimation."
+                            onClick="return false;"><sup>?</sup></a>:
+        </strong> <%= locals[:cost_this_cycle] %> c.u.
+      </li>
+    </ul>
 
-      <!-- Buttons -->
-      <div class="row justify-content-md-center mt-auto text-center">
-        <% unless locals[:compute_group] == "core" %>
-<!--          <div class="col groups-card-button">-->
-            <% disable = locals[:end_date] && locals[:end_date] < Date.today %>
-            <a class="btn btn-warning dashboard-btn groups <%= "disabled" if disable %>"
-               href="<%= disable ? "#" : "events?groups[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>"
-               role="button">
-              Events
-            </a>
-<!--          </div>-->
-        <% end %>
-<!--        <div class="col groups-card-button">-->
-          <a class="btn btn-info dashboard-btn groups"
-             role="button"
-             href=<%= "costs-breakdown?datasets[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>>
-            More info
-          </a>
-<!--        </div>-->
-        <% unless locals[:compute_group] == "core" %>
-<!--          <div class="col groups-card-button">-->
-            <a class="btn btn-info dashboard-btn groups"
-               href="<%= "audit?groups[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>"
-               role="button">
-              Logs
-            </a>
-<!--          </div>-->
-        <% end %>
-      </div>
+    <!-- Buttons -->
+    <div class="row justify-content-md-center mt-auto text-center">
+      <% unless locals[:compute_group] == "core" %>
+        <% disable = locals[:end_date] && locals[:end_date] < Date.today %>
+        <a class="btn btn-warning dashboard-btn groups <%= "disabled" if disable %>"
+           href="<%= disable ? "#" : "events?groups[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>"
+           role="button">
+          Events
+        </a>
+      <% end %>
+      <a class="btn btn-info dashboard-btn groups"
+         role="button"
+         href=<%= "costs-breakdown?datasets[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>>
+        More info
+      </a>
+      <% unless locals[:compute_group] == "core" %>
+        <a class="btn btn-info dashboard-btn groups"
+           href="<%= "audit?groups[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>"
+           role="button">
+          Logs
+        </a>
+      <% end %>
+    </div>
   </div>
 </div>
