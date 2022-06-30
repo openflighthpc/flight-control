@@ -775,6 +775,7 @@ class CostsPlotter
     return nil if @project.end_date && cycle_start_date >= @project.end_date
 
     policy = @project.budget_policies.where("effective_at <= ?", cycle_start_date).last
+    policy ||= @project.budget_policies.where("effective_at <= ?", Date.current).last
     return nil if !policy
 
     amount = 0.0

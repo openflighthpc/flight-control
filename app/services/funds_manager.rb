@@ -40,7 +40,7 @@ class FundsManager
     # over.
     check_and_update_hub_balance
 
-    if !@project.continuous_budget? && @costs_plotter.active_billing_cycles.include?(Date.current) &&
+    if !@project.continuous_budget? && (Date.current == @project.start_date || @costs_plotter.active_billing_cycles.include?(Date.current)) &&
        !already_have_budget?
       sent = send_back_unused_compute_units
       if Date.current == @project.start_date || (sent && sent.valid? && sent.completed?)
@@ -145,6 +145,7 @@ class FundsManager
       # extremely over budget.
       msg = "Project #{@project.name} has a negative budget for this cyle. "
       msg << "No compute units have been requested from hub."
+      @project.send_slack_message(msg)
     end
     request_log
   end
