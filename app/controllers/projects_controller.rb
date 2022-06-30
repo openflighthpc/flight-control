@@ -113,9 +113,9 @@ class ProjectsController < ApplicationController
 
   def get_upcoming_events
     @editor = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create?
-    @sorted_events = @project.events_by_date(@project.events)
+    @sorted_events = @project.events
+                             .sort_by { |event| [event.date, event.time] }
                              .first(5)
-                             .to_h
   end
 
   def get_group_data

@@ -78,7 +78,7 @@ class CostsPlotter
   def total_costs_this_cycle(compute_groups)
     start_date = start_of_current_billing_interval
     end_date = [Date.yesterday, start_date].max
-    cost_entries ||= cost_breakdown(start_date, end_date)
+    cost_entries = cost_breakdown(start_date, end_date)
     compute_groups.dup.each { |group| compute_groups << "#{group}_storage" }
 
     total_costs = {}

@@ -17,36 +17,38 @@
 
       <!-- Event data -->
       <tbody class="border">
-      <% locals[:events].each_value do |events| %>
-        <% events.each do |event| %>
-          <tr>
-            <td>
-              <%= event.date %>
-            </td>
-            <td>
-              <%= event.time %>
-            </td>
-            <td>
-              <%= event.description || event.auto_description %>
-            </td>
-            <td>
-              <% if locals[:editor] %>
-                <% if event.editable? %>
-                  <a href="events/<%= event.actual_or_parent_id %>/edit?project=<%=locals[:project_name]%>" aria-label="Edit" title="Edit">
-                    <i class="fa fa-pencil fa-lg"></i>
-                  </a>
-                <% end %>
-                <% if event.cancellable? %>
-                  <%= link_to(raw('<i class="fa fa-trash fa-lg"></i>'),
-                              {action: 'cancel',
-                               id: event.actual_or_parent_id,
-                               project: event.project.name},
-                              {data: { confirm: 'Are you sure you want to cancel this request?' },
-                               class: "btn btn-sm btn-danger"} %>
+      <% locals[:events].each do |event| %>
+        <tr>
+          <td>
+            <%= event.date %>
+          </td>
+          <td>
+            <%= event.time %>
+          </td>
+          <td>
+            <%= event.description || event.auto_description %>
+          </td>
+          <td>
+            <% if locals[:editor] %>
+              <% if event.editable? %>
+                <a href="events/<%= event.actual_or_parent_id %>/edit?project=<%=locals[:project_name]%>" aria-label="Edit" title="Edit">
+                  <i class="fa fa-pencil fa-lg"></i>
+                </a>
               <% end %>
-            </td>
-          </tr>
-        <% end %>
+              <% if event.cancellable? %>
+                <%= link_to(raw('<i class="fa fa-trash fa-lg"></i>'),
+                            {action: 'cancel',
+                             id: event.actual_or_parent_id,
+                             project: event.project.name},
+                            {data: { confirm: 'Are you sure you want to cancel this request?' },
+                             method: :post,
+                             title: "Cancel" }) %>
+              <% end %>
+            <% else %>
+              -
+            <% end %>
+          </td>
+        </tr>
       <% end %>
       </tbody>
     </table>
