@@ -149,23 +149,6 @@ class ProjectsController < ApplicationController
     filter_current_instances if @datasets
   end
 
-  def cancel
-    get_project
-    request = ChangeRequest.find_by_id(params[:id])
-    if !request
-      flash[:danger] = "Request not found"
-    else
-      authorize request, policy_class: ChangeRequestPolicy
-      success = @project.cancel_change_request(request, current_user)
-      if success
-        flash[:success] = "Request cancelled"
-      else
-        flash[:danger] = "Unable to cancel request"
-      end
-    end
-    redirect_to authenticated_root_path
-  end
-
   private
 
   # Only include filtered groups, or all if none selected

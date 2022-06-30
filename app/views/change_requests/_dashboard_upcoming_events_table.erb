@@ -38,6 +38,7 @@
               <% if event.cancellable? %>
                 <%= link_to(raw('<i class="fa fa-trash fa-lg"></i>'),
                             {action: 'cancel',
+                             controller: 'change_requests',
                              id: event.actual_or_parent_id,
                              project: event.project.name},
                             {data: { confirm: 'Are you sure you want to cancel this request?' },
