@@ -417,6 +417,10 @@ input[type=date] {
   margin-left: 0.8rem;
 }
 
+td.budget-switch-off {
+  font-style: italic;
+}
+
 .dashboard-btn.btn-info {
   background-color: rgba(50,136,188,1) !important;
   white-space: nowrap;

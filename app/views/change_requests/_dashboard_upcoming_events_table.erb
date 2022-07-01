@@ -25,7 +25,7 @@
           <td>
             <%= event.time %>
           </td>
-          <td>
+          <td class="<%= 'budget-switch-off' if event.is_a?(BudgetSwitchOffDecorator) %>">
             <%= event.description || event.auto_description %>
           </td>
           <td>
