@@ -29,6 +29,10 @@ every :day, at: '12:00am' do
   rake "funds:check_and_update_funds:all"
 end
 
+every :day, at: '1:00pm' do
+  rake "funds:check_actual:all"
+end
+
 every :day, at: '12:00am' do
   rake "instance_details:record"
 end
