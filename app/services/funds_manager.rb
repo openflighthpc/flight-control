@@ -105,11 +105,11 @@ class FundsManager
 
     actual_remaining = remaining_last_cycle_end
     if actual_remaining != transfer_back.amount
-      msg = "Actual last cycle costs for project *#{@project.name}* do not match amount sent back to Hub.\n"
+      msg = "Actual remaining c.u. for project *#{@project.name}* does not match amount sent back to Hub.\n"
       msg << "*Forecast*: #{transfer_back.amount}c.u.\n"
       msg << "*Actual*: #{actual_remaining}c.u."
     else
-      msg = "Actual last cycle costs for project *#{@project.name}* match amount sent back to Hub.\n"
+      msg = "Actual remaining c.u. for project *#{@project.name}* matches amount sent back to Hub.\n"
     end
     @project.send_slack_message(msg)
   end
