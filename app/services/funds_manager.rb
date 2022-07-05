@@ -96,10 +96,9 @@ class FundsManager
     return if Project::DEFAULT_COSTS_DATE != end_of_last_cycle
     return unless @project.cost_logs.where(date: end_of_last_cycle).exists?
 
-    # we should identify these properly - what if another sent, for some reason
     transfer_back = @project.funds_transfer_requests.completed
                             .where(date:  @costs_plotter.start_of_current_billing_interval)
-                            .where(action: "send").first
+                            .where(return_unused: true).first
 
     return unless transfer_back
 
@@ -125,10 +124,11 @@ class FundsManager
     remaining = remaining_last_cycle_end
     if remaining > 0
       request_log = @flight_hub_communicator.move_funds(
-        remaining.to_i,
-        "send",
-        "Unused compute units at end of #{end_of_project ? "project" : "billing cycle"}"
-      )
+          remaining.to_i,
+          "send",
+          "Unused compute units at end of #{end_of_project ? "project" : "billing cycle"}",
+          true
+        )
       @project.send_slack_message(request_log.description)
       check_and_update_hub_balance
     elsif remaining < 0 # Gone over budget. For now just send a slack message
