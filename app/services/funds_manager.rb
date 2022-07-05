@@ -105,9 +105,18 @@ class FundsManager
 
     actual_remaining = remaining_last_cycle_end
     if actual_remaining != transfer_back.amount
-      msg = "Actual remaining c.u. for project *#{@project.name}* does not match amount sent back to Hub.\n"
+      difference = actual_remaining - transfer_back.amount
+      if difference < 0
+        direction = "less"
+        charge = "Under"
+      else
+        direction = "more"
+        charge = "Over"
+      end
+      msg = "Actual remaining c.u. for project *#{@project.name}* is *#{direction}* than amount sent back to Hub.\n"
       msg << "*Forecast*: #{transfer_back.amount}c.u.\n"
-      msg << "*Actual*: #{actual_remaining}c.u."
+      msg << "*Actual*: #{actual_remaining.to_i}c.u.\n"
+      msg << "*#{charge} charge*: #{difference.abs.to_i}c.u."
     else
       msg = "Actual remaining c.u. for project *#{@project.name}* matches amount sent back to Hub.\n"
     end
