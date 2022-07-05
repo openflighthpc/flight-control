@@ -92,12 +92,13 @@ class FundsManager
   # This must be run after the cost logs are recorded for the last day of last cycle.
   # Which makes this brittle if, for example, there are errors recording the cost logs.
   def validate_sent_against_actual
-    end_of_last_cycle = @costs_plotter.start_of_current_billing_interval - 1.day
+    start_of_current_cycle = @costs_plotter.start_of_current_billing_interval
+    end_of_last_cycle = start_of_current_cycle - 1.day
     return if Project::DEFAULT_COSTS_DATE != end_of_last_cycle
     return unless @project.cost_logs.where(date: end_of_last_cycle).exists?
 
     transfer_back = @project.funds_transfer_requests.completed
-                            .where(date:  @costs_plotter.start_of_current_billing_interval)
+                            .where(date:  start_of_current_cycle)
                             .where(return_unused: true).first
 
     return unless transfer_back
