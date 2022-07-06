@@ -30,6 +30,10 @@ class ChangeRequest < ApplicationRecord
     Time.parse("#{date.to_s} #{time}")
   end
 
+  def uneditable_date_time
+    (date_time - 5.minutes).to_f * 1000
+  end
+
   def actual_or_parent_id
     self.id
   end
