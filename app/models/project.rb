@@ -11,7 +11,7 @@ require 'httparty'
 
 class Project < ApplicationRecord
   BUDGET_SWITCH_OFF_TIME = "23:30"
-  DEFAULT_COSTS_DATE = Date.today - 3
+  DEFAULT_COSTS_DATE = Date.current - 3
   SCOPES = %w[total data_out core core_storage]
   has_many :instance_logs
   has_many :cost_logs
@@ -39,7 +39,7 @@ class Project < ApplicationRecord
       message: "%{value} is not a valid platform"
     }
   after_save :update_end_balance
-  scope :active, -> { where("archived_date IS NULL OR archived_date > ?", Date.today) }
+  scope :active, -> { where("archived_date IS NULL OR archived_date > ?", Date.current) }
   scope :visualiser, -> { where(visualiser: true) }
 
   def self.slack_token
@@ -48,7 +48,7 @@ class Project < ApplicationRecord
 
   def archived?
     # use !! so returns false instead nil, which confuses table print
-    !!(archived_date && archived_date <= Date.today)
+    !!(archived_date && archived_date <= Date.current)
   end
 
   def latest_instance_logs
@@ -149,7 +149,7 @@ class Project < ApplicationRecord
 
   # within next 5 mins
   def upcoming_events(groups=nil)
-    today_events = events_on(Date.today, groups)
+    today_events = events_on(Date.current, groups)
     five_mins_from_now = Time.now + 5.minutes
     today_events.select { |event| event.date_time <= five_mins_from_now }
   end
@@ -202,11 +202,11 @@ class Project < ApplicationRecord
   end
 
   def current_balance
-    balances.where("effective_at <= ?", Date.today).last
+    balances.where("effective_at <= ?", Date.current).last
   end
 
   def current_budget_policy
-    @budget_policy ||= budget_policies.where("effective_at <= ?", Date.today).last
+    @budget_policy ||= budget_policies.where("effective_at <= ?", Date.current).last
   end
 
   def cycle_days
@@ -258,7 +258,7 @@ class Project < ApplicationRecord
     if latest_cost_data || latest_instance_data || latest_action_log || latest_change_request
       latest = [latest_cost_data, latest_instance_data, latest_action_log, latest_change_request].compact.max
     else
-      latest = Date.today.to_time
+      latest = Date.current.to_time
     end
     latest
   end
@@ -277,7 +277,7 @@ class Project < ApplicationRecord
     end
     
     outcome = ""
-    if instance_logs.where(date: Date.today).exists?
+    if instance_logs.where(date: Date.current).exists?
       if rerun
         outcome << "Updating existing logs. "
       else
@@ -384,7 +384,7 @@ class Project < ApplicationRecord
     total = total_log.cost
     currency = total_log.currency
 
-    date_warning = date > Date.today - 2 ? "\nWarning: costs data takes roughly 48 hours to update, so these figures may be inaccurate\n" : nil
+    date_warning = date > Date.current - 2 ? "\nWarning: costs data takes roughly 48 hours to update, so these figures may be inaccurate\n" : nil
     msg = [
       "#{date_warning if date_warning}",
       "#{"*Cached report*" if cached}",
@@ -412,7 +412,7 @@ class Project < ApplicationRecord
     latest_instances(change)
     costs, chart_costs = costs_plotter.cumulative_change_request_costs(change)
     results = {costs: chart_costs}
-    start_date = costs_plotter.start_of_billing_interval(Date.today)
+    start_date = costs_plotter.start_of_billing_interval(Date.current)
     end_date = costs_plotter.end_of_billing_interval(start_date)
     results[:balance_end] = costs_plotter.estimated_balance_end_in_cycle(start_date, end_date, costs, change)
     results[:budget_switch_offs] = costs_plotter.front_end_switch_offs_by_date(start_date, end_date, false)
@@ -430,7 +430,7 @@ class Project < ApplicationRecord
   def make_change_request(params)
     params["project"] = self
     if params["timeframe"] == "now"
-      params["date"] = Date.today
+      params["date"] = Date.current
       # use 6 minutes as equivalent to rounding up current time
       # to nearest minute
       params["time"] = (Time.now + 6.minutes).strftime("%H:%M")
@@ -483,7 +483,7 @@ class Project < ApplicationRecord
   def create_change_request_log(request_id, user_id, original_attributes, new_attributes)
     log = ChangeRequestAuditLog.create(project_id: self.id, change_request_id: request_id,
                                        user_id: user_id, original_attributes: original_attributes,
-                                       new_attributes: new_attributes, date: Date.today)
+                                       new_attributes: new_attributes, date: Date.current)
   end
 
   def cancel_change_request(request, user)
@@ -704,7 +704,7 @@ class Project < ApplicationRecord
     if date < start_date
       puts "#{name}: given date is before the project start date for"
       return false
-    elsif date > Date.today
+    elsif date > Date.current
       puts "#{name}: Given date is in the future"
       return false
     end

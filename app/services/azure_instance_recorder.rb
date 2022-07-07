@@ -4,7 +4,7 @@ require_relative '../models/instance_log'
 class AzureInstanceRecorder < AzureService
 
   def record_logs(rerun=false, verbose=false)
-    today_logs = @project.instance_logs.where(date: Date.today)
+    today_logs = @project.instance_logs.where(date: Date.current)
     any_nodes = false
     log_recorded = false
     if !today_logs.any? || rerun
@@ -37,7 +37,7 @@ class AzureInstanceRecorder < AzureService
             status: status,
             platform: 'azure',
             region: region,
-            date: Date.today
+            date: Date.current
           )
         else
           log.status = status

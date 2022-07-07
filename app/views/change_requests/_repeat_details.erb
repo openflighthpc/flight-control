@@ -34,7 +34,7 @@
            class="form-control scheduled-date-picker scheduled-input"
            id="end-date"
            name="end_date"
-           min="<%= Date.today() %>"
+           min="<%= Date.current() %>"
            <%= "value=#{@request.end_date}" if @request %>
     >
   </div>

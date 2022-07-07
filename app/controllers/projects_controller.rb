@@ -135,7 +135,7 @@ class ProjectsController < ApplicationController
     if params['start_date'] && params['start_date'] != ""
       @start_date = Date.parse(params['start_date'])
     else
-      @start_date = cost_plotter.start_of_billing_interval(Date.today)
+      @start_date = cost_plotter.start_of_billing_interval(Date.current)
     end
     if params['end_date'] && params['end_date'] != ""
       @end_date = Date.parse(params['end_date'])
