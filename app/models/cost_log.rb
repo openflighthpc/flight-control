@@ -1,6 +1,6 @@
 class CostLog < ApplicationRecord
   belongs_to :project
-  validates :cost, :currency, :scope, :date, presence: true
+  validates :cost, :currency, :scope, :date, :risk_cost, presence: true
   default_scope { order(:date) }
   after_initialize :calculate_risk_cost
 
