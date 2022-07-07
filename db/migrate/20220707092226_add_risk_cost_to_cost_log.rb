@@ -1,4 +1,4 @@
-class AddRiskCostToCostLogs < ActiveRecord::Migration[6.0]
+class AddRiskCostToCostLog < ActiveRecord::Migration[6.0]
   def change
     add_column :cost_logs, :risk_cost, :decimal
   end
