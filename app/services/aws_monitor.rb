@@ -44,7 +44,7 @@ class AwsMonitor
   # (if required)
   def get_nodes_usage
     # Ensure we have up to date logs
-    if @project.latest_instance_logs.maximum(:updated_at) < (Time.now - 1.minute)
+    if @project.latest_instance_logs.maximum(:updated_at) < (Time.current - 1.minute)
       @project.record_instance_logs(true)
     end
     on = @project.latest_instance_logs.where(status: InstanceLog::ON_STATUSES["aws"])
@@ -86,8 +86,8 @@ class AwsMonitor
         }
       ],
       statistics: ["Maximum"],
-      end_time: Time.now,
-      start_time: (Time.now - 26*60), # As AWS only takes utilisation every 5 minutes,
+      end_time: Time.current,
+      start_time: (Time.current - 26*60), # As AWS only takes utilisation every 5 minutes,
       period: 60,                     # we take the last 26 minutes (~4/5 readings)
       unit: "Percent"                 # and use the latest 4 readings.
     })

@@ -50,13 +50,13 @@ class RepeatedChangeRequest < ChangeRequest
   end
 
   def start
-    self.actioned_at = Time.now
+    self.actioned_at = Time.current
     super
   end
 
   def editable?
     (status == "started" || status == "pending") &&
-    next_date_time >= (Time.now + 5.minutes)
+    next_date_time >= (Time.current + 5.minutes)
   end
 
   def cancellable?

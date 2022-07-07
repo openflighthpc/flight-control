@@ -40,7 +40,7 @@ class AzureInstanceDetailsRecorder < AzureService
       response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
       if response.success?
         if first_query
-          File.write(self.class.prices_file, "#{Time.now}\n")
+          File.write(self.class.prices_file, "#{Time.current}\n")
           first_query = false
         end
         response["Items"].each do |price|
@@ -83,7 +83,7 @@ class AzureInstanceDetailsRecorder < AzureService
       )
     
       if response.success?
-        File.write(self.class.sizes_file, "#{Time.now}\n")
+        File.write(self.class.sizes_file, "#{Time.current}\n")
         response["value"].each do |instance|
           if instance["resourceType"] == "virtualMachines" && regions.include?(instance["locations"][0]) &&
             instance_types.include?(instance["name"])

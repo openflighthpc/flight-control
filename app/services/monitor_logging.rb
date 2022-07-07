@@ -14,7 +14,7 @@ module MonitorLogging
       logs = get_logs(log_dir, log_prefix)
     end
 
-    return Logger.new(File.join(log_dir, "#{log_prefix}_#{Time.now.strftime("%d-%m-%Y_%H-%M-%S")}.log"))
+    return Logger.new(File.join(log_dir, "#{log_prefix}_#{Time.current.strftime("%d-%m-%Y_%H-%M-%S")}.log"))
   end
 
   def get_logs(log_dir, log_prefix)

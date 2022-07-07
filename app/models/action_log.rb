@@ -152,7 +152,7 @@ class ActionLog < ApplicationRecord
 
   def set_defaults
     self.status = "pending"
-    self.actioned_at ||= Time.now
+    self.actioned_at ||= Time.current
     self.date = self.actioned_at.to_date
   end
 

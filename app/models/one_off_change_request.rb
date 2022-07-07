@@ -29,7 +29,7 @@ class OneOffChangeRequest < ChangeRequest
   end
 
   def due?
-    status == "pending" && date_time <= Time.now
+    status == "pending" && date_time <= Time.current
   end
 
   def action_on_date?(date)

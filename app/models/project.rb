@@ -150,7 +150,7 @@ class Project < ApplicationRecord
   # within next 5 mins
   def upcoming_events(groups=nil)
     today_events = events_on(Date.current, groups)
-    five_mins_from_now = Time.now + 5.minutes
+    five_mins_from_now = Time.current + 5.minutes
     today_events.select { |event| event.date_time <= five_mins_from_now }
   end
 
@@ -160,7 +160,7 @@ class Project < ApplicationRecord
 
   # after next 5 mins
   def future_events(groups=nil, recalculate_budget_off=true)
-    five_mins_from_now = Time.now + 5.minutes
+    five_mins_from_now = Time.current + 5.minutes
     future = events(groups, recalculate_budget_off)
     future.select { |event| event.date_time > five_mins_from_now }
   end
@@ -350,12 +350,12 @@ class Project < ApplicationRecord
 
   def monitor_currently_active?
     monitor_active && (!override_monitor_until ||
-    override_monitor_until <= Time.now)
+    override_monitor_until <= Time.current)
   end
 
   def monitor_override_active?
     monitor_active && override_monitor_until &&
-    override_monitor_until > Time.now
+    override_monitor_until > Time.current
   end
 
   def costs_plotter
@@ -433,7 +433,7 @@ class Project < ApplicationRecord
       params["date"] = Date.current
       # use 6 minutes as equivalent to rounding up current time
       # to nearest minute
-      params["time"] = (Time.now + 6.minutes).strftime("%H:%M")
+      params["time"] = (Time.current + 6.minutes).strftime("%H:%M")
     end
     params.delete("timeframe")
     change = params["type"].constantize.new(params)

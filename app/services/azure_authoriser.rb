@@ -2,7 +2,7 @@ require_relative 'azure_service'
 
 class AzureAuthoriser < AzureService
   def refresh_auth_token
-    if !@project.bearer_expiry || Time.now.to_i > @project.bearer_expiry.to_i
+    if !@project.bearer_expiry || Time.current.to_i > @project.bearer_expiry.to_i
       update_bearer_token
     end
   end

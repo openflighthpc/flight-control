@@ -25,7 +25,7 @@ class AwsInstanceDetailsRecorder
   def record
     regions.each.with_index do |region, index|
       if index == 0
-        File.write(self.class.details_file, "#{Time.now}\n")
+        File.write(self.class.details_file, "#{Time.current}\n")
       end
       first_query = true
       results = nil
