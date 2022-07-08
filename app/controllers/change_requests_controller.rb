@@ -36,14 +36,14 @@ class ChangeRequestsController < ApplicationController
 
   def edit
     get_project
-    @request = ChangeRequest.find_by_id(params[:id])
-    if !@request
+    @change_request = ChangeRequest.find_by_id(params[:id])
+    unless @change_request
       flash[:danger] = "Request not found"
     else
-      authorize @request, policy_class: ChangeRequestPolicy
-      if !@request.editable?
+      authorize @change_request, policy_class: ChangeRequestPolicy
+      unless @change_request.editable?
         flash[:danger] = "Cannot edit that request"
-        redirect_to events_path
+        redirect_to request.referrer
         return
       end
     end
