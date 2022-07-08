@@ -410,11 +410,11 @@ input[type=date] {
 
 .fa-pencil, .fa-cog {
   color: rgba(50,136,188,1);
+  margin-right: 0.8rem;
 }
 
 .fa-trash {
   color: rgba(227,30,0,1);
-  margin-left: 0.8rem;
 }
 
 td.budget-switch-off {

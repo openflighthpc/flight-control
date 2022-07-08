@@ -18,7 +18,7 @@
       <!-- Event data -->
       <tbody class="border">
       <% locals[:events].each do |event| %>
-        <tr class="editable-event-row" data-uneditable="<%= event.uneditable_date_time %>">
+        <tr class="<%= 'editable-event-row' if event.editable? %>" data-uneditable="<%= event.uneditable_date_time %>">
           <td>
             <%= event.date %>
           </td>
