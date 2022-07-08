@@ -14,10 +14,6 @@ class BudgetSwitchOffDecorator
     Time.parse("#{@date.to_s} #{@time}")
   end
 
-  def uneditable_date_time
-    date_time - 5.minutes
-  end
-
   # we know there can only be one set of switch offs per day
   def front_end_id
     "budget-off-#{date}"
