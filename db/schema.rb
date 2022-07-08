@@ -111,7 +111,7 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "compute", default: false
-    t.decimal "risk_cost"
+    t.integer "risk_cost"
     t.index ["date"], name: "index_cost_logs_on_date"
     t.index ["project_id"], name: "index_cost_logs_on_project_id"
   end
