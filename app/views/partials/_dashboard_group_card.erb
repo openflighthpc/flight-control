@@ -1,25 +1,9 @@
 <div class="card dashboard-card mb-4 groups <%= "core" if locals[:compute_group] == "core"%>">
   <div class="card-body d-flex flex-column">
+
+    <!-- Card heading -->
     <div class="row justify-content-center">
-
-      <!-- To balance settings button-->
-      <% unless locals[:compute_group] == "core" %>
-        <div class="col-1"></div>
-      <% end %>
-
-      <!-- Card heading-->
-      <div class="col-9 px-0">
-        <h4 class="card-title text-center groups-card-heading"><%= locals[:compute_group].capitalize %></h4>
-      </div>
-
-      <!-- Settings button-->
-      <% unless locals[:compute_group] == "core" %>
-        <div class="col-1">
-          <a href="<%= "policies?project=#{ locals[:project_name] }" %>" aria-label="Settings" title="Settings">
-            <i class="fa fa-cog fa-lg"></i>
-          </a>
-        </div>
-      <% end %>
+      <h4 class="card-title text-center groups-card-heading"><%= locals[:compute_group].capitalize %></h4>
     </div>
 
     <!-- Group data -->
@@ -51,7 +35,7 @@
       <a class="btn btn-info dashboard-btn groups"
          role="button"
          href=<%= "costs-breakdown?datasets[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>>
-        More info
+        Costs
       </a>
       <% unless locals[:compute_group] == "core" %>
         <a class="btn btn-info dashboard-btn groups"

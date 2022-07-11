@@ -383,11 +383,6 @@ input[type=date] {
 }
 
 .dashboard-card.groups {
-  min-width: 19.5rem;
-  max-width: 19.5rem;
-}
-
-.dashboard-card.groups.core {
   min-width: 17.5rem;
   max-width: 17.5rem;
 }
