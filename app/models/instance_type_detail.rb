@@ -1,0 +1,2 @@
+class InstanceTypeDetail < ApplicationRecord
+end
