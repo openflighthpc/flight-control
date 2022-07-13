@@ -19,56 +19,66 @@ class AzureInstanceDetailsRecorder < AzureService
     @@regions_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_region_names.txt')
   end
 
-  def record
-    record_instance_prices
-    record_instance_sizes
-  end
-
   # The new Azure Prices API allows filters, but only includes 100 records per
   # request. As 2 responses per instance type (linux and windows, which can't
   # be filtered out in the query), if more than 50 instance types in a region
   # logic will need updating to make further requests to get subsquent records.
-  def record_instance_prices
-    first_query = true
-    types_filter = ""
-    instance_types.each_with_index do |type, index|
-      types_filter << "#{index == 0 ? "" : " or"} armSkuName eq '#{type}'"
-    end
+  def record
+    size_info = get_instance_sizes
+    
     regions.each do |region|
-      matches = {} 
-      uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and (#{types_filter})"
-      response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
-      if response.success?
-        if first_query
-          File.write(self.class.prices_file, "#{Time.current}\n")
-          first_query = false
-        end
-        response["Items"].each do |price|
-          if !price["productName"].end_with?("Windows") &&
-             !price["skuName"].end_with?("Low Priority") &&
-             !price["skuName"].end_with?("Spot")
-            type = price["armSkuName"]
-            if matches[type]
-              # The API sometimes returns more than one price for the same type,
-              # but with different date. We only want the most recent.
-              more_recent = Time.parse(price["effectiveStartDate"]) > Time.parse(matches[type]["effectiveStartDate"])
-              matches[type] = price if more_recent
-            else
-              matches[type] = price
-            end
-          end   
-        end
-        matches.values.each do |matched|
-          File.write(self.class.prices_file, matched.to_json, mode: "a")
-          File.write(self.class.prices_file, "\n", mode: "a")
+      regional_price_details = get_regional_instance_prices(region)
+      unless regional_price_details.empty?
+        regional_price_details.values.each do |details|
+          info = {
+            instance_type: details["meterName"],
+            region: details["armRegionName"],
+            price_per_hour: details["unitPrice"],
+            currency: details["currencyCode"],
+          }.merge(size_info)
+
+          new_details = InstanceTypeDetail.new(info)
+          valid = new_details.valid?
+          old_details = new_details.repeated_instance_type
+          if old_details
+            old_details.update_details(new_details)
+          else
+            raise 'No valid data to record' if new_details.valid_attributes.empty?
+            new_details.set_default_values unless valid
+            new_details.save!
+          end
         end
       end
     end
   end
 
+  def get_regional_instance_prices(region)
+    matches = {}
+    uri = "https://prices.azure.com/api/retail/prices?currencyCode='GBP'&$filter=serviceName eq 'Virtual Machines' and armRegionName eq '#{region}' and priceType eq 'Consumption' and (#{types_filter})"
+    response = HTTParty.get(uri, timeout: DEFAULT_TIMEOUT)
+    if response.success?
+      response["Items"].each do |price|
+        if !price["productName"].end_with?("Windows") &&
+          !price["skuName"].end_with?("Low Priority") &&
+          !price["skuName"].end_with?("Spot")
+          type = price["armSkuName"]
+          if matches[type]
+            # The API sometimes returns more than one price for the same type,
+            # but with different date. We only want the most recent.
+            more_recent = Time.parse(price["effectiveStartDate"]) > Time.parse(matches[type]["effectiveStartDate"])
+            matches[type] = price if more_recent
+          else
+            matches[type] = price
+          end
+        end
+      end
+    end
+    matches
+  end
+
   # The skus API does have a filter option, but only for location and only for one
   # location at a time. Currently more efficient to get for all locations and filter locally.
-  def record_instance_sizes
+  def get_instance_sizes
     uri = "https://management.azure.com/subscriptions/#{@project.subscription_id}/providers/Microsoft.Compute/skus?api-version=2019-04-01"
     attempt = 0
     error = AzureApiError.new("Timeout error obtaining latest Azure instance list."\
@@ -81,13 +91,13 @@ class AzureInstanceDetailsRecorder < AzureService
         headers: { 'Authorization': "Bearer #{@project.bearer_token}" },
         timeout: DEFAULT_TIMEOUT
       )
-    
+
       if response.success?
         File.write(self.class.sizes_file, "#{Time.current}\n")
         response["value"].each do |instance|
           if instance["resourceType"] == "virtualMachines" && regions.include?(instance["locations"][0]) &&
             instance_types.include?(instance["name"])
-            details = {
+            size_info = {
               instance_type: instance["name"], instance_family: instance["family"],
               location: instance["locations"][0],
               cpu: 0, gpu: 0, mem: 0
@@ -95,15 +105,13 @@ class AzureInstanceDetailsRecorder < AzureService
 
             instance["capabilities"].each do |capability|
               if capability["name"] == "MemoryGB"
-                details[:mem] = capability["value"].to_f
+                size_info[:mem] = capability["value"].to_f
               elsif capability["name"] == "vCPUs"
-                details[:cpu] = capability["value"].to_i
+                size_info[:cpu] = capability["value"].to_i
               elsif capability["name"] == "GPUs"
-                details[:gpu] = capability["value"].to_i
+                size_info[:gpu] = capability["value"].to_i
               end
             end
-            File.write(self.class.sizes_file, details.to_json, mode: "a")
-            File.write(self.class.sizes_file, "\n", mode: "a")
           end
         end
       elsif response.code == 504
@@ -120,10 +128,14 @@ class AzureInstanceDetailsRecorder < AzureService
       if attempt < MAX_API_ATTEMPTS
         retry
       else
-        raise error
+        size_info = {
+          mem: -1,
+          cpu: -1,
+          gpu: -1,
+        }
       end
     end
-    true
+    size_info
   end
 
   # only recording instance sizes requires authorisation
@@ -145,6 +157,14 @@ class AzureInstanceDetailsRecorder < AzureService
   end
 
   private
+
+  def types_filter
+    @types_filter ||= "".tap do |tf|
+      instance_types.each_with_index do |type, index|
+        tf << "#{index == 0 ? "" : " or"} armSkuName eq '#{type}'"
+      end
+    end
+  end
 
   def instance_types
     @instance_types ||= InstanceLog.where(platform: "azure").pluck(Arel.sql("DISTINCT instance_type"))
