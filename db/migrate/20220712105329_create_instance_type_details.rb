@@ -12,6 +12,6 @@ class CreateInstanceTypeDetails < ActiveRecord::Migration[6.0]
       t.timestamps
     end
 
-    add_index :instance_type_details, [:instance_type, :region]
+    add_index :instance_type_details, [:instance_type, :region], unique: true
   end
 end

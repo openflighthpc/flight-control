@@ -46,13 +46,22 @@ class AwsInstanceDetailsRecorder
           mem = attributes["memory"].gsub(" GiB", "")
           info = {
             instance_type: attributes["instanceType"],
-            location: region, 
+            region: region,
             price_per_hour: price,
             cpu: attributes["vcpu"].to_i,
             mem: mem.to_f,
-            gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0
+            gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0,
+            currency: "USD",
           }
-          File.write(self.class.details_file, "#{info.to_json}\n", mode: 'a')
+          details = InstanceTypeDetail.new(info)
+          if details.valid?
+            details.save
+          elsif details.repeated_instance_type?
+            details.repeated_instance_type
+                   .update_details(info)
+          else
+            raise 'Invalid AWS instance details have not been saved'
+          end
         end
         first_query = false
       end
@@ -81,7 +90,7 @@ class AwsInstanceDetailsRecorder
   end
 
   def instance_types
-    @instance_types ||= instance_types = InstanceLog.where(platform: "aws").pluck(Arel.sql("DISTINCT instance_type"))
+    @instance_types ||= InstanceLog.where(platform: "aws").pluck(Arel.sql("DISTINCT instance_type"))
   end
   
   def instances_info_query(region, token=nil)
