@@ -3,105 +3,8 @@ require_relative '../services/azure_instance_details_recorder'
 require_relative 'project'
 
 class Instance
-  @@instance_details = nil
 
   attr_reader :count, :future_counts, :details, :region, :instance_type, :group, :budget_switch_offs
-
-  def self.instance_details
-    if !@@instance_details
-      set_instance_details
-    end
-    @@instance_details
-  end
-
-  def self.set_instance_details
-    @@instance_details = {}
-    set_azure_prices
-    set_azure_instance_sizes
-    set_aws_instance_details
-  end
-
-  # Azure prices are in GBP
-  def self.set_azure_prices
-    if File.exists?(AzureInstanceDetailsRecorder.prices_file)
-      File.foreach(AzureInstanceDetailsRecorder.prices_file).with_index do |entry, index|
-        if index > 0
-          entry = JSON.parse(entry)
-
-          instance_type = entry["armSkuName"] 
-          region = entry["armRegionName"]
-          if !@@instance_details.has_key?(region)
-            @@instance_details[region] = {}
-          end
-
-          # Setting sizes shouldn't overwrite prices, and vice versa
-          if @@instance_details[region][instance_type]
-            @@instance_details[region][instance_type][:price] = entry["unitPrice"].to_f
-          else
-            @@instance_details[region][instance_type] = { price: entry["unitPrice"] }
-          end
-        end
-      end
-    else
-      # @@azure_pricing_data_status = "none"
-    end
-  end
-
-  def self.set_azure_instance_sizes
-    if File.exists?(AzureInstanceDetailsRecorder.sizes_file)
-      File.foreach(AzureInstanceDetailsRecorder.sizes_file).with_index do |entry, index|
-        if index > 0
-          entry = JSON.parse(entry)
-          instance_type = entry['instance_type']
-          region = entry['location']
-          if !@@instance_details.has_key?(region)
-            @@instance_details[region] = {}
-          end
-
-          # Setting sizes shouldn't overwrite prices, and vice versa
-          if @@instance_details[region][instance_type]
-            @@instance_details[region][instance_type][:cpu] = entry["cpu"]
-            @@instance_details[region][instance_type][:gpu] = entry["gpu"]
-            @@instance_details[region][instance_type][:mem] = entry["mem"]
-          else
-            @@instance_details[region][instance_type] = {
-              cpu: entry["cpu"],
-              gpu: entry["gpu"],
-              mem: entry["mem"]
-            }
-          end
-        end
-      end
-    else
-      # @@azure_instance_data_status = "none"
-    end
-  end
-
-  def self.set_aws_instance_details
-    if File.exists?(AwsInstanceDetailsRecorder.details_file)
-      File.foreach(AwsInstanceDetailsRecorder.details_file).with_index do |entry, index|
-        if index > 0
-          entry = JSON.parse(entry)
-          instance_type = entry['instance_type']
-          region = entry['location']
-          if !@@instance_details.has_key?(region)
-            @@instance_details[region] = {}
-          end
-
-          if !@@instance_details[region].has_key?(instance_type)
-            @@instance_details[region][instance_type] = {
-              price: entry['price_per_hour'].to_f,
-              cpu: entry["cpu"],
-              gpu: entry["gpu"],
-              mem: entry["mem"]
-            }
-          end
-        end
-      end
-    else
-      # @@aws_data_status = "none"
-    end
-  end
 
   def initialize(instance_type, region, group, platform, project)
     @instance_type = instance_type
@@ -110,10 +13,7 @@ class Instance
     @platform = platform
     @project = project
     @count = {on: 0, off: 0}
-    self.class.set_instance_details if @@instance_details == nil
-    region_details = @@instance_details[region]
-    @details = region_details[instance_type] if region_details
-    @details ||= {}
+    @details = InstanceTypeDetail.where(instance_type: instance_type, region: region) || {}
     @future_counts = {}
     @budget_switch_offs = {}
   end
@@ -221,7 +121,7 @@ class Instance
   end
 
   def price
-    @details[:price] if @details[:price]
+    @details.price_per_hour
   end
 
   def daily_cost
@@ -342,19 +242,19 @@ class Instance
   end
 
   def cpus
-    @details[:cpu] || -1
+    @details.cpu || -1
   end
 
   def mem
-    @details[:mem] || -1
+    @details.mem || -1
   end
 
   def gpus
-    @details[:gpu] || -1
+    @details.gpu || -1
   end
 
   def details_description
-    if @details[:cpu]
+    if @details.cpu
       "Mem: #{mem}GiB, CPUs: #{cpus}, GPUs: #{gpus}"
     else
       "Unknown - please generate new instance details files"
@@ -363,7 +263,7 @@ class Instance
 
   def details_and_cost_description
     details = details_description
-    if @details[:cpu]
+    if @details.cpu
       details << ", Cost: #{daily_compute_cost} compute units/ day"
     end
   end
