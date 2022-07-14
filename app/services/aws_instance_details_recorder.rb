@@ -53,15 +53,7 @@ class AwsInstanceDetailsRecorder
             gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0,
             currency: "USD",
           }
-          details = InstanceTypeDetail.new(info)
-          if details.valid?
-            details.save
-          elsif details.repeated_instance_type?
-            details.repeated_instance_type
-                   .update_details(info)
-          else
-            raise 'Invalid AWS instance details have not been saved'
-          end
+          InstanceTypeDetail.new(info).record_details
         end
         first_query = false
       end

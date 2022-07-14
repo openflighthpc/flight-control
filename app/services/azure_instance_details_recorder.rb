@@ -25,7 +25,6 @@ class AzureInstanceDetailsRecorder < AzureService
   # logic will need updating to make further requests to get subsquent records.
   def record
     size_info = get_instance_sizes
-    
     regions.each do |region|
       regional_price_details = get_regional_instance_prices(region)
       unless regional_price_details.empty?
@@ -36,17 +35,7 @@ class AzureInstanceDetailsRecorder < AzureService
             price_per_hour: details["unitPrice"],
             currency: details["currencyCode"],
           }.merge(size_info)
-
-          new_details = InstanceTypeDetail.new(info)
-          valid = new_details.valid?
-          old_details = new_details.repeated_instance_type
-          if old_details
-            old_details.update_details(new_details)
-          else
-            raise 'No valid data to record' if new_details.valid_attributes.empty?
-            new_details.set_default_values unless valid
-            new_details.save!
-          end
+          InstanceTypeDetail.new(info).record_details
         end
       end
     end

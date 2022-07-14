@@ -5,6 +5,19 @@ class InstanceTypeDetail < ApplicationRecord
             presence: true,
             uniqueness: { scope: :region, message: -> (object, _) { object.repeated_instance_type_error } }
 
+  def record_details
+    valid = valid?
+    old_details = repeated_instance_type
+    if old_details
+      old_details.update_details(self)
+    else
+      raise 'No valid data to record' if valid_attributes.empty?
+      set_default_values unless valid
+      save!
+    end
+    # alert somehow about any ignored invalid attributes
+  end
+
   def repeated_instance_type
     @instance_details ||= self.class.where(instance_type: instance_type, region: region).first
   end
