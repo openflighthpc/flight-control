@@ -3,17 +3,7 @@ require_relative '../models/instance_log'
 
 class AzureInstanceDetailsRecorder < AzureService
   @@region_mappings = {}
-  @@prices_file = nil
-  @@sizes_file = nil
   @@regions_file = nil
-
-  def self.prices_file
-    @@prices_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_instance_prices.txt')
-  end
-
-  def self.sizes_file
-    @@sizes_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_instance_sizes.txt')
-  end
 
   def self.regions_file
     @@regions_file ||= File.join(Rails.root, 'lib', 'platform_files', 'azure_region_names.txt')

@@ -4,12 +4,7 @@ require 'aws-sdk-pricing'
 
 class AwsInstanceDetailsRecorder
   @@region_mappings = {}
-  @@details_file = nil
   @@regions_file = nil
-
-  def self.details_file
-    @@details_file ||= File.join(Rails.root, 'lib', 'platform_files', 'aws_instance_details.txt')
-  end
 
   def self.regions_file
     @@regions_file ||= File.join(Rails.root, 'lib', 'platform_files', 'aws_region_names.txt')
