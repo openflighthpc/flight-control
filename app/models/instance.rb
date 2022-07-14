@@ -13,7 +13,7 @@ class Instance
     @platform = platform
     @project = project
     @count = {on: 0, off: 0}
-    @details = InstanceTypeDetail.where(instance_type: instance_type, region: region) || {}
+    @details = InstanceTypeDetail.where(instance_type: instance_type, region: region).first || {}
     @future_counts = {}
     @budget_switch_offs = {}
   end
