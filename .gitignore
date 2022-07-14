@@ -29,10 +29,6 @@
 /config/master.key
 /config/credentials.yml.enc
 
-lib/platform_files/azure_instance_prices.txt
-lib/platform_files/azure_instance_sizes.txt
-lib/platform_files/aws_instance_details.txt
-
 /public/packs
 /public/packs-test
 /node_modules
