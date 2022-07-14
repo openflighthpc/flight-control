@@ -24,7 +24,7 @@ class AzureInstanceDetailsRecorder < AzureService
   # be filtered out in the query), if more than 50 instance types in a region
   # logic will need updating to make further requests to get subsquent records.
   def record
-    size_info = get_instance_sizes
+    size_info = get_instance_sizes.slice(*[:cpu, :gpu, :mem])
     regions.each do |region|
       regional_price_details = get_regional_instance_prices(region)
       unless regional_price_details.empty?
@@ -82,7 +82,6 @@ class AzureInstanceDetailsRecorder < AzureService
       )
 
       if response.success?
-        File.write(self.class.sizes_file, "#{Time.current}\n")
         response["value"].each do |instance|
           if instance["resourceType"] == "virtualMachines" && regions.include?(instance["locations"][0]) &&
             instance_types.include?(instance["name"])
@@ -101,6 +100,7 @@ class AzureInstanceDetailsRecorder < AzureService
                 size_info[:gpu] = capability["value"].to_i
               end
             end
+            return size_info
           end
         end
       elsif response.code == 504
@@ -116,15 +116,9 @@ class AzureInstanceDetailsRecorder < AzureService
       error.error_messages.append(msg)
       if attempt < MAX_API_ATTEMPTS
         retry
-      else
-        size_info = {
-          mem: -1,
-          cpu: -1,
-          gpu: -1,
-        }
       end
+      return size_info = { mem: -1, cpu: -1, gpu: -1, }
     end
-    size_info
   end
 
   # only recording instance sizes requires authorisation

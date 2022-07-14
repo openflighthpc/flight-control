@@ -38,7 +38,7 @@ class AwsInstanceDetailsRecorder
         results.price_list.each do |result|
           details = JSON.parse(result)
           attributes = details["product"]["attributes"]
-          next if !instance_types.include?(attributes["instanceType"])
+          next unless instance_types.include?(attributes["instanceType"])
 
           price = details["terms"]["OnDemand"]
           price = price[price.keys[0]]["priceDimensions"]
