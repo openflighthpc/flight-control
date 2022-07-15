@@ -17,6 +17,21 @@
 
       <!-- Event data -->
       <tbody class="border">
+      <% locals[:in_progress].each do |event| %>
+        <tr class="in-progress-event-row">
+          <td>
+            <%= event.date%>
+          </td>
+          <td>
+            <%= event.formatted_timestamp %>
+          </td>
+          <td class="<%= 'budget-switch-off' if event.is_a?(BudgetSwitchOffDecorator) %>">
+            <%= (event.description || event.auto_description) + ' (in progress)' %>
+          </td>
+          <td></td>
+        </tr>
+      <% end %>
+
       <% locals[:events].each do |event| %>
         <tr class="<%= 'editable-event-row' if event.editable? %>"
             data-uneditable="<%= event.uneditable_date_time if event.editable? %>">

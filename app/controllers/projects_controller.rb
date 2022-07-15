@@ -113,9 +113,12 @@ class ProjectsController < ApplicationController
 
   def get_upcoming_events
     @editor = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create?
+    @in_progress = @project.pending_action_logs
+                           .sort_by {|log| [log.compute_group, log.customer_facing_type]}
+                           .first(5)
     @sorted_events = @project.events
                              .sort_by { |event| [event.date, event.time] }
-                             .first(5)
+                             .first(5 - @in_progress.length)
   end
 
   def get_group_data

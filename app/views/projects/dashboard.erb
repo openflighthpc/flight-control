@@ -58,6 +58,7 @@
       <div class="card-body d-flex flex-column">
         <h4 class="card-title text-center">Upcoming events</h4>
         <% locals = { events: @sorted_events,
+                      in_progress: @in_progress,
                       project_name: @project.name,
                       editor: @editor } %>
         <%=  render '/change_requests/dashboard_upcoming_events_table', locals: locals %>
