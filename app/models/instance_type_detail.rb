@@ -6,14 +6,9 @@ class InstanceTypeDetail < ApplicationRecord
             uniqueness: { scope: :region, message: -> (object, _) { object.repeated_instance_type_error } }
 
   def record_details
-    raise 'No valid data to record' if valid_attributes.empty?
+    set_default_values
     old_details = repeated_instance_type
-    if old_details
-      old_details.update_details(self)
-    else
-      set_default_values
-      save!
-    end
+    old_details ? old_details.update_details(self) : save!
   end
 
   def repeated_instance_type
@@ -25,12 +20,12 @@ class InstanceTypeDetail < ApplicationRecord
   end
 
   def update_details(new_details)
-    assign_attributes(new_details.valid_attributes)
+    assign_attributes(new_details.attributes.except(*attributes_not_to_update))
     save! if changed?
   end
 
   def valid_attributes
-    attributes.except(*invalid_attributes + %w(instance_type region id created_at updated_at))
+    attributes.except(*invalid_attributes + attributes_not_to_update)
   end
 
   def invalid_attributes
@@ -46,12 +41,17 @@ class InstanceTypeDetail < ApplicationRecord
     end
     @invalid_attributes
   end
+  
+  def attributes_not_to_update
+    %w(instance_type region id created_at updated_at)
+  end
 
   def set_default_values
     return if invalid_attributes.empty?
+    raise 'No valid data to record' if valid_attributes.empty?
     invalid_attributes.each do |attr|
       if self.class.columns_hash[attr].type == :string
-        assign_attributes( { attr => 'INVALID' })
+        assign_attributes( { attr => 'INVALID' } )
       else
         assign_attributes( { attr => -1 } )
       end
