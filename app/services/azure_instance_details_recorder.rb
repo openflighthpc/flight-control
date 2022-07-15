@@ -20,7 +20,7 @@ class AzureInstanceDetailsRecorder < AzureService
       unless regional_price_details.empty?
         regional_price_details.values.each do |details|
           info = {
-            instance_type: details["meterName"],
+            instance_type: details["armSkuName"],
             region: details["armRegionName"],
             price_per_hour: details["unitPrice"],
             currency: details["currencyCode"],
