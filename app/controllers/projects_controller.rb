@@ -154,6 +154,7 @@ class ProjectsController < ApplicationController
     @switch_offs = cost_plotter.front_end_switch_offs_by_date(@start_date, @end_date, false)
     @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date, costs)
     filter_current_instances if @datasets
+    check_valid_instance_details
   end
 
   private
@@ -171,5 +172,11 @@ class ProjectsController < ApplicationController
 
   def no_project_redirect
     render "projects/no_project"
+  end
+
+  def check_valid_instance_details
+    unless  @project.valid_instance_details?
+      flash[:danger] = 'Values displayed based on incomplete or invalid instance details'
+    end
   end
 end

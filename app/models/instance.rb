@@ -242,30 +242,37 @@ class Instance
   end
 
   def cpus
-    @details.cpu || -1
+    return 'unknown' if @details.cpu.nil? || @details.cpu == -1
+    @details.cpu
   end
 
   def mem
-    @details.mem || -1
+    return 'unknown' if @details.mem.nil? || @details.mem == -1
+    @details.mem
   end
 
   def gpus
-    @details.gpu || -1
+    return 'unknown' if @details.gpu.nil? || @details.gpu == -1
+    @details.gpu
   end
 
   def details_description
-    if @details.cpu
-      "Mem: #{mem}GiB, CPUs: #{cpus}, GPUs: #{gpus}"
-    else
+    if cpus == 'unknown'
       "Unknown - please generate new instance details files"
+    else
+      "Mem: #{mem}GiB, CPUs: #{cpus}, GPUs: #{gpus}"
     end
   end
 
   def details_and_cost_description
     details = details_description
-    if @details.cpu
+    unless cpus == 'unknown'
       details << ", Cost: #{daily_compute_cost} compute units/ day"
     end
+  end
+
+  def valid_details?
+    @valid_details ||= @details.invalid_attributes.empty?
   end
 
   def customer_facing_type

@@ -187,9 +187,14 @@ class Project < ApplicationRecord
     end
     @instances
   end
-
-  def nodes_up
-    InstanceTracker.new(self).nodes_up
+  
+  def valid_instance_details?
+    @instances.each do |_, instances|
+      instances.each do |instance|
+        return false unless instance.valid_details?
+      end
+    end
+    true
   end
 
   # For resetting after temp
