@@ -14,7 +14,8 @@ class AzureInstanceDetailsRecorder < AzureService
   # be filtered out in the query), if more than 50 instance types in a region
   # logic will need updating to make further requests to get subsquent records.
   def record
-    size_info = get_instance_sizes.slice(*[:cpu, :gpu, :mem])
+    size_info = get_instance_sizes || { mem: -1, cpu: -1, gpu: -1, }
+    size_info = size_info.slice(*[:cpu, :gpu, :mem])
     regions.each do |region|
       regional_price_details = get_regional_instance_prices(region)
       unless regional_price_details.empty?
@@ -107,7 +108,6 @@ class AzureInstanceDetailsRecorder < AzureService
       if attempt < MAX_API_ATTEMPTS
         retry
       end
-      return size_info = { mem: -1, cpu: -1, gpu: -1, }
     end
   end
 
