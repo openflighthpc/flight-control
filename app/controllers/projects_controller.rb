@@ -116,9 +116,13 @@ class ProjectsController < ApplicationController
     @in_progress = @project.pending_action_logs
                            .sort_by {|log| [log.compute_group, log.customer_facing_type]}
                            .first(5)
-    @sorted_events = @project.events
-                             .sort_by { |event| [event.date, event.time] }
-                             .first(5 - @in_progress.length)
+    if @in_progress.length < 5
+      @sorted_events = @project.events
+                               .sort_by { |event| [event.date, event.time] }
+                               .first(5 - @in_progress.length)
+    else
+      @sorted_events = []
+    end
   end
 
   def get_group_data
