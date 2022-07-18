@@ -43,3 +43,6 @@ yarn-debug.log*
 # Ignore project config files, except for default which is used as a template
 /config/projects/*.yaml
 !/config/projects/default.yaml
+
+# Rubymine
+*.idea*
