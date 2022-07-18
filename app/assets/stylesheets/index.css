@@ -421,8 +421,16 @@ td.budget-switch-off {
   white-space: nowrap;
 }
 
+.dashboard-btn.btn-info.core {
+  border-color: rgba(45,120,175,1);
+}
+
 .dashboard-btn.btn-info:hover {
   background-color: rgba(35,110,160,1) !important;
+}
+
+.dashboard-btn.btn-info.core:hover {
+  border-color: rgba(35,110,160,1)
 }
 
 .dashboard-btn:focus {

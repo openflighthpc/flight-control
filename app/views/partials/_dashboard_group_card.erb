@@ -32,7 +32,7 @@
           Events
         </a>
       <% end %>
-      <a class="btn btn-info dashboard-btn groups"
+      <a class="btn btn-info dashboard-btn groups <%= 'core' if locals[:compute_group] == "core" %>"
          role="button"
          href=<%= "costs-breakdown?datasets[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>>
         Costs
