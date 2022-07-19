@@ -176,7 +176,7 @@ class ProjectsController < ApplicationController
 
   def check_valid_instance_details
     unless  @project.valid_instance_details?
-      flash[:danger] = 'Values displayed based on incomplete or invalid instance details'
+      flash[:danger] = @project.invalid_instance_details_flash
     end
   end
 end

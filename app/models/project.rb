@@ -197,6 +197,11 @@ class Project < ApplicationRecord
     true
   end
 
+  def invalid_instance_details_flash
+    "Values displayed based on incomplete or invalid instance details. \n
+    Please ask an administrator to generate new instance detail records."
+  end
+
   # For resetting after temp
   def reset_latest_instances
     @instances = nil

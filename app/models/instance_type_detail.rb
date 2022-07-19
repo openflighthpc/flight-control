@@ -48,7 +48,6 @@ class InstanceTypeDetail < ApplicationRecord
 
   def set_default_values
     return if invalid_attributes.empty?
-    raise 'No valid data to record' if valid_attributes.empty?
     invalid_attributes.each do |attr|
       if self.class.columns_hash[attr].type == :string
         assign_attributes( { attr => 'INVALID' } )
