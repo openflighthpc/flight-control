@@ -6,9 +6,13 @@ class InstanceTypeDetail < ApplicationRecord
             uniqueness: { scope: :region, message: -> (object, _) { object.repeated_instance_type_error } }
 
   def record_details
-    set_default_values
     old_details = repeated_instance_type
-    old_details ? old_details.update_details(self) : save!
+    if old_details
+      old_details.update_details(self)
+    else
+      set_default_values
+      save!
+    end
   end
 
   def repeated_instance_type
@@ -20,7 +24,7 @@ class InstanceTypeDetail < ApplicationRecord
   end
 
   def update_details(new_details)
-    assign_attributes(new_details.attributes.except(*attributes_not_to_update))
+    assign_attributes(new_details.valid_attributes)
     save! if changed?
   end
 
