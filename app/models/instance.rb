@@ -121,7 +121,7 @@ class Instance
   end
 
   def price
-    @details.price_per_hour
+    @details.price_per_hour.to_f
   end
 
   def daily_cost
@@ -242,18 +242,15 @@ class Instance
   end
 
   def cpus
-    return 'unknown' if @details.cpu.nil? || @details.cpu == -1
-    @details.cpu
+    @details.cpu.nil? ? 'unknown' : @details.cpu
   end
 
   def mem
-    return 'unknown' if @details.mem.nil? || @details.mem == -1
-    @details.mem
+    @details.mem.nil? ? 'unknown' : @details.mem
   end
 
   def gpus
-    return 'unknown' if @details.gpu.nil? || @details.gpu == -1
-    @details.gpu
+    @details.gpu.nil? ? 'unknown' : @details.gpu
   end
 
   def details_description

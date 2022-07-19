@@ -1,6 +1,8 @@
 class InstanceTypeDetail < ApplicationRecord
-  validates :region, :price_per_hour, :cpu, :gpu, :mem, :currency, presence: true
-  validates :price_per_hour, :cpu, :gpu, :mem, :numericality => { :greater_than_or_equal_to => -1 }
+  validates :region, :currency, presence: true
+  validates :price_per_hour, :cpu, :gpu, :mem,
+            allow_nil: true,
+            :numericality => { :greater_than_or_equal_to => 0 }
   validates :instance_type,
             presence: true,
             uniqueness: { scope: :region, message: -> (object, _) { object.repeated_instance_type_error } }
@@ -37,9 +39,8 @@ class InstanceTypeDetail < ApplicationRecord
     valid?
     errors = self.errors.messages
     @invalid_attributes = []
-    attributes.each do |attr, value|
-      invalid_number = value.is_a?(Numeric) ? (value < 0) : false
-      if errors.key?(attr.to_sym) || invalid_number
+    attributes.except(*%w(id created_at updated_at)).each do |attr, value|
+      if errors.key?(attr.to_sym) || value.nil?
         @invalid_attributes.append(attr) unless errors[attr.to_sym].first == repeated_instance_type_error
       end
     end
@@ -54,9 +55,9 @@ class InstanceTypeDetail < ApplicationRecord
     return if invalid_attributes.empty?
     invalid_attributes.each do |attr|
       if self.class.columns_hash[attr].type == :string
-        assign_attributes( { attr => 'INVALID' } )
+        assign_attributes( { attr => 'UNKNOWN' } )
       else
-        assign_attributes( { attr => -1 } )
+        assign_attributes( { attr => nil } )
       end
     end
   end
