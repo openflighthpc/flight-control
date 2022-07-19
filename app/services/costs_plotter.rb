@@ -310,7 +310,7 @@ class CostsPlotter
         total += results[k][:total]
         results[k][:budget] = budget - total
         previous_costs = results[k]
-      elsif Date.parse(k) >= @project.start_date
+      else
         compute = 0.0
         compute_groups.keys.each do |group|
           results[k]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(k), group.to_sym, change_request)
