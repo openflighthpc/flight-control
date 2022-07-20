@@ -22,6 +22,13 @@ class Instance
     @details != {}
   end
 
+  def set_default_instance_details
+    unless present_in_region?
+      @details = InstanceTypeDetail.new
+      @details.set_default_values
+    end
+  end
+
   # JS doesn't work with instance types including '.'
   def front_end_instance_type
     instance_type.gsub(".", "_")

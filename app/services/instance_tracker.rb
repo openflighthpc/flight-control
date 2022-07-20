@@ -8,7 +8,6 @@ class InstanceTracker
     return @latest_instances if @latest_instances
     changes = pending_action_log_changes
     all_instances = latest_instance_count
-
     all_instances.each do |group, instances|
       instances.each do |instance|
         change = changes.dig(group, instance.instance_type)
@@ -72,7 +71,7 @@ class InstanceTracker
         instances = @latest_instances[group]
         instance_types.each do |instance_type, times_and_counts|
           instance = instances.find { |i| i.instance_type == instance_type }
-          instance.add_future_counts({date => times_and_counts})
+          instance.add_future_counts({date => times_and_counts}) if instance
         end
       end
     end

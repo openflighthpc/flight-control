@@ -36,8 +36,6 @@ class InstanceTypeDetail < ApplicationRecord
     save! if changed?
   end
 
-  private
-
   def invalid_attributes(selected_attributes: nil)
     return @invalid_attributes if defined?(@invalid_attributes)
     valid?
