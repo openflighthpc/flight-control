@@ -12,21 +12,33 @@ class AzureInstanceDetailsRecorder < AzureService
   # The new Azure Prices API allows filters, but only includes 100 records per
   # request. As 2 responses per instance type (linux and windows, which can't
   # be filtered out in the query), if more than 50 instance types in a region
-  # logic will need updating to make further requests to get subsquent records.
+  # logic will need updating to make further requests to get subsequent records.
   def record
-    size_info = get_instance_sizes || { mem: -1, cpu: -1, gpu: -1, }
-    size_info = size_info.slice(*[:cpu, :gpu, :mem])
+    size_info = get_instance_sizes
     regions.each do |region|
       regional_price_details = get_regional_instance_prices(region)
-      unless regional_price_details.empty?
-        regional_price_details.values.each do |details|
+      regional_price_details.values.each do |details|
+        if details.empty? && size_info.empty?
+          Rails.logger.error("Error obtaining latest Azure instance pricing and size details for region: #{region}")
+        else
           info = {
-            instance_type: details["armSkuName"],
-            region: details["armRegionName"],
+            instance_type: details["armSkuName"] || size_info[:instance_type],
+            region: details["armRegionName"] || size_info[:location],
             price_per_hour: details["unitPrice"],
             currency: details["currencyCode"],
-          }.merge(size_info)
-          InstanceTypeDetail.new(info).record_details
+          }.merge(size_info.slice(*[:cpu, :gpu, :mem]))
+
+          new_details = InstanceTypeDetail.new(info)
+          existing_details = new_details.repeated_instance_type
+
+          if existing_details
+            attributes_to_update = info.keys
+            new_details.set_default_values(selected_attributes: attributes_to_update)
+            existing_details.update_details(new_details, selected_attributes: attributes_to_update)
+          else
+            new_details.set_default_values
+            new_details.save!
+          end
         end
       end
     end
@@ -71,7 +83,7 @@ class AzureInstanceDetailsRecorder < AzureService
         headers: { 'Authorization': "Bearer #{@project.bearer_token}" },
         timeout: DEFAULT_TIMEOUT
       )
-
+      
       if response.success?
         response["value"].each do |instance|
           if instance["resourceType"] == "virtualMachines" && regions.include?(instance["locations"][0]) &&

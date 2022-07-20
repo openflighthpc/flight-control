@@ -45,7 +45,14 @@ class AwsInstanceDetailsRecorder
             gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0,
             currency: "USD",
           }
-          InstanceTypeDetail.new(info).record_details
+          new_details = InstanceTypeDetail.new(info)
+          new_details.set_default_values
+          existing_details = new_details.repeated_instance_type
+          if existing_details
+            existing_details.update_details(new_details, info.keys)
+          else
+            new_details.save!
+          end
         end
         first_query = false
       end
