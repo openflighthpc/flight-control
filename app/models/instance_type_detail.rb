@@ -8,7 +8,7 @@ class InstanceTypeDetail < ApplicationRecord
             uniqueness: { scope: :region, message: -> (object, _) { object.repeated_instance_type_error } }
 
   def repeated_instance_type
-    @instance_details ||= self.class.where(instance_type: instance_type, region: region).first
+    @instance_details ||= self.class.find_by(instance_type: instance_type, region: region)
   end
 
   def repeated_instance_type_error
