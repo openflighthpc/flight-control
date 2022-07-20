@@ -209,7 +209,7 @@ If `slack` is set to `true`, the daily report will be sent to the project's `sla
 
 ### Instance Prices and Sizes
 
-Instance prices and sizes (GPUS, CPUs and RAM) are saved in text files in `lib/platform_files`. These should be updated regularly, by running `rake instance_details:record`.
+Instance prices and sizes (GPUS, CPUs and RAM) are recorded automatically each day. These details can also be manually updated by running `rake instance_details:record`.
 
 This may take a few minutes to complete, especially for Azure data due to limitations in the Azure APIs.
 
