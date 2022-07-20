@@ -16,7 +16,7 @@ class AzureInstanceDetailsRecorder < AzureService
   def record
     size_details = get_instance_sizes
     if size_details
-      size_details.values.each do |type_details|
+      size_details.each do |type_details|
         info = type_details.slice(*[:instance_type, :cpu, :gpu, :mem])
         info[:region] = type_details[:location]
         record_details_to_database(info)
@@ -98,7 +98,7 @@ class AzureInstanceDetailsRecorder < AzureService
         headers: { 'Authorization': "Bearer #{@project.bearer_token}" },
         timeout: DEFAULT_TIMEOUT
       )
-      instance_details = {}
+      instance_details = []
 
       if response.success?
         response["value"].each do |instance|
@@ -119,7 +119,7 @@ class AzureInstanceDetailsRecorder < AzureService
                 size_info[:gpu] = capability["value"].to_i
               end
             end
-            instance_details["#{size_info[:instance_type]}_#{size_info[:location]}"] = size_info
+            instance_details.append(size_info)
           end
         end
         return instance_details
