@@ -14,33 +14,48 @@ class AzureInstanceDetailsRecorder < AzureService
   # be filtered out in the query), if more than 50 instance types in a region
   # logic will need updating to make further requests to get subsequent records.
   def record
-    size_info = get_instance_sizes
+    size_details = get_instance_sizes
+    if size_details
+      size_details.values.each do |type_details|
+        info = type_details.slice(*[:instance_type, :cpu, :gpu, :mem])
+        info[:region] = type_details[:location]
+        record_details_to_database(info)
+      end
+    else
+      Rails.logger.error("Error obtaining latest Azure instance size details.")
+    end
+
     regions.each do |region|
       regional_price_details = get_regional_instance_prices(region)
-      regional_price_details.values.each do |details|
-        if details.empty? && size_info.empty?
-          Rails.logger.error("Error obtaining latest Azure instance pricing and size details for region: #{region}")
-        else
-          info = {
-            instance_type: details["armSkuName"] || size_info[:instance_type],
-            region: details["armRegionName"] || size_info[:location],
-            price_per_hour: details["unitPrice"],
-            currency: details["currencyCode"],
-          }.merge(size_info.slice(*[:cpu, :gpu, :mem]))
-
-          new_details = InstanceTypeDetail.new(info)
-          existing_details = new_details.repeated_instance_type
-
-          if existing_details
-            attributes_to_update = info.keys
-            new_details.set_default_values(selected_attributes: attributes_to_update)
-            existing_details.update_details(new_details, selected_attributes: attributes_to_update)
+      if regional_price_details
+        regional_price_details.each do |type, details|
+          if details.empty?
+            Rails.logger.error("No valid data for region: #{region}, instance type: #{type}")
           else
-            new_details.set_default_values
-            new_details.save!
+            info = {
+              instance_type: details["armSkuName"],
+              region: details["armRegionName"],
+              price_per_hour: details["unitPrice"],
+              currency: details["currencyCode"],
+            }
+            record_details_to_database(info)
           end
         end
+      else
+        Rails.logger.error("Error obtaining latest Azure instance pricing details for region: #{region}")
       end
+    end
+  end
+
+  def record_details_to_database(info)
+    new_details = InstanceTypeDetail.new(info)
+    existing_details = new_details.repeated_instance_type
+    if existing_details
+      new_details.set_default_values(selected_attributes: info.keys)
+      existing_details.update_details(new_details, selected_attributes: info.keys)
+    else
+      new_details.set_default_values
+      new_details.save!
     end
   end
 
@@ -83,7 +98,8 @@ class AzureInstanceDetailsRecorder < AzureService
         headers: { 'Authorization': "Bearer #{@project.bearer_token}" },
         timeout: DEFAULT_TIMEOUT
       )
-      
+      instance_details = {}
+
       if response.success?
         response["value"].each do |instance|
           if instance["resourceType"] == "virtualMachines" && regions.include?(instance["locations"][0]) &&
@@ -103,9 +119,10 @@ class AzureInstanceDetailsRecorder < AzureService
                 size_info[:gpu] = capability["value"].to_i
               end
             end
-            return size_info
+            instance_details["#{size_info[:instance_type]}_#{size_info[:location]}"] = size_info
           end
         end
+        return instance_details
       elsif response.code == 504
         raise Net::ReadTimeout
       else
