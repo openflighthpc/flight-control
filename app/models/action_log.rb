@@ -56,7 +56,7 @@ class ActionLog < ApplicationRecord
   end
 
   def formatted_timestamp
-    actioned_at.in_time_zone("London").strftime('%-I:%M%P %F')
+    actioned_at.in_time_zone("London").strftime('%-k:%M %F')
   end
 
   def username
