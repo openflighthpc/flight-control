@@ -1,4 +1,17 @@
 class ProjectsController < ApplicationController
+  def dashboard
+    get_project
+    if !@project
+      no_project_redirect
+    else
+      authorize @project, policy_class: ProjectPolicy
+    end
+    @nav_view = "dashboard"
+    get_billing_data
+    get_upcoming_events
+    get_group_data
+  end
+
   def costs_breakdown
     get_project
     if !@project
@@ -76,11 +89,8 @@ class ProjectsController < ApplicationController
     else
       @nav_view = "billing"
       authorize @project, policy_class: ProjectPolicy
-      cost_plotter = CostsPlotter.new(@project)
+      get_billing_data
       @billing_cycles = cost_plotter.historic_cycle_details
-      @policy = @project.budget_policies.last
-      @billing_date = cost_plotter.billing_date
-      @latest_cycle_details = cost_plotter.latest_cycle_details
     end
   end
 
@@ -95,8 +105,33 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def get_billing_data
+    @policy = @project.budget_policies.last
+    @billing_date = cost_plotter.billing_date
+    @latest_cycle_details = cost_plotter.latest_cycle_details
+  end
+
+  def get_upcoming_events
+    @editor = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create?
+    @in_progress = @project.pending_action_logs
+                           .sort_by {|log| [log.compute_group, log.customer_facing_type]}
+                           .first(5)
+    if @in_progress.length < 5
+      @sorted_events = @project.events
+                               .sort_by { |event| [event.date, event.time] }
+                               .first(5 - @in_progress.length)
+    else
+      @sorted_events = []
+    end
+  end
+
+  def get_group_data
+    compute_groups = @project.front_end_compute_groups.keys
+    @group_costs = cost_plotter.total_costs_this_cycle( ['core'] + compute_groups )
+    @nodes_up = @project.nodes_up
+  end
+
   def get_costs_data
-    cost_plotter = CostsPlotter.new(@project)
     if params['start_date'] && params['start_date'] != ""
       @start_date = Date.parse(params['start_date'])
     else
@@ -128,6 +163,10 @@ class ProjectsController < ApplicationController
     original = @current_instances.clone
     @current_instances.select! { |group, instances| @datasets.include?(group) }
     @current_instances = original if @current_instances.empty?
+  end
+
+  def cost_plotter
+    @cost_plotter ||= CostsPlotter.new(@project)
   end
 
   def no_project_redirect

@@ -44,5 +44,5 @@ yarn-debug.log*
 /config/projects/*.yaml
 !/config/projects/default.yaml
 
-# Rubymine
 *.idea*
+

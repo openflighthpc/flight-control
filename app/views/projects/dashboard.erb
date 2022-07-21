@@ -1,0 +1,110 @@
+<% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'billing'%>
+  <%= javascript_pack_tag 'new_data_check'%>
+  <%= javascript_pack_tag 'editable_event_check'%>
+<% end %>
+
+<div class="mt-4 text-center mb-5">
+  <h2><%= @project.name %> - Dashboard</h2>
+</div>
+
+<div class="container-fluid">
+  <div class="card-deck mb-4 justify-content-md-center">
+
+    <!-- Overview -->
+    <div class="card dashboard-card overview mb-4">
+      <div class="card-body d-flex flex-column">
+        <h4 class="card-title text-center">Overview</h4>
+        <ul class="list-group list-group-flush my-3">
+          <% locals = { field: "Balance",
+                        description: "Remaining at the start of the latest billing cycle",
+                        red: @latest_cycle_details[:starting_balance] <= 0,
+                        value: "#{@latest_cycle_details[:starting_balance].to_i} c.u." } %>
+          <%= render '/partials/dashboard_overview_list_item', locals: locals %>
+          <% locals = { field: "Cost this cycle",
+                        description: "As of the start of today. Includes some estimation.",
+                        padding: true,
+                        value: "#{@latest_cycle_details[:costs_so_far]} c.u." } %>
+          <%= render '/partials/dashboard_overview_list_item', locals: locals %>
+          <% locals = { field: "Spend profile",
+                        value: @policy.spend_profile.capitalize } %>
+          <%= render '/partials/dashboard_overview_list_item', locals: locals %>
+          <% unless @policy.spend_profile.downcase == 'continuous' %>
+            <% locals = { field: "Fixed cycle budget",
+                          value: "#{@latest_cycle_details[:starting_budget]} c.u." } %>
+            <%= render '/partials/dashboard_overview_list_item', locals: locals %>
+          <% end %>
+          <% locals = { field: "Billing date",
+                        padding: true,
+                        value: @billing_date || 'N/A' } %>
+          <%= render '/partials/dashboard_overview_list_item', locals: locals %>
+          <% locals = { field: "Project end date",
+                        padding: true,
+                        value: @project.end_date || 'N/A' } %>
+          <%= render '/partials/dashboard_overview_list_item', locals: locals %>
+        </ul>
+
+        <!-- Button -->
+        <div class="mt-auto text-center">
+          <a class="btn btn-info dashboard-btn" href="billing-management?project=<%= @project.name %>" role="button">
+            View spending breakdown
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming events -->
+    <div class="card dashboard-card events mb-4">
+      <div class="card-body d-flex flex-column">
+        <h4 class="card-title text-center">Upcoming events</h4>
+        <% locals = { events: @sorted_events,
+                      in_progress: @in_progress,
+                      project_name: @project.name,
+                      editor: @editor } %>
+        <%=  render '/change_requests/dashboard_upcoming_events_table', locals: locals %>
+
+        <!-- Buttons -->
+        <div class="row justify-content-md-center mt-auto text-center">
+          <div class="col col-lg-5">
+            <% if @project.end_date && @project.end_date < Date.today %>
+              <% disable = true %>
+            <% end %>
+            <a class="btn btn-warning dashboard-btn mt-auto <%= "disabled" if disable %>"
+               href="<%= disable ? "#" : "events?project=#{@project.name}" %>"
+               role="button">
+              Create/Manage events
+            </a>
+          </div>
+          <div class="col col-lg-5">
+            <a class="btn btn-info dashboard-btn mt-auto" href="audit?project=<%= @project.name %>" role="button">
+              View audit log
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Groups cards -->
+  <h3 class="text-center mb-4">Groups</h3>
+  <div class="card-deck mb-5 pt-1 justify-content-center">
+    <% locals = { compute_group: "core",
+                  project_name: @project.name,
+                  status: "UP",
+                  cost_this_cycle: @group_costs[:core] + @group_costs[:core_storage] } %>
+    <%= render '/partials/dashboard_group_card', locals: locals %>
+
+    <% @project.front_end_compute_groups.keys.each do |group| %>
+      <% locals = { compute_group: group,
+                    project_name: @project.name,
+                    end_date: @project.end_date,
+                    status: "#{@nodes_up[group][:on]} of #{@nodes_up[group][:total]} UP",
+                    cost_this_cycle: @group_costs[group.to_sym] + @group_costs["#{group}_storage".to_sym] } %>
+      <%= render '/partials/dashboard_group_card', locals: locals %>
+    <% end %>
+  </div>
+
+  <!-- Data needed to check for any changes to events -->
+  <%= render '/projects/latest_change' %>
+
+</div>

@@ -5,63 +5,67 @@ class InstanceTracker
   end
 
   def latest_instances(temp_change_request)
-    if !@latest_instances
-      logs = @project.latest_instance_logs
-      instance_mappings = InstanceMapping.where(platform: @platform)
-  
-      groups = @project.front_end_compute_groups
+    return @latest_instances if @latest_instances
+    changes = pending_action_log_changes
+    all_instances = latest_instance_count
 
-      all_instances = {}
-      groups.each do |node_group, values|
-        instances = []
-        region = values["region"]
-        group_logs = logs.where(compute_group: node_group)
-        instance_mappings.each do |mapping|
-          instance = Instance.new(mapping.instance_type, region, node_group, @project.platform, @project)
-          if instance.node_limit > 0 && instance.present_in_region?
-            group_logs.where(instance_type: mapping.instance_type).each do |log|
-              instance.increase_count(InstanceLog::ON_STATUSES[@platform] == log.status ? :on : :off)
-            end
-            instances << instance
-          end
+    all_instances.each do |group, instances|
+      instances.each do |instance|
+        change = changes.dig(group, instance.instance_type)
+        if change
+          pending_count = change += instance.pending_on
         end
-
-        # add any unmapped instances
-        logs_without_mapping = group_logs.map {|log| log.has_mapping? ? nil : log.id }.compact
-        grouped = group_logs.where("id IN (?)", logs_without_mapping).group(:instance_type, :status).count
-        last = nil
-        grouped.each do |group|
-          if !last || last && group[0][0] != last.instance_type
-            instance = Instance.new(group[0][0], region, node_group, @project.platform, @project)
-            instance.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
-            instances << last if last && last.present_in_region?
-            last = instance
-          elsif last
-            last.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
-          end
-        end
-        instances << last if last && last.present_in_region?
-
-        all_instances[node_group] = instances
+        instance.set_pending_on(pending_count) if pending_count
       end
-      changes = pending_action_log_changes
-      all_instances.each do |group, instances|
-        instances.each do |instance|
-          change = changes.dig(group, instance.instance_type)
-          if change
-            pending_count = change += instance.pending_on
-          end
-          instance.set_pending_on(pending_count) if pending_count
-        end
-      end
-      @latest_instances = all_instances
-      set_future_changes(temp_change_request)
     end
+    @latest_instances = all_instances
+    set_future_changes(temp_change_request)
     @latest_instances
   end
 
+  def latest_instance_count
+    logs = @project.latest_instance_logs
+    instance_mappings = InstanceMapping.where(platform: @platform)
+    groups = @project.front_end_compute_groups
+
+    all_instances = {}
+    groups.each do |node_group, values|
+      instances = []
+      region = values["region"]
+      group_logs = logs.where(compute_group: node_group)
+      instance_mappings.each do |mapping|
+        instance = Instance.new(mapping.instance_type, region, node_group, @project.platform, @project)
+        if instance.node_limit > 0 && instance.present_in_region?
+          group_logs.where(instance_type: mapping.instance_type).each do |log|
+            instance.increase_count(InstanceLog::ON_STATUSES[@platform] == log.status ? :on : :off)
+          end
+          instances << instance
+        end
+      end
+
+      # add any unmapped instances
+      logs_without_mapping = group_logs.map { |log| log.has_mapping? ? nil : log.id }.compact
+      grouped = group_logs.where("id IN (?)", logs_without_mapping).group(:instance_type, :status).count
+      last = nil
+      grouped.each do |group|
+        if !last || last && group[0][0] != last.instance_type
+          instance = Instance.new(group[0][0], region, node_group, @project.platform, @project)
+          instance.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
+          instances << last if last&.present_in_region?
+          last = instance
+        elsif last
+          last.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
+        end
+      end
+      instances << last if last&.present_in_region?
+
+      all_instances[node_group] = instances
+    end
+    all_instances
+  end
+
   def set_future_changes(temp_change_request=nil)
-    latest_instances if !@latest_instances
+    latest_instances(temp_change_request) unless @latest_instances
 
     scheduled_counts(false, temp_change_request).each do |date, group_details|
       group_details.each do |group, instance_types|
@@ -161,5 +165,21 @@ class InstanceTracker
       end
     end
     counts
+  end
+
+  # Returns the number of active nodes and total number for each group
+  def nodes_up
+    {}.tap do |nodes|
+      latest_instance_count.each do |group, instances|
+        on = 0
+        total = 0
+        instances.each do |instance|
+          next if instance.node_limit == 0
+          on += instance.count[:on]
+          total += on + instance.count[:off]
+        end
+        nodes[group] = {on: on, total: total}
+      end
+    end
   end
 end

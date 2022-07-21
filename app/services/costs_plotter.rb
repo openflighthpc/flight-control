@@ -75,6 +75,24 @@ class CostsPlotter
     results
   end
 
+  def total_costs_this_cycle(compute_groups)
+    start_date = start_of_current_billing_interval
+    end_date = [Date.yesterday, start_date].max
+    cost_entries = cost_breakdown(start_date, end_date)
+    compute_groups.dup.each { |group| compute_groups << "#{group}_storage" }
+
+    total_costs = {}
+    compute_groups.each do |group|
+      total_costs[group.to_sym] = 0
+      cost_entries.each do |k, v|
+        k = Date.parse(k)
+        break if (@project.archived_date && k >= @project.archived_date) || k > end_date
+        total_costs[group.to_sym] += v.has_key?(:compute) ? v[group.to_sym] : v["forecast_#{group}".to_sym]
+      end
+    end
+    total_costs
+  end
+
   def chart_cumulative_costs(start_date, end_date, temp_change_request=nil, cost_entries=nil)
     start_of_cycle = start_of_billing_interval(start_date)
     cost_entries ||= cost_breakdown(start_of_cycle, end_date, temp_change_request)
@@ -1136,7 +1154,7 @@ class CostsPlotter
                           estimate: !latest_cost_log_date || end_date > latest_cost_log_date
                         }
         if current
-          cycle_details[:costs_so_far] = costs_between_dates(start_date, Date.today + 1.day).to_i
+          cycle_details[:costs_so_far] = costs_between_dates(start_date, Date.today).to_i
           cycle_details[:starting_balance] = remaining_balance(start_date)
           cycle_details[:starting_budget] = budget_on_date(start_date)
         end

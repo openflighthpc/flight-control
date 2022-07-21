@@ -1,0 +1,72 @@
+<% if locals[:events].empty? && locals[:in_progress].empty? %>
+  <p class="text-center my-3">No events</p>
+
+<% else %>
+
+  <div class="row my-3 future-events-table text-center">
+    <table class="table table-striped">
+
+      <thead class="thead-dark events-table-header">
+      <th scope="col" class="events-sub-header">Date</th>
+      <th scope="col" class="events-sub-header">
+        Time<a href="#" class="tool-tip timezone-tooltip" data-placement="top" title="In timezone GMT<%= Time.now.to_s.split(" ")[2] %>" onClick="return false;"><sup>?</sup>
+      </a>
+      <th scope="col" class="events-sub-header"> Description </th>
+      <th scope="col" class="events-sub-header"> Tools </th>
+      </thead>
+
+      <tbody class="border">
+      <% locals[:in_progress].each do |event| %>
+        <tr class="in-progress-event-row">
+          <td>
+            <%= event.date %>
+          </td>
+          <td>
+            <%= event.formatted_timestamp.split(' ').first %>
+          </td>
+          <td class="<%= 'budget-switch-off' if event.automated %>">
+            <%= raw(event.simplified_description) + ' (in progress)' %>
+          </td>
+          <td></td>
+        </tr>
+      <% end %>
+
+      <% locals[:events].each do |event| %>
+        <tr class="<%= 'editable-event-row' if event.editable? %>"
+            data-uneditable="<%= event.uneditable_date_time if event.editable? %>">
+          <td>
+            <%= event.date %>
+          </td>
+          <td>
+            <%= event.time %>
+          </td>
+          <td class="<%= 'budget-switch-off' if event.is_a?(BudgetSwitchOffDecorator) %>">
+            <%= event.description || event.auto_description %>
+          </td>
+          <td>
+            <% if locals[:editor] %>
+              <% if event.editable? %>
+                <a href="events/<%= event.actual_or_parent_id %>/edit?project=<%=locals[:project_name]%>" aria-label="Edit" title="Edit">
+                  <i class="fa fa-pencil fa-lg"></i>
+                </a>
+              <% end %>
+              <% if event.cancellable? %>
+                <%= link_to(raw('<i class="fa fa-trash fa-lg"></i>'),
+                            {action: 'cancel',
+                             controller: 'change_requests',
+                             id: event.actual_or_parent_id,
+                             project: event.project.name},
+                            {data: { confirm: 'Are you sure you want to cancel this request?' },
+                             method: :post,
+                             title: "Cancel" }) %>
+              <% end %>
+            <% else %>
+              -
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

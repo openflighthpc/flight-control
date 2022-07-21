@@ -188,6 +188,10 @@ class Project < ApplicationRecord
     @instances
   end
 
+  def nodes_up
+    InstanceTracker.new(self).nodes_up
+  end
+
   # For resetting after temp
   def reset_latest_instances
     @instances = nil

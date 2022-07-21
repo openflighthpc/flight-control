@@ -13,4 +13,5 @@ class ProjectPolicy < ApplicationPolicy
   alias_method :costs_breakdown?, :show?
   alias_method :audit?, :show?
   alias_method :audit_logs?, :audit?
+  alias_method :dashboard?, :show?
 end

@@ -1,0 +1,15 @@
+<li class="list-group-item dashboard-list-item <%= "pb-3" if locals[:padding] %>">
+  <strong>
+    <%= locals[:field] %><!--
+    <% if locals[:description] %>
+      --><a href="#"
+            class="tool-tip"
+            data-placement="top"
+            title="<%= locals[:description] %>"
+            onClick="return false;"><sup>?</sup></a><!--
+    <% end %>-->:
+  </strong>
+  <span <%= 'class=text-danger' if locals[:red] %>>
+    <%= locals[:value] %>
+  </span>
+</li>
