@@ -72,8 +72,8 @@
                 </button>
               </td>
             </tr>
-      <tr><td colspan="7">
-        <div id="<%= locals[:type] %>-event-details">
+      <tr><td colspan="7" class="event-details-row">
+        <div id="<%= locals[:type] %>-event-details" class="event-details-row">
           <% unless locals[:requests].empty? %>
             <%= render '/change_requests/event_details_card', locals: { event: schedule,
                                                                         parent_event: ChangeRequest.find_by(id: schedule.parent_id) } %>

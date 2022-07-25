@@ -188,7 +188,7 @@ input[type=date] {
   min-width: 45rem;
   margin-right: auto;
   margin-left: auto;
-  margin-bottom: 1rem;
+  border: none;
 }
 
 .event-details-header {
@@ -197,13 +197,17 @@ input[type=date] {
   margin-right: auto;
 }
 
+.event-details-row {
+  padding: 0 !important;
+}
+
 .event-details-card .event-details-body {
   width: 100%;
 }
 
 .event-details-card .event-details-column {
   width: 100%;
-  padding: 1rem
+  padding-bottom: 1rem;
 }
 
 .event-details-column, .event-details-card .event-details-footer,.event-details-header {

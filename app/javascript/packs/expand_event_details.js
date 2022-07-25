@@ -1,10 +1,11 @@
 window.addEventListener('DOMContentLoaded', (event) => {
     $("td[colspan=7]").find("div").hide();
-    $("table").click(function(event) {
+    $(".view-button").click( function(event) {
         event.stopPropagation();
-        var $target = $(event.target);
+        let $target = $(event.target);
         if ($target.hasClass('view-button')) {
-            $target.closest("tr").next().find("div").slideToggle('fast', 'swing');
-        };
-    });
+            let nextRow = $target.closest("tr").next().find("div");
+            nextRow.slideToggle('fast');
+        }
+    })
 })
