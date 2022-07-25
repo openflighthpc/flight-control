@@ -18,7 +18,8 @@
 # end
 
 # Learn more: http://github.com/javan/whenever
-job_type :rake, "cd :path && bundle exec rake :task :output"
+set :environment, ENV['RAILS_ENV'] || 'development'
+job_type :rake, "cd :path && RAILS_ENV=:environment bundle exec rake :task :output"
 
 every :day, at: '12:00pm' do
   rake "daily_reports:generate:all[latest,true]"
