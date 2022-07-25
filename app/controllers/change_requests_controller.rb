@@ -27,7 +27,7 @@ class ChangeRequestsController < ApplicationController
     authorize ChangeRequest.new(project: @project)
     @current_instances = @project.latest_instances
     cost_plotter = CostsPlotter.new(@project)
-    start_date = cost_plotter.start_of_billing_interval(Date.today)
+    start_date = cost_plotter.start_of_billing_interval(Date.current)
     end_date = cost_plotter.end_of_billing_interval(start_date)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
     @existing_timings = @project.request_dates_and_times
@@ -49,8 +49,8 @@ class ChangeRequestsController < ApplicationController
     end
     @current_instances = @project.latest_instances
     cost_plotter = CostsPlotter.new(@project)
-    start_date = cost_plotter.start_of_billing_interval(Date.today)
-    end_date = cost_plotter.end_of_billing_interval(Date.today)
+    start_date = cost_plotter.start_of_billing_interval(Date.current)
+    end_date = cost_plotter.end_of_billing_interval(Date.current)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
     @existing_timings = @project.request_dates_and_times(@request)
     @nav_view = "event wizard"

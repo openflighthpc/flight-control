@@ -11,8 +11,8 @@ class RepeatedChangeRequest < ChangeRequest
 
   def future_dates
     if !@future_dates
-      start = [date, Date.today].max
-      start += 1.day if start == Date.today && actioned_at && actioned_at.to_date == Date.today
+      start = [date, Date.current].max
+      start += 1.day if start == Date.current && actioned_at && actioned_at.to_date == Date.current
       @future_dates = (start..end_date).to_a.map { |d| d.to_s if d == date || named_weekdays.include?(d.strftime("%a")) }.compact
     end
     @future_dates
@@ -50,13 +50,13 @@ class RepeatedChangeRequest < ChangeRequest
   end
 
   def start
-    self.actioned_at = Time.now
+    self.actioned_at = Time.current
     super
   end
 
   def editable?
     (status == "started" || status == "pending") &&
-    next_date_time >= (Time.now + 5.minutes)
+    next_date_time >= (Time.current + 5.minutes)
   end
 
   def cancellable?

@@ -76,8 +76,6 @@ class User < ApplicationRecord
     super && !archived?
   end
 
-  # Use of Time.current should be consistent. When time zones are set,
-  # it uses the given time zone. Otherwise, it returns Time.now.
   def archived?
     archived_at&.<= Time.current
   end

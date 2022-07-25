@@ -312,7 +312,7 @@ class Instance
     days = details.keys.sort # earlier switch offs must be processed first
     days.each do |days_in_future|
       to_switch_off = details[days_in_future]
-      date = Date.today + days_in_future.days
+      date = Date.current + days_in_future.days
       count = pending_on_date_end(date)
       if @future_counts[date]
         # has priority over any existing scheduled request at that time

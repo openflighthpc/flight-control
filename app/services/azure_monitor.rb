@@ -41,7 +41,7 @@ class AzureMonitor < AzureService
   # (if required)
   def get_nodes_usage
     # Ensure we have up to date logs
-    if @project.latest_instance_logs.maximum(:updated_at) < (Time.now - 1.minute)
+    if @project.latest_instance_logs.maximum(:updated_at) < (Time.current - 1.minute)
       @project.record_instance_logs(true)
     end
     on = @project.latest_instance_logs.where(status: InstanceLog::ON_STATUSES["azure"])

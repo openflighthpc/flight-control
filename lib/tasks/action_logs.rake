@@ -21,7 +21,7 @@ namespace :action_logs do
         exit
       end
     else
-      actioned_at = Time.now
+      actioned_at = Time.current
     end
 
     action_log = ActionLog.new(project_id: project.id, action: args[:action], reason: args[:reason],

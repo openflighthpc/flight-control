@@ -6,7 +6,7 @@ class BudgetSwitchOffDecorator
     @date = date
     @time = Project::BUDGET_SWITCH_OFF_TIME
     @switch_offs = switch_offs
-    @updated_at = Time.now
+    @updated_at = Time.current
     @platform = platform
   end
 

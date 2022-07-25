@@ -69,13 +69,13 @@
         <div class="form-group col-md-2">
           <label for="from-date" class="audit-form-label">From:</label>
           <input class="form-control" type="date" id='from-date'
-                 name='start_date' max=<%=Date.today%>
+                 name='start_date' max=<%=Date.current%>
                  <%= "value=#{@list.start_date}" if @list.start_date %>>
         </div>
         <div class="form-group col-md-2">
           <label for="to-date" class="audit-form-label">To:</label>
           <input class="form-control" type="date" id='to-date'
-                 name="end_date" max=<%=Date.today%>
+                 name="end_date" max=<%=Date.current%>
                  <%= "value=#{@list.end_date}" if @list.end_date %>>
         </div>
       </div>
