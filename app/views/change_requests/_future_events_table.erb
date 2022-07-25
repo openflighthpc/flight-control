@@ -7,10 +7,10 @@
   </div>
 </div>
 <div class="row mb-5 future-events-table" id="<%= locals[:type] %>-events-table-row" <%= "style=display:none;" if !locals[:requests].any? %>>
-  <div class="col-12 text-center">
+  <div class="col-12">
     <table class="table" id="<%= locals[:type] %>-events-table">
-      <thead class="thead-dark" class="events-table-header">
-        <tr>
+      <thead class="thead-dark text-center" class="events-table-header">
+        <tr class="text-center">
           <th colspan="2" class="events-table-explainer"></th>
           <th colspan="<%= @project.front_end_compute_groups.length + 2 %>"
               class="events-table-explainer text-center">
@@ -65,20 +65,22 @@
               <td>
                 <%= schedule.description || schedule.auto_description %>
               </td>
-              <% if @editor %>
-                <td class="d-flex justify-content-center">
-                  <% if schedule.cancellable? %>
-                    <%= button_to "Cancel", {action: "cancel", id: schedule.actual_or_parent_id, project:  schedule.project.name}, {data: { confirm: 'Are you sure you want to cancel this request?' },class: "btn btn-sm btn-danger"} %>
-                  <% end %>
-                  <% if schedule.editable? %>
-                    <button class="btn btn-sm btn-warning edit-button"
-                            onclick="window.location.href='/events/<%= schedule.actual_or_parent_id %>/edit?project=<%= @project.name %>'">
-                      Edit
-                    </button>
-                  <% end %>
-                </td>
-              <% end %>
+              <td class="d-flex justify-content-center">
+                <button class="btn btn-sm btn-primary view-button"
+                        data-toggle="button">
+                  View
+                </button>
+              </td>
             </tr>
+      <tr><td colspan="7">
+        <div class="row mb-4" id="<%= locals[:type] %>-event-details">
+          <% unless locals[:requests].empty? %>
+            <%= render '/change_requests/event_details_card', locals: { event: schedule,
+                                                                        parent_event: ChangeRequest.find_by(id: schedule.parent_id) } %>
+
+          <% end %>
+        </div>
+      </td> </tr>
           <% end %>
         <% end %>
       </tbody>
@@ -93,3 +95,4 @@
   </div>
   <div class="col-1"></div>
 </div>
+

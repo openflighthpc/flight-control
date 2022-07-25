@@ -1,16 +1,84 @@
+<% event = locals[:event] %>
+<% parent_event = locals[:parent_event] %>
+<% repeated = parent_event ? true : false %>
+
 <div class="card event-details-card">
-  event details card
+  <h5 class="event-details-header">
+    <%= event.type %>
+  </h5>
 
-  <div class="card-footer">
-    Status: PENDING
+  <div class="event-details-text d-flex flex-row">
+    <div class="event-details-column">
+      <ul class="list-group list-group-flush">
+        <li class="<%= "pb-3" unless parent_event %>">
+          <strong>Start time:</strong> <%= [event.date.to_s, event.time.to_s].join(' ') %>
+        </li>
 
-    <button class="btn btn-sm btn-danger cancel-button"
-            onclick="window.location.href='/events/'">
-      Cancel
-    </button>
-    <button class="btn btn-sm btn-warning edit-button"
-            onclick="window.location.href='/events/'">
-      Edit
-    </button>
+        <% if parent_event %>
+          <li class="pb-3">
+            <strong>Part of repeated event schedule: </strong><%= parent_event.weekdays %>
+          </li>
+        <% end %>
+
+        <% event.counts.each do |group, counts| %>
+          <li>
+            <strong><%= group %></strong>
+            <ul class="list-group list-group-flush ml-3">
+              <% counts.each do |type, count| %>
+                <li>
+                  <strong><%= "#{type}: " %></strong>
+                  <%= "#{count} nodes #{event.counts_criteria=='min' ? 'minimum' : 'exactly'}" %>
+                </li>
+              <% end %>
+            </ul>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    <div class="event-details-column">
+      <ul class="list-group list-group-flush">
+        <li>
+          <strong>Description:</strong> <%= event.description || event.auto_description %>
+        </li>
+        <% if event.monitor_override_hours %>
+          <li>
+            <strong>Override CPU monitor for:</strong> <%= "#{event.monitor_override_hours} hours" %>
+          </li>
+        <% end %>
+        <li class="pt-3">
+          <strong>Submitted by:</strong> <%=User.find(event.user_id).username %>
+        </li>
+        <li>
+          <strong>Submitted at:</strong> <%= event.created_at %>
+        </li>
+        <% if event.updated_at %>
+          <li>
+            <strong>Last edited at:</strong> <%= event.updated_at %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card-footer event-details-footer d-flex flex-row">
+    <div class="status-text">
+      <strong>Status:</strong> PENDING
+    </div>
+
+    <div class="buttons">
+      <% if event.cancellable? %>
+        <%= button_to "Cancel",
+                      {action: "cancel", id: event.actual_or_parent_id,
+                       project:  event.project.name},
+                      {data: { confirm: 'Are you sure you want to cancel this request?' },
+                       class: "btn btn-sm btn-danger cancel-button"} %>
+      <% end %>
+      <% if event.editable? %>
+        <button class="btn btn-sm btn-warning edit-button"
+                onclick="window.location.href='/events/<%= event.actual_or_parent_id %>/edit?project=<%= event.project.name %>'">
+          Edit
+        </button>
+      <% end %>
+    </div>
   </div>
 </div>
