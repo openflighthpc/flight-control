@@ -3,14 +3,9 @@
 <% repeated = parent_event ? true : false %>
 
 <div class="card event-details-card">
-
-
   <div class="event-details-text d-flex flex-row">
     <div class="event-details-column">
       <ul class="list-group list-group-flush">
-        <li class="<%= "pb-3" unless parent_event %>">
-          <strong>Start time:</strong> <%= [event.date.to_s, event.time.to_s].join(' ') %>
-        </li>
 
         <% if parent_event %>
           <li class="pb-3">
@@ -36,14 +31,6 @@
     <div class="event-details-column">
       <ul class="list-group list-group-flush">
         <li>
-          <strong>Description:</strong> <%= event.description || event.auto_description %>
-        </li>
-        <% if event.monitor_override_hours %>
-          <li>
-            <strong>Override CPU monitor for:</strong> <%= "#{event.monitor_override_hours} hours" %>
-          </li>
-        <% end %>
-        <li class="pt-3">
           <strong>Submitted by:</strong> <%=User.find(event.user_id).username %>
         </li>
         <li>
