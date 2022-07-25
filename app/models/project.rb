@@ -209,19 +209,19 @@ class Project < ApplicationRecord
   end
 
   def continuous_budget?
-    current_budget_policy && current_budget_policy.spend_profile == "continuous"
+    current_budget_policy&.spend_profile == "continuous"
   end
 
   def fixed_budget?
-    current_budget_policy && current_budget_policy.spend_profile == "fixed" 
+    current_budget_policy&.spend_profile == "fixed"
   end
 
   def cycle_days
-    current_budget_policy && current_budget_policy.days
+    current_budget_policy&.days
   end
 
   def cycle_interval
-    current_budget_policy && current_budget_policy.cycle_interval
+    current_budget_policy&.cycle_interval
   end
 
   def current_compute_groups
