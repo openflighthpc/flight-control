@@ -42,7 +42,7 @@
         <% locals[:requests].each do |date, schedules| %>
           <% date_shown = false %>
           <% schedules.each do |schedule| %>
-            <tr class="schedule-row<%= ' border-top' if !date_shown %>"
+            <tr class="text-center schedule-row<%= ' border-top' if !date_shown %>
                 id='<%= schedule.front_end_id %>' data-date="<%= schedule.date %>"
                 data-updated_at="<%= schedule.updated_at %>"
                 >
@@ -68,7 +68,7 @@
               <td class="d-flex justify-content-center">
                 <button class="btn btn-sm btn-primary view-button"
                         data-toggle="button">
-                  View
+                  <i class="fa fa-plus"></i>
                 </button>
               </td>
             </tr>

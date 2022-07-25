@@ -252,6 +252,10 @@ input[type=date] {
   box-shadow: none !important;
 }
 
+.view-button > * {
+  pointer-events: none;
+}
+
 #project-nav {
   min-height: calc(100vh - 5rem);
   padding-right: 0;
