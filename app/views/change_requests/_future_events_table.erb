@@ -73,7 +73,7 @@
               </td>
             </tr>
       <tr><td colspan="7">
-        <div class="row mb-4" id="<%= locals[:type] %>-event-details">
+        <div id="<%= locals[:type] %>-event-details">
           <% unless locals[:requests].empty? %>
             <%= render '/change_requests/event_details_card', locals: { event: schedule,
                                                                         parent_event: ChangeRequest.find_by(id: schedule.parent_id) } %>
@@ -88,7 +88,7 @@
   </div>
   <div class="col-1"></div>
 </div>
-<div class="row  mb-5" id="no-<%= locals[:type] %>-events-row" <%= "style=display:none;" if locals[:requests].any? %>>
+<div class="row mb-5" id="no-<%= locals[:type] %>-events-row" <%= "style=display:none;" if locals[:requests].any? %>>
   <div class="col-1"></div>
   <div class="col-10 text-center">
     No events

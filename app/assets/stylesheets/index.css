@@ -242,7 +242,6 @@ input[type=date] {
 
 .edit-button, .view-button, .cancel-button {
   margin-left: 0.35rem;
-  /*margin-right: 0.35rem;*/
 }
 
 .view-button {
