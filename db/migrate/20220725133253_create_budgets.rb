@@ -5,6 +5,7 @@ class CreateBudgets < ActiveRecord::Migration[6.0]
       t.bigint :amount
       t.date :effective_at, index: true
       t.date :expiry_date
+      t.boolean :final, default: false
 
       t.timestamps
     end

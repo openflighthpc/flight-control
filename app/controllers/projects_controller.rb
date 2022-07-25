@@ -1,11 +1,6 @@
 class ProjectsController < ApplicationController
   def dashboard
-    get_project
-    if !@project
-      no_project_redirect
-    else
-      authorize @project, policy_class: ProjectPolicy
-    end
+    authorize @project, policy_class: ProjectPolicy
     @nav_view = "dashboard"
     get_billing_data
     get_upcoming_events
