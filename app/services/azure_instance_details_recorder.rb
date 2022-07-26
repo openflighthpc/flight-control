@@ -14,18 +14,33 @@ class AzureInstanceDetailsRecorder < AzureService
   # be filtered out in the query), if more than 50 instance types in a region
   # logic will need updating to make further requests to get subsequent records.
   def record
+    failed_query = false
+    database_entries = {}
+
     size_details = get_instance_sizes
     if size_details
       size_details.each do |type_details|
+        region = type_details[:location]
         info = type_details.slice(*[:instance_type, :cpu, :gpu, :mem])
-        info[:region] = type_details[:location]
+        info[:region] = region
         record_details_to_database(info)
+
+        unless failed_query
+          database_entries[region] = [] if database_entries[region].nil?
+          database_entries[region].append(info[:instance_type])
+        end
       end
     else
       Rails.logger.error("Error obtaining latest Azure instance size details.")
+      failed_query = true
+      database_entries = nil
     end
 
     regions.each do |region|
+      if database_entries[region].nil? && !failed_query
+        database_entries[region] = []
+      end
+
       regional_price_details = get_regional_instance_prices(region)
       if regional_price_details
         regional_price_details.each do |type, details|
@@ -35,27 +50,32 @@ class AzureInstanceDetailsRecorder < AzureService
             info = {
               instance_type: details["armSkuName"],
               region: details["armRegionName"],
+              platform: "azure",
               price_per_hour: details["unitPrice"],
               currency: details["currencyCode"],
             }
             record_details_to_database(info)
+
+            unless failed_query
+              database_entries[region].append(info[:instance_type])
+            end
           end
         end
       else
         Rails.logger.error("Error obtaining latest Azure instance pricing details for region: #{region}")
+        failed_query = true
+        database_entries = nil
       end
     end
+    InstanceTypeDetail.keep_only_updated_entries(database_entries, 'azure') if database_entries
   end
 
   def record_details_to_database(info)
-    new_details = InstanceTypeDetail.new(info)
     existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
     if existing_details
-      new_details.set_default_values(selected_attributes: info.keys)
-      existing_details.update_details(new_details, selected_attributes: info.keys)
+      existing_details.update!(info)
     else
-      new_details.set_default_values
-      new_details.save!
+      InstanceTypeDetail.new(info).save!
     end
   end
 

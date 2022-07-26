@@ -18,8 +18,10 @@ class AwsInstanceDetailsRecorder
   end
 
   def record
+    database_entries = {}
     regions.each do |region|
       first_query = true
+      failed_query = false
       results = nil
       while first_query || results&.next_token
         begin
@@ -27,36 +29,45 @@ class AwsInstanceDetailsRecorder
         rescue Aws::Pricing::Errors::ServiceError, Aws::Errors::MissingRegionError, Seahorse::Client::NetworkingError => error
           raise AwsSdkError.new("Unable to determine AWS instances in region #{region}. #{error}")
         end
-        results.price_list.each do |result|
-          details = JSON.parse(result)
-          attributes = details["product"]["attributes"]
-          next unless instance_types.include?(attributes["instanceType"])
-
-          price = details["terms"]["OnDemand"]
-          price = price[price.keys[0]]["priceDimensions"]
-          price = price[price.keys[0]]["pricePerUnit"]["USD"].to_f
-          mem = attributes["memory"].gsub(" GiB", "")
-          info = {
-            instance_type: attributes["instanceType"],
-            region: region,
-            price_per_hour: price,
-            cpu: attributes["vcpu"].to_i,
-            mem: mem.to_f,
-            gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0,
-            currency: "USD",
-          }
-          new_details = InstanceTypeDetail.new(info)
-          new_details.set_default_values
-          existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
-          if existing_details
-            existing_details.update_details(new_details, info.keys)
-          else
-            new_details.save!
+        if results
+          if database_entries[region].nil? && !failed_query
+            database_entries[region] = []
           end
+          results.price_list.each do |result|
+            details = JSON.parse(result)
+            attributes = details["product"]["attributes"]
+            next unless instance_types.include?(attributes["instanceType"])
+
+            price = details["terms"]["OnDemand"]
+            price = price[price.keys[0]]["priceDimensions"]
+            price = price[price.keys[0]]["pricePerUnit"]["USD"].to_f
+            mem = attributes["memory"].gsub(" GiB", "")
+            info = {
+              instance_type: attributes["instanceType"],
+              region: region,
+              platform: "aws",
+              currency: "USD",
+              price_per_hour: price,
+              cpu: attributes["vcpu"].to_i,
+              gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0,
+              mem: mem.to_f,
+            }
+            existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
+            if existing_details
+              existing_details.update!(info)
+            else
+              InstanceTypeDetail.new(info).save!
+            end
+            database_entries[region].append(attributes["instanceType"]) unless failed_query
+          end
+          first_query = false
+        else
+          failed_query = true
+          database_entries = nil
         end
-        first_query = false
       end
     end
+    InstanceTypeDetail.keep_only_updated_entries(database_entries, 'aws') if database_entries
   end
 
   def validate_credentials
@@ -83,15 +94,15 @@ class AwsInstanceDetailsRecorder
   def instance_types
     @instance_types ||= InstanceLog.where(platform: "aws").pluck(Arel.sql("DISTINCT instance_type"))
   end
-  
+
   def instances_info_query(region, token=nil)
     details = {
       service_code: "AmazonEC2",
-      filters: [ 
+      filters: [
         {
-          field: "location", 
-          type: "TERM_MATCH", 
-          value: @@region_mappings[region], 
+          field: "location",
+          type: "TERM_MATCH",
+          value: @@region_mappings[region],
         },
         {
           field: "tenancy",
@@ -110,11 +121,11 @@ class AwsInstanceDetailsRecorder
         },
         {
           field: "preInstalledSW",
-          type: "TERM_MATCH", 
+          type: "TERM_MATCH",
           value: "NA"
         }
-     ], 
-     format_version: "aws_v1"
+      ],
+      format_version: "aws_v1"
     }
     details[:next_token] = token if token
     details

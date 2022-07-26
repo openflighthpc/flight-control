@@ -187,6 +187,10 @@ class Project < ApplicationRecord
     end
     @instances
   end
+
+  def nodes_up
+    InstanceTracker.new(self).nodes_up
+  end
   
   def valid_instance_details?
     @instances.each do |_, instances|

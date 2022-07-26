@@ -1,11 +1,24 @@
 class InstanceTypeDetail < ApplicationRecord
   validates :region, presence: true
-  validates :price_per_hour, :cpu, :gpu, :mem,
-            allow_nil: true,
-            :numericality => { :greater_than_or_equal_to => 0 }
   validates :instance_type,
             presence: true,
             uniqueness: { scope: :region, message: -> (object, _) { object.repeated_instance_type_error } }
+  [:price_per_hour, :cpu, :gpu, :mem].each do |attr|
+    validates attr,
+              :numericality => { greater_than_or_equal_to: 0 },
+              unless: -> { self[attr].nil? }
+  end
+
+  def self.keep_only_updated_entries(recent_entries, platform)
+    where(platform: platform).each do |details|
+      region = details.region.to_s
+      instance_type = details.instance_type.to_s
+      unless recent_entries[region] && recent_entries[region].include?(instance_type)
+        Rails.logger.error("Database entry for region: #{region} and instance type: #{instance_type} was not updated and will be deleted.")
+        find_by(instance_type: instance_type, region: region).destroy
+      end
+    end
+  end
 
   def price_per_hour
     self[:price_per_hour] || 0
@@ -25,6 +38,10 @@ class InstanceTypeDetail < ApplicationRecord
 
   def currency
     self[:currency] || default
+  end
+
+  def platform
+    self[:platform] || default
   end
 
   def default
