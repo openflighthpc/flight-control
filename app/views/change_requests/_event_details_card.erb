@@ -9,7 +9,11 @@
 
         <% if parent_event %>
           <li class="pb-3">
-            <strong>Part of repeated event schedule: </strong><%= parent_event.weekdays %>
+            <strong>Part of repeated event schedule: </strong><br>
+            <ul class="list-group list-group-flush ml-3">
+              <li>On: <%= parent_event.formatted_days %></li>
+              <li>Until: <%= parent_event.parsed_end_date_time %></li>
+            </ul>
           </li>
         <% end %>
 
@@ -19,7 +23,9 @@
             <ul class="list-group list-group-flush ml-3">
               <% counts.each do |type, count| %>
                 <li>
-                  <strong><%= "#{type}: " %></strong>
+                  <strong>
+                    <%= InstanceMapping.customer_facing_type(@project.platform, type) %>:
+                  </strong>
                   <%= "#{count} nodes #{event.counts_criteria=='min' ? 'minimum' : 'exactly'}" %>
                 </li>
               <% end %>
@@ -47,7 +53,7 @@
 
   <div class="card-footer event-details-footer d-flex flex-row">
     <div class="status-text">
-      <strong>Status:</strong> PENDING
+      <strong>Status:</strong> <%= event.status.upcase %>
     </div>
 
     <div class="buttons">
