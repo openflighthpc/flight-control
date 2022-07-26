@@ -1,5 +1,5 @@
 class InstanceTypeDetail < ApplicationRecord
-  validates :region, :currency, presence: true
+  validates :region, presence: true
   validates :price_per_hour, :cpu, :gpu, :mem,
             allow_nil: true,
             :numericality => { :greater_than_or_equal_to => 0 }
@@ -23,6 +23,10 @@ class InstanceTypeDetail < ApplicationRecord
     self[:mem] || default
   end
 
+  def currency
+    self[:currency] || default
+  end
+
   def default
     'UNKNOWN'
   end
@@ -38,13 +42,8 @@ class InstanceTypeDetail < ApplicationRecord
   def set_default_values(selected_attributes: nil)
     attributes_to_change = invalid_attributes(selected_attributes: selected_attributes)
     return if attributes_to_change.empty?
-
     attributes_to_change.each do |attr|
-      if self.class.columns_hash[attr].type == :string
-        assign_attributes( { attr => 'UNKNOWN' } )
-      else
-        assign_attributes( { attr => nil } )
-      end
+      assign_attributes( { attr => nil } )
     end
   end
 

@@ -13,20 +13,13 @@ class Instance
     @platform = platform
     @project = project
     @count = {on: 0, off: 0}
-    @details = InstanceTypeDetail.find_by(instance_type: instance_type, region: region) || {}
+    @details = InstanceTypeDetail.find_by(instance_type: instance_type, region: region) || InstanceTypeDetail.new
     @future_counts = {}
     @budget_switch_offs = {}
   end
 
   def present_in_region?
-    @details != {}
-  end
-
-  def set_default_instance_details
-    unless present_in_region?
-      @details = InstanceTypeDetail.new
-      @details.set_default_values
-    end
+    @details != InstanceTypeDetail.new
   end
 
   # JS doesn't work with instance types including '.'
