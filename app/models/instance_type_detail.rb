@@ -7,6 +7,26 @@ class InstanceTypeDetail < ApplicationRecord
             presence: true,
             uniqueness: { scope: :region, message: -> (object, _) { object.repeated_instance_type_error } }
 
+  def price_per_hour
+    self[:price_per_hour] || 0
+  end
+
+  def cpu
+    self[:cpu] || default
+  end
+
+  def gpu
+    self[:gpu] || default
+  end
+
+  def mem
+    self[:mem] || default
+  end
+
+  def default
+    'UNKNOWN'
+  end
+
   def repeated_instance_type
     @instance_details ||= self.class.find_by(instance_type: instance_type, region: region)
   end

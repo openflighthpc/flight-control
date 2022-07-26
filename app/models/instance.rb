@@ -123,12 +123,12 @@ class Instance
   end
 
   def price_per_hour
-    base_price = price || 0
+    base_price = price
     @platform == "aws" ? base_price * CostLog.usd_gbp_conversion : base_price
   end
 
   def price
-    @details.price_per_hour.to_f
+    @details.price_per_hour
   end
 
   def daily_cost
@@ -249,19 +249,19 @@ class Instance
   end
 
   def cpus
-    @details.cpu.nil? ? 'unknown' : @details.cpu
+    @details.cpu
   end
 
   def mem
-    @details.mem.nil? ? 'unknown' : @details.mem
+    @details.mem
   end
 
   def gpus
-    @details.gpu.nil? ? 'unknown' : @details.gpu
+    @details.gpu
   end
 
   def details_description
-    if cpus == 'unknown'
+    if cpus == @details.default
       "Unknown - please generate new instance details files"
     else
       "Mem: #{mem}GiB, CPUs: #{cpus}, GPUs: #{gpus}"
@@ -270,7 +270,7 @@ class Instance
 
   def details_and_cost_description
     details = details_description
-    unless cpus == 'unknown'
+    unless cpus == @details.default
       details << ", Cost: #{daily_compute_cost} compute units/ day"
     end
   end
