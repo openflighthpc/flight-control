@@ -12,7 +12,7 @@
             <strong>Part of repeated event schedule: </strong><br>
             <ul class="list-group list-group-flush ml-3">
               <li>On: <%= parent_event.formatted_days %></li>
-              <li>Until: <%= parent_event.parsed_end_date_time %></li>
+              <li>Until: <%= parent_event.parsed_end_date_time.in_time_zone(Rails.configuration.time_zone) %></li>
             </ul>
           </li>
         <% end %>
@@ -40,11 +40,11 @@
           <strong>Submitted by:</strong> <%=User.find(event.user_id).username %>
         </li>
         <li>
-          <strong>Submitted at:</strong> <%= event.created_at %>
+          <strong>Submitted at:</strong> <%= event.created_at.in_time_zone(Rails.configuration.time_zone) %>
         </li>
         <% if event.updated_at %>
           <li>
-            <strong>Last edited at:</strong> <%= event.updated_at %>
+            <strong>Last edited at:</strong> <%= event.updated_at.in_time_zone(Rails.configuration.time_zone) %>
           </li>
         <% end %>
       </ul>
