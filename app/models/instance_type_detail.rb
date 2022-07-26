@@ -31,10 +31,6 @@ class InstanceTypeDetail < ApplicationRecord
     'UNKNOWN'
   end
 
-  def repeated_instance_type
-    @instance_details ||= self.class.find_by(instance_type: instance_type, region: region)
-  end
-
   def repeated_instance_type_error
     'Instance type and region combination already exists'
   end

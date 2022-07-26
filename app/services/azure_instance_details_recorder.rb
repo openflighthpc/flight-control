@@ -49,7 +49,7 @@ class AzureInstanceDetailsRecorder < AzureService
 
   def record_details_to_database(info)
     new_details = InstanceTypeDetail.new(info)
-    existing_details = new_details.repeated_instance_type
+    existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
     if existing_details
       new_details.set_default_values(selected_attributes: info.keys)
       existing_details.update_details(new_details, selected_attributes: info.keys)

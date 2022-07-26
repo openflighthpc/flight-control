@@ -47,7 +47,7 @@ class AwsInstanceDetailsRecorder
           }
           new_details = InstanceTypeDetail.new(info)
           new_details.set_default_values
-          existing_details = new_details.repeated_instance_type
+          existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
           if existing_details
             existing_details.update_details(new_details, info.keys)
           else
