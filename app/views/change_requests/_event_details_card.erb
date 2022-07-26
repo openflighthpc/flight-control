@@ -32,6 +32,11 @@
             </ul>
           </li>
         <% end %>
+        <% unless parent_event %>
+          <li class="pt-3">
+            <strong>Status:</strong> <%= event.status.upcase %>
+          </li>
+        <% end %>
       </ul>
     </div>
     <div class="event-details-column">
@@ -47,13 +52,18 @@
             <strong>Last edited at:</strong> <%= event.updated_at.in_time_zone(Rails.configuration.time_zone) %>
           </li>
         <% end %>
+        <% if parent_event %>
+          <li class="pt-3">
+            <strong>Status:</strong> <%= event.status.upcase %>
+          </li>
+        <% end %>
       </ul>
     </div>
   </div>
 
   <div class="card-footer event-details-footer d-flex flex-row">
     <div class="status-text">
-      <strong>Status:</strong> <%= event.status.upcase %>
+<!--      <strong>Status:</strong> <%#= event.status.upcase %>-->
     </div>
 
     <div class="buttons">

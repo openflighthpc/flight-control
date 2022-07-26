@@ -188,7 +188,8 @@ input[type=date] {
   min-width: 45rem;
   margin-right: auto;
   margin-left: auto;
-  border: none;
+  border-top: none;
+  border-inline: none;
 }
 
 .event-details-header {
@@ -221,6 +222,7 @@ input[type=date] {
 .event-details-card .card-footer {
   justify-content: space-between;
   border: none;
+  background: none;
 }
 
 .event-details-card .card-footer .status-text {
