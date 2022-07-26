@@ -116,8 +116,7 @@ class Instance
   end
 
   def price_per_hour
-    base_price = price
-    @platform == "aws" ? base_price * CostLog.usd_gbp_conversion : base_price
+    @details.currency == "USD" ? price * CostLog.usd_gbp_conversion : price
   end
 
   def price
