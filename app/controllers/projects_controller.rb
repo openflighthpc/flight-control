@@ -173,10 +173,4 @@ class ProjectsController < ApplicationController
   def no_project_redirect
     render "projects/no_project"
   end
-
-  def check_valid_instance_details
-    unless  @project.valid_instance_details?
-      flash[:danger] = @project.invalid_instance_details_flash
-    end
-  end
 end

@@ -174,10 +174,4 @@ class ChangeRequestsController < ApplicationController
     @current_instances = original.select { |group, instances| @filtered_groups.include?(group) }
     @current_instances = original if @current_instances.empty?
   end
-
-  def check_valid_instance_details
-    unless  @project.valid_instance_details?
-      flash[:danger] = @project.invalid_instance_details_flash
-    end
-  end
 end
