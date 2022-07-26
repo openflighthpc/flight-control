@@ -136,6 +136,8 @@ class AzureInstanceDetailsRecorder < AzureService
       error.error_messages.append(msg)
       if attempt < MAX_API_ATTEMPTS
         retry
+      else
+        raise error
       end
     end
   end
