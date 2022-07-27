@@ -66,21 +66,24 @@
                 <%= schedule.description || schedule.auto_description %>
               </td>
               <td class="d-flex justify-content-center">
-                <button class="btn btn-sm btn-primary view-button"
-                        data-toggle="button">
-                  <i class="fa fa-plus"></i>
+                <button class="btn btn-sm btn-link view-button"
+                        data-toggle="collapse"
+                        data-target="#<%= locals[:type] %>-event-details-<%= schedule.front_end_id %>"
+                        aria-expanded="false"
+                        aria-controls="<%= locals[:type] %>-event-details-<%= schedule.front_end_id %>">
+                  <i class="fa fa-chevron-down"></i>
                 </button>
               </td>
             </tr>
       <tr><td colspan="7" class="event-details-row">
-        <div id="<%= locals[:type] %>-event-details" class="event-details-row">
+        <div id="<%= locals[:type] %>-event-details-<%= schedule.front_end_id %>" class="event-details-row collapse">
           <% unless locals[:requests].empty? %>
             <%= render '/change_requests/event_details_card', locals: { event: schedule,
                                                                         parent_event: ChangeRequest.find_by(id: schedule.parent_id) } %>
 
           <% end %>
         </div>
-      </td> </tr>
+      </td></tr>
           <% end %>
         <% end %>
       </tbody>

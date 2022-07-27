@@ -6,8 +6,7 @@
   <div class="event-details-text d-flex flex-row">
     <div class="event-details-column">
       <ul class="list-group list-group-flush">
-
-        <% if parent_event %>
+        <% if repeated %>
           <li class="pb-3">
             <strong>Part of repeated event schedule: </strong><br>
             <ul class="list-group list-group-flush ml-3">
@@ -32,7 +31,7 @@
             </ul>
           </li>
         <% end %>
-        <% unless parent_event %>
+        <% unless repeated %>
           <li class="pt-3">
             <strong>Status:</strong> <%= event.status.upcase %>
           </li>
@@ -52,7 +51,7 @@
             <strong>Last edited at:</strong> <%= event.updated_at.in_time_zone(Rails.configuration.time_zone) %>
           </li>
         <% end %>
-        <% if parent_event %>
+        <% if repeated %>
           <li class="pt-3">
             <strong>Status:</strong> <%= event.status.upcase %>
           </li>

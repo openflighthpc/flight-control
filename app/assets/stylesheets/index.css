@@ -184,8 +184,9 @@ input[type=date] {
 }
 
 .event-details-card {
-  max-width: 50rem;
+  max-width: 45rem;
   min-width: 45rem;
+  margin-top: 0.2rem;
   margin-right: auto;
   margin-left: auto;
   border-top: none;
@@ -257,6 +258,10 @@ input[type=date] {
 
 .view-button > * {
   pointer-events: none;
+}
+
+.view-button[aria-expanded="true"] .fa-chevron-down {
+  transform: rotate(180deg);
 }
 
 #project-nav {
