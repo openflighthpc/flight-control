@@ -80,6 +80,8 @@ class FlightHubCommunicator
   end
 
   def department_path
+    raise FlightHubApiError.new("Project has no flight hub id") if @project.flight_hub_id.nil?
+
     "#{flight_hub_path}/departments/#{@project.flight_hub_id}"
   end
 
@@ -122,8 +124,9 @@ class FlightHubCommunicator
 
   # Would be easier if hub gave a more consistent
   # format, instead of sometimes a hash, sometimes a string.
+  # If something goes very wrong, sometimes returns html.
   def parse_response_errors(response)
-    return message if response.is_a?(String)
+    return message.truncate(120)  if response.is_a?(String)
 
     message = ""
     response.each do |attribute, errors|
