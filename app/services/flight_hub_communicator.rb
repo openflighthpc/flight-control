@@ -91,7 +91,19 @@ class FlightHubCommunicator
     {
       "Content-Type" => "application/json",
       "Accept" => "application/json",
+      "Authorization" => "Bearer #{jwt}",
     }
+  end
+
+  def jwt
+    JsonWebToken.encode(
+      {
+        sub: 'Alces Flight Control',
+        iss: 'Alces Flight Control',
+        aud: 'Flight Hub',
+      },
+      5.minutes.from_now
+    )
   end
 
   # Reference id could be "control: #{}" with id that of an associated
