@@ -60,25 +60,19 @@
     </div>
   </div>
 
-  <div class="card-footer event-details-footer d-flex flex-row">
-    <div class="status-text">
-<!--      <strong>Status:</strong> <%#= event.status.upcase %>-->
-    </div>
-
-    <div class="buttons">
-      <% if event.cancellable? %>
+  <div class="row event-details-buttons justify-content-md-end text-center">
+    <% if event.editable? %>
+      <button class="btn btn-sm btn-warning edit-button"
+              onclick="window.location.href='/events/<%= event.actual_or_parent_id %>/edit?project=<%= event.project.name %>'">
+        Edit
+      </button>
+      <% end %>
+    <% if event.cancellable? %>
         <%= button_to "Cancel",
                       {action: "cancel", id: event.actual_or_parent_id,
                        project:  event.project.name},
                       {data: { confirm: 'Are you sure you want to cancel this request?' },
                        class: "btn btn-sm btn-danger cancel-button"} %>
       <% end %>
-      <% if event.editable? %>
-        <button class="btn btn-sm btn-warning edit-button"
-                onclick="window.location.href='/events/<%= event.actual_or_parent_id %>/edit?project=<%= event.project.name %>'">
-          Edit
-        </button>
-      <% end %>
-    </div>
   </div>
 </div>

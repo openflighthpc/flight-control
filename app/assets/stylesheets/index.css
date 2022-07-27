@@ -169,6 +169,10 @@ input[type=date] {
   margin-left: 4rem;
 }
 
+.future-events-table .table {
+  min-width: 45rem;
+}
+
 .events-table-header {
   border: 0.08rem solid;
   border-right-width:  0.05rem;
@@ -183,6 +187,10 @@ input[type=date] {
   border-top: 0 !important;
 }
 
+.event-details-row {
+  padding: 0 !important;
+}
+
 .event-details-card {
   max-width: 45rem;
   min-width: 45rem;
@@ -193,26 +201,9 @@ input[type=date] {
   border-inline: none;
 }
 
-.event-details-header {
-  padding-top: 1rem;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.event-details-row {
-  padding: 0 !important;
-}
-
-.event-details-card .event-details-body {
-  width: 100%;
-}
-
 .event-details-card .event-details-column {
   width: 100%;
   padding-bottom: 1rem;
-}
-
-.event-details-column, .event-details-card .event-details-footer,.event-details-header {
   padding-inline: 0.5rem !important;
 }
 
@@ -220,23 +211,8 @@ input[type=date] {
   list-style-type: none;
 }
 
-.event-details-card .card-footer {
-  justify-content: space-between;
-  border: none;
-  background: none;
-}
-
-.event-details-card .card-footer .status-text {
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.event-details-card .card-footer .btn {
-  float: right;
-}
-
-.event-details-card .card-footer .buttons {
-  min-width: 10rem;
+.event-details-card .event-details-buttons {
+  padding-bottom: 0.5rem;
 }
 
 .timezone-tooltip {
@@ -248,8 +224,8 @@ input[type=date] {
   width: 12rem !important;
 }
 
-.edit-button, .view-button, .cancel-button {
-  margin-left: 0.35rem;
+.edit-button, .cancel-button {
+  margin-inline: 0.25rem;
 }
 
 .view-button {
