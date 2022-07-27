@@ -52,11 +52,16 @@ class AwsInstanceDetailsRecorder
               gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0,
               mem: mem.to_f,
             }
-            existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
-            if existing_details
-              existing_details.update!(info)
+            if info[:instance_type] && info[:region]
+              existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
+              if existing_details
+                existing_details.update!(info)
+              else
+                InstanceTypeDetail.new(info).save!
+              end
             else
-              InstanceTypeDetail.new(info).save!
+              Rails.logger.error("Instance details not saved due to missing region and/or instance type.")
+              failed_query = true
             end
             database_entries[region].append(attributes["instanceType"]) unless failed_query
           end

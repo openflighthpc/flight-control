@@ -23,8 +23,12 @@ class AzureInstanceDetailsRecorder < AzureService
         region = type_details[:location]
         info = type_details.slice(*[:instance_type, :cpu, :gpu, :mem])
         info[:region] = region
-        record_details_to_database(info)
-
+        if info[:instance_type] && info[:region]
+          record_details_to_database(info)
+        else
+          Rails.logger.error("Instance size details not saved due to missing region and/or instance type.")
+          failed_query = true
+        end
         unless failed_query
           database_entries[region] = [] if database_entries[region].nil?
           database_entries[region].append(info[:instance_type])
@@ -53,7 +57,12 @@ class AzureInstanceDetailsRecorder < AzureService
               price_per_hour: details["unitPrice"],
               currency: details["currencyCode"],
             }
-            record_details_to_database(info)
+            if info[:instance_type] && info[:region]
+              record_details_to_database(info)
+            else
+              Rails.logger.error("Instance size details not saved due to missing region and/or instance type.")
+              failed_query = true
+            end
             database_entries[region].append(info[:instance_type]) unless failed_query
           end
         end
