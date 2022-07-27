@@ -111,6 +111,7 @@ Rails.application.configure do
   # config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
   
   # Flight SSO integration details
+  config.jwt_secret = Rails.application.credentials.config[:jwt_secret]
   config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME')
   config.sso_uri = ""
   config.sso_domain = ""

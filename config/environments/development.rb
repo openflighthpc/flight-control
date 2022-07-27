@@ -61,6 +61,7 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   # Flight SSO integration details
+  config.jwt_secret = Rails.application.credentials.config[:jwt_secret]
   config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME', 'flight_sso_dev')
   config.sso_domain = "alces-flight.lvh.me"
   config.sso_uri = "http://accounts.alces-flight.lvh.me:4000"

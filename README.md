@@ -18,6 +18,7 @@ The application has a hard dependency on https://github.com/alces-flight/flight-
   - `database_password`
   - `slack_token`
   - `secret_key_base`, generated using `rake secret`
+  - `jwt_secret`, matching that used by Flight SSO and Flight Hub
 - Ensure you save a backup copy of the file `config/master.key` (used for encryption of these credentials)
 - If running in production:
   - Set the `RAILS_ENV` environment variable to `production`
@@ -286,13 +287,13 @@ The most important user role tasks are as follows:
 
 This application has the capacity to authenticate users via a Flight SSO server. To do so, some configuration is required:
 
-- The `JWT_SECRET` environment variable must be set. This is a shared secret used to decode JSON Web Tokens given out by Flight SSO.
+- The `jwt_secret` credential must be set. This is a shared secret used to decode JSON Web Tokens given out by Flight SSO.
 - The `sso_cookie_name` and `sso_uri` keys must be set in `config/environments/*.rb`.
   - `sso_cookie_name` is the name of the cookie that the SSO session will be stored in. This must match the cookie name being used by SSO.
   - `sso_uri` is the URI used to reach the SSO server. It should be the host and port, _not_ including the path.
   - `sso_domain` is the domain that the cookie will be created under. Again, it should match the SSO server in use.
 
-A rake task (`rake sso:sync`) and cron schedule item have been created for syncing the user database to the SSO database. The `JWT_SECRET` environment variable is required for it to work. The sync task will query the SSO database for users, create an SSO user in Control for any that don't already exist, and update any username/email discrepancies locally.
+A rake task (`rake sso:sync`) and cron schedule item have been created for syncing the user database to the SSO database. The `jwt_secret` credential is required for it to work. The sync task will query the SSO database for users, create an SSO user in Control for any that don't already exist, and update any username/email discrepancies locally.
 
 SSO user objects should be treated like any 'local' user, in that it can be archived/activated and have user roles created/revoked for it.
 

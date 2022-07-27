@@ -6,7 +6,7 @@ class JsonWebToken
     payload['exp'] = expiration.to_i
     JWT.encode(
       payload,
-      ENV['JWT_SECRET'],
+      Rails.configuration.jwt_secret,
       'HS256'
     )
   end
@@ -14,7 +14,7 @@ class JsonWebToken
   def self.decode(token, options={})
     JWT.decode(
       token,
-      ENV['JWT_SECRET'],
+      Rails.configuration.jwt_secret,
       true,
       { algorithm: 'HS256' }.merge(options)
     ).first
