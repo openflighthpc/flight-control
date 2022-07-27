@@ -67,7 +67,7 @@ class AwsInstanceDetailsRecorder
         end
       end
     end
-    InstanceTypeDetail.keep_only_updated_entries(database_entries, 'aws') if database_entries
+    keep_only_updated_entries(database_entries) if database_entries
   end
 
   def validate_credentials
@@ -137,6 +137,17 @@ class AwsInstanceDetailsRecorder
       file.readlines.each do |line|
         line = line.split(",")
         @@region_mappings[line[0]] = line[1].strip
+      end
+    end
+  end
+
+  def keep_only_updated_entries(updated_entries)
+    InstanceTypeDetail.where(platform: 'aws').each do |details|
+      region = details.region.to_s
+      instance_type = details.instance_type.to_s
+      unless updated_entries[region] && updated_entries[region].include?(instance_type)
+        Rails.logger.error("Database entry for region: #{region} and instance type: #{instance_type} was not updated and will be deleted.")
+        InstanceTypeDetail.find_by(instance_type: instance_type, region: region).destroy
       end
     end
   end

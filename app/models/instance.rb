@@ -268,7 +268,7 @@ class Instance
   end
 
   def valid_details?
-    @valid_details ||= @details.invalid_attributes.empty?
+    @valid_details ||= @details.valid_attributes?
   end
 
   def customer_facing_type

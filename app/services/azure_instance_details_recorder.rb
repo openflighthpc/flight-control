@@ -40,7 +40,6 @@ class AzureInstanceDetailsRecorder < AzureService
       if database_entries[region].nil? && !failed_query
         database_entries[region] = []
       end
-
       regional_price_details = get_regional_instance_prices(region)
       if regional_price_details
         regional_price_details.each do |type, details|
@@ -55,10 +54,7 @@ class AzureInstanceDetailsRecorder < AzureService
               currency: details["currencyCode"],
             }
             record_details_to_database(info)
-
-            unless failed_query
-              database_entries[region].append(info[:instance_type])
-            end
+            database_entries[region].append(info[:instance_type]) unless failed_query
           end
         end
       else
@@ -67,7 +63,7 @@ class AzureInstanceDetailsRecorder < AzureService
         database_entries = nil
       end
     end
-    InstanceTypeDetail.keep_only_updated_entries(database_entries, 'azure') if database_entries
+    keep_only_updated_entries(database_entries) if database_entries
   end
 
   def record_details_to_database(info)
@@ -215,5 +211,16 @@ class AzureInstanceDetailsRecorder < AzureService
       end
     end
     region_mappings
+  end
+
+  def keep_only_updated_entries(updated_entries)
+    InstanceTypeDetail.where(platform: 'azure').each do |details|
+      region = details.region.to_s
+      instance_type = details.instance_type.to_s
+      unless updated_entries[region] && updated_entries[region].include?(instance_type)
+        Rails.logger.error("Database entry for region: #{region} and instance type: #{instance_type} was not updated and will be deleted.")
+        InstanceTypeDetail.find_by(instance_type: instance_type, region: region).destroy
+      end
+    end
   end
 end
