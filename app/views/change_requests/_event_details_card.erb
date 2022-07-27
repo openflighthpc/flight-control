@@ -2,7 +2,7 @@
 <% parent_event = locals[:parent_event] %>
 <% repeated = parent_event ? true : false %>
 
-<div class="card event-details-card">
+<div class="card event-details-card rounded-0 <%= 'border-bottom-0' if locals[:bottom_border] %>">
   <div class="event-details-text d-flex flex-row">
     <div class="event-details-column">
       <ul class="list-group list-group-flush">

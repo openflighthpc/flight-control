@@ -41,7 +41,7 @@
       <tbody class="border" id="<%= locals[:type] %>-events-table-body">
         <% locals[:requests].each do |date, schedules| %>
           <% date_shown = false %>
-          <% schedules.each do |schedule| %>
+          <% schedules.each_with_index do |schedule, index| %>
             <tr class="text-center schedule-row<%= ' border-top' if !date_shown %>
                 id='<%= schedule.front_end_id %>' data-date="<%= schedule.date %>"
                 data-updated_at="<%= schedule.updated_at %>"
@@ -79,7 +79,8 @@
         <div id="<%= locals[:type] %>-event-details-<%= schedule.front_end_id %>" class="event-details-row collapse">
           <% unless locals[:requests].empty? %>
             <%= render '/change_requests/event_details_card', locals: { event: schedule,
-                                                                        parent_event: ChangeRequest.find_by(id: schedule.parent_id) } %>
+                                                                        parent_event: ChangeRequest.find_by(id: schedule.parent_id),
+                                                                        bottom_border: index == schedules.length-1 } %>
 
           <% end %>
         </div>
