@@ -122,14 +122,12 @@ class FlightHubCommunicator
     end.to_json
   end
 
-  # Would be easier if hub gave a more consistent
-  # format, instead of sometimes a hash, sometimes a string.
-  # If something goes very wrong, sometimes returns html.
+  # If something goes very wrong, sometimes Hub returns html.
   def parse_response_errors(response)
-    return message.truncate(120)  if response.is_a?(String)
+    return message.truncate(120) if response.is_a?(String)
 
     message = ""
-    response.each do |attribute, errors|
+    response["errors"].each do |attribute, errors|
       message << "#{attribute}: #{errors.join("; ")}\n"
     end
     message
