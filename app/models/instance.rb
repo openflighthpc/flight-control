@@ -18,10 +18,6 @@ class Instance
     @budget_switch_offs = {}
   end
 
-  def present_in_region?
-    @details != InstanceTypeDetail.new
-  end
-
   # JS doesn't work with instance types including '.'
   def front_end_instance_type
     instance_type.gsub(".", "_")
