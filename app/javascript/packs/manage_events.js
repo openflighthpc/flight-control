@@ -159,7 +159,7 @@ function addNewSchedule(details, type, firstForDate, previousId) {
   if(previousId === null) {
     $(`#${type}-events-table-body`).prepend(html);
   } else {
-    let previous = $(`#${type}-events-table`).find(`#${previousId}`);
+    let previous = $(`#${type}-events-table`).find(`.table-row#${previousId}`);
     $(html).insertAfter(previous);
   }
   $(`#${type}-events-table`).find(`#${details.frontend_id}`).fadeIn('slow');
@@ -168,7 +168,6 @@ function addNewSchedule(details, type, firstForDate, previousId) {
 function updateScheduleDetails(details, type, firstForDate) {
   let html = buildNewSchedule(details, type, firstForDate, true);
   $(`#${type}-events-table`).find(`#${details.frontend_id}`).replaceWith(html);
-  // moveEventDetails(details, type);
 }
 
 function buildNewSchedule(details, type, firstForDate, display=false) {
@@ -198,37 +197,22 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   let override = details.monitor_override_hours;
   if (override) override = `${override} hour${ override > 1 ? 's' : '' }`;
   html += `<td>${override ? override : '-'}</td>`;
-  html += `<td>${details.description ? details.description : '-'}</td>`
-  if($('#edit-column').length > 0) {
-    html += `<td>`;
-    html += createRequestButtons(details, type);
-    html += "</td>";
-  }
+  html += `<td>${details.description ? details.description : '-'}</td>`;
+
+  let viewButton = $(`#view-button-${details.frontend_id}`);
+  html += `<td>`;
+  html += viewButton[0].outerHTML;
+  html += "</td>";
   html += "</tr>";
+
+  let eventDetails = $(`#event-details-${details.frontend_id}`);
+  html += "<tr>";
+  html += `<td colspan="7" class="${type} event-details-row" id="${details.frontend_id}" data-date="${details.date}">`;
+  html += eventDetails[0].outerHTML;
+  html += "</td>";
+  html += "</tr>";
+
+  viewButton.remove();
+  eventDetails.remove();
   return html;
-}
-
-function createRequestButtons(details, type) {
-  const id = details.frontend_id.split("-")[0];
-  const project = $("[name='project']").val();
-  const token = $('meta[name="csrf-token"]').attr('content');
-  let viewButton = $(`#${type}-view-button-${details.frontend_id}`)
-  let html = "";
-  html += `<button class="btn btn-sm btn-link view-button"`
-  html += `id="${type}-view-button-${details.frontend_id}"`
-  html += `data-toggle="collapse" data-target="#${type}-event-details-${details.frontend_id}"`
-  html += `aria-controls="${type}-event-details-${details.frontend_id}"`
-  html += `aria-expanded="${viewButton.attr('aria-expanded')}">`
-  html += `<i class="fa fa-chevron-down"></i> </button>`
-
-  return html;
-}
-
-function moveEventDetails(details, type) {
-  let eventDetails = $(`#${type}-event-details-${details.frontend_id}`);
-  eventDetails.fadeOut('slow');
-  eventDetails.fadeIn('slow');
-  // html += `<tr><td colspan="7" class="event-details-row">`;
-  // html += `<div id="${type}-event-details-${details.frontend_id}" class="event-details-row collapse">`;
-  // html += `</div></td></tr>`;
 }

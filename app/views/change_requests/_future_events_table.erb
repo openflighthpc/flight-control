@@ -17,9 +17,7 @@
             Target counts / <span class="text-danger"> budget switch offs</span>
           </th>
           <th class="events-table-explainer"></th>
-          <% if @editor %>
-            <th class="events-table-explainer" id="edit-column"></th>
-          <% end %>
+          <th class="events-table-explainer" id="edit-column"></th>
         </tr>
         <tr>
           <th scope="col" class="events-sub-header">Date</th>
@@ -65,20 +63,21 @@
               </td>
               <td>
                 <button class="btn btn-sm btn-link view-button"
-                        id="<%= locals[:type] %>-view-button-<%= schedule.front_end_id %>"
+                        id="view-button-<%= schedule.front_end_id %>"
                         data-toggle="collapse"
-                        data-target="#<%= locals[:type] %>-event-details-<%= schedule.front_end_id %>"
+                        data-target="#event-details-<%= schedule.front_end_id %>"
                         aria-expanded="false"
-                        aria-controls="<%= locals[:type] %>-event-details-<%= schedule.front_end_id %>">
+                        aria-controls="event-details-<%= schedule.front_end_id %>">
                   <i class="fa fa-chevron-down"></i>
                 </button>
               </td>
             </tr>
-      <tr><td colspan="7"
+      <tr id="<%= schedule.front_end_id %>" class="table-row">
+        <td colspan="7"
               class="<%= locals[:type] %> event-details-row"
               id="<%= schedule.front_end_id %>"
               data-date="<%= schedule.date %>">
-        <div id="<%= locals[:type] %>-event-details-<%= schedule.front_end_id %>" class="event-details-row collapse">
+        <div id="event-details-<%= schedule.front_end_id %>" class="event-details-row collapse">
           <% unless locals[:requests].empty? %>
             <%= render '/change_requests/event_details_card', locals: { event: schedule,
                                                                         parent_event: schedule.parent_request,
