@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', (event) => {
+  console.log('Changed!')
   let currentEvents = setTimeout(checkCurrentEvents, 30000);
   $('.tool-tip').tooltip();
 });
@@ -162,7 +163,7 @@ function updateScheduleDetails(details, type, firstForDate) {
 }
 
 function buildNewSchedule(details, type, firstForDate, display=false) {
-  let html = `<tr class='schedule-row ${firstForDate ? "border-top" : ""}' id='${details.frontend_id}' data-date='${details.date}'`;
+  let html = `<tr class='text-center schedule-row ${firstForDate ? "border-top" : ""}' id='${details.frontend_id}' data-date='${details.date}'`;
   html += `data-updated_at="${details.updated_at}" ${display ? "" : "style='display:none;'"}>`;
   html += `<td>${firstForDate ? details.date : ""}</td>`;
   html += `<td>${details.time}</td>`;
@@ -191,29 +192,24 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   html += `<td>${details.description ? details.description : '-'}</td>`
   if($('#edit-column').length > 0) {
     html += `<td>`;
-    html += createRequestButtons(details)
+    html += createRequestButtons(details, type)
     html += "</td>";
   }
   html += "</tr>";
   return html;
 }
 
-function createRequestButtons(details) {
+function createRequestButtons(details, type) {
   const id = details.frontend_id.split("-")[0];
   const project = $("[name='project']").val();
   const token = $('meta[name="csrf-token"]').attr('content');
+  let viewButton = $(`#${type}-view-button-${details.frontend_id}`)
   let html = "";
-  if(details.cancellable) {
-    html = `<form action='/events/${id}/cancel?project=${project}'`;
-    html += `method='post' id='cancel-scheduled-request-${id}'`;
-    html += `onsubmit='return confirm("Are you sure you want to cancel this request?");'>`;
-    html += `<input type="hidden" name="authenticity_token" value="${token}">`;
-    html += `</form> <button class="btn btn-sm btn-danger" form="cancel-scheduled-request-${id}">`;
-    html += ` Cancel </button>`;
-  }
-  if(details.editable) {
-    html += ' <button class="btn btn-sm btn-warning"';
-    html += `onclick="window.location.href='${details.link}'"> Edit </button>`
-  }
+  html += `<button class="btn btn-sm btn-link view-button"`
+  html += `data-toggle="collapse" data-target="#${type}-event-details-${details.frontend_id}"`
+  html += `aria-controls="${type}-event-details-${details.frontend_id}"`
+  html += `aria-expanded="${viewButton.attr('aria-expanded')}">`
+  html += `<i class="fa fa-chevron-down"></i> </button>`
+
   return html;
 }
