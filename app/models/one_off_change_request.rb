@@ -28,6 +28,10 @@ class OneOffChangeRequest < ChangeRequest
     "#{actual_or_parent_id}-#{date}"
   end
 
+  def parent_request
+    ChangeRequest.find_by(id: parent_id) || nil
+  end
+
   def due?
     status == "pending" && date_time <= Time.current
   end

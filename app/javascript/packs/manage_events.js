@@ -107,8 +107,17 @@ function updateScheduledTable(scheduledRequests, type) {
       $(`#${type}-events-table-row`).fadeIn('slow');
     });
   }
-  let existing = $(`#${type}-events-table-row`).find(".schedule-row");
+  let eventsTable = $(`#${type}-events-table-row`);
+  let existing = eventsTable.find(".schedule-row");
   existing.each(function() {
+    let id = $(this).attr('id');
+    let date = $(this).data('date');
+    if(scheduledRequests[date] === undefined || scheduledRequests[date][id] === undefined) {
+      $(this).fadeOut('slow');
+    }
+  });
+  let existingDetails = eventsTable.find(`.${type}.event-details-row`);
+  existingDetails.each(function() {
     let id = $(this).attr('id');
     let date = $(this).data('date');
     if(scheduledRequests[date] === undefined || scheduledRequests[date][id] === undefined) {
@@ -159,6 +168,7 @@ function addNewSchedule(details, type, firstForDate, previousId) {
 function updateScheduleDetails(details, type, firstForDate) {
   let html = buildNewSchedule(details, type, firstForDate, true);
   $(`#${type}-events-table`).find(`#${details.frontend_id}`).replaceWith(html);
+  // moveEventDetails(details, type);
 }
 
 function buildNewSchedule(details, type, firstForDate, display=false) {
@@ -191,7 +201,7 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   html += `<td>${details.description ? details.description : '-'}</td>`
   if($('#edit-column').length > 0) {
     html += `<td>`;
-    html += createRequestButtons(details, type)
+    html += createRequestButtons(details, type);
     html += "</td>";
   }
   html += "</tr>";
@@ -212,4 +222,13 @@ function createRequestButtons(details, type) {
   html += `<i class="fa fa-chevron-down"></i> </button>`
 
   return html;
+}
+
+function moveEventDetails(details, type) {
+  let eventDetails = $(`#${type}-event-details-${details.frontend_id}`);
+  eventDetails.fadeOut('slow');
+  eventDetails.fadeIn('slow');
+  // html += `<tr><td colspan="7" class="event-details-row">`;
+  // html += `<div id="${type}-event-details-${details.frontend_id}" class="event-details-row collapse">`;
+  // html += `</div></td></tr>`;
 }

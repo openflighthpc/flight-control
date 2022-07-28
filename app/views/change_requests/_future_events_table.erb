@@ -74,15 +74,16 @@
                 </button>
               </td>
             </tr>
-      <tr><td colspan="7" class="event-details-row">
+      <tr><td colspan="7"
+              class="<%= locals[:type] %> event-details-row"
+              id="<%= schedule.front_end_id %>"
+              data-date="<%= schedule.date %>">
         <div id="<%= locals[:type] %>-event-details-<%= schedule.front_end_id %>" class="event-details-row collapse">
           <% unless locals[:requests].empty? %>
-            <% parent_event = defined?(schedule.parent_id) ? ChangeRequest.find_by(id: schedule.parent_id) : nil %>
             <%= render '/change_requests/event_details_card', locals: { event: schedule,
-                                                                        parent_event: parent_event,
+                                                                        parent_event: schedule.parent_request,
                                                                         editor: @editor,
                                                                         bottom_border: index == schedules.length-1 } %>
-
           <% end %>
         </div>
       </td></tr>
