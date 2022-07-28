@@ -22,9 +22,7 @@
             <ul class="list-group list-group-flush ml-3">
               <% counts.each do |type, count| %>
                 <li>
-                  <strong>
-                    <%= InstanceMapping.customer_facing_type(@project.platform, type) %>:
-                  </strong>
+                  <%= InstanceMapping.customer_facing_type(@project.platform, type) %>:
                   <%= "#{count} nodes #{event.counts_criteria=='min' ? 'minimum' : 'exactly'}" %>
                 </li>
               <% end %>
