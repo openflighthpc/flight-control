@@ -33,9 +33,7 @@
           <% end %>
           <th scope="col" class="events-sub-header"> Monitor Off </th>
           <th scope="col" class="events-sub-header"> Description </th>
-          <% if @editor %>
-            <th scope="col" class="events-sub-header"> Manage </th>
-          <% end %>
+          <th scope="col" class="events-sub-header">  </th>
         </tr>
       </thead>
       <tbody class="border" id="<%= locals[:type] %>-events-table-body">
@@ -81,6 +79,7 @@
           <% unless locals[:requests].empty? %>
             <%= render '/change_requests/event_details_card', locals: { event: schedule,
                                                                         parent_event: ChangeRequest.find_by(id: schedule.parent_id),
+                                                                        editor: @editor,
                                                                         bottom_border: index == schedules.length-1 } %>
 
           <% end %>
