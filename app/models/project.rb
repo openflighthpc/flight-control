@@ -192,16 +192,16 @@ class Project < ApplicationRecord
     InstanceTracker.new(self).nodes_up
   end
   
-  def valid_instance_details?
-    @instances.each do |_, instances|
+  def missing_instance_details?
+    latest_instances.each do |_, instances|
       instances.each do |instance|
-        return false unless instance.valid_details?
+        return true if instance.missing_details?
       end
     end
-    true
+    false
   end
 
-  def invalid_instance_details_flash
+  def missing_instance_details_flash
     "Values displayed based on incomplete or invalid instance details. \n
     Please ask an administrator to generate new instance detail records."
   end

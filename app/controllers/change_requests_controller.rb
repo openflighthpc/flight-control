@@ -14,7 +14,7 @@ class ChangeRequestsController < ApplicationController
     filter_records if @filtered_groups
     @nav_view = "manage events"
     @editor = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create?
-    check_valid_instance_details
+    check_missing_instance_details
   end
 
   def latest
@@ -33,7 +33,7 @@ class ChangeRequestsController < ApplicationController
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
     @existing_timings = @project.request_dates_and_times
     @nav_view = "event wizard"
-    check_valid_instance_details
+    check_missing_instance_details
   end
 
   def edit
@@ -56,7 +56,7 @@ class ChangeRequestsController < ApplicationController
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
     @existing_timings = @project.request_dates_and_times(@request)
     @nav_view = "event wizard"
-    check_valid_instance_details
+    check_missing_instance_details
     render :new
   end
 

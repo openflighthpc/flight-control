@@ -37,10 +37,7 @@ class InstanceTypeDetail < ApplicationRecord
     'UNKNOWN'
   end
 
-  def valid_attributes?
-    attributes.except(*%w(id created_at updated_at)).values.each do |value|
-      return false if value.nil?
-    end
-    true
+  def missing_attributes?
+    attributes.except(*%w(id created_at updated_at)).values.any?(&:nil?)
   end
 end

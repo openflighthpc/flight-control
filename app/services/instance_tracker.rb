@@ -50,13 +50,13 @@ class InstanceTracker
         if !last || last && group[0][0] != last.instance_type
           instance = Instance.new(group[0][0], region, node_group, @project.platform, @project)
           instance.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
-          instances << last
+          instances << last if last
           last = instance
         elsif last
           last.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
         end
       end
-      instances << last
+      instances << last if last
 
       all_instances[node_group] = instances
     end
@@ -71,7 +71,7 @@ class InstanceTracker
         instances = @latest_instances[group]
         instance_types.each do |instance_type, times_and_counts|
           instance = instances.find { |i| i.instance_type == instance_type }
-          instance.add_future_counts({date => times_and_counts}) if instance
+          instance.add_future_counts({date => times_and_counts})
         end
       end
     end

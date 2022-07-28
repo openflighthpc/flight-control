@@ -10,6 +10,7 @@ class ProjectsController < ApplicationController
     get_billing_data
     get_upcoming_events
     get_group_data
+    check_missing_instance_details
   end
 
   def costs_breakdown
@@ -91,6 +92,7 @@ class ProjectsController < ApplicationController
       authorize @project, policy_class: ProjectPolicy
       get_billing_data
       @billing_cycles = cost_plotter.historic_cycle_details
+      check_missing_instance_details
     end
   end
 
@@ -154,7 +156,7 @@ class ProjectsController < ApplicationController
     @switch_offs = cost_plotter.front_end_switch_offs_by_date(@start_date, @end_date, false)
     @estimated_end_of_balance = cost_plotter.estimated_balance_end_in_cycle(@start_date, @end_date, costs)
     filter_current_instances if @datasets
-    check_valid_instance_details
+    check_missing_instance_details
   end
 
   private

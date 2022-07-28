@@ -263,8 +263,8 @@ class Instance
     end
   end
 
-  def valid_details?
-    @valid_details ||= @details.valid_attributes?
+  def missing_details?
+    @missing_details ||= @details.missing_attributes?
   end
 
   def customer_facing_type
