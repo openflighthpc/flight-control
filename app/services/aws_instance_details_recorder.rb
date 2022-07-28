@@ -30,9 +30,7 @@ class AwsInstanceDetailsRecorder
           raise AwsSdkError.new("Unable to determine AWS instances in region #{region}. #{error}")
         end
         if results
-          if database_entries[region].nil? && !failed_query
-            database_entries[region] = []
-          end
+          database_entries[region] ||= [] unless failed_query
           results.price_list.each do |result|
             details = JSON.parse(result)
             attributes = details["product"]["attributes"]
@@ -57,7 +55,7 @@ class AwsInstanceDetailsRecorder
               if existing_details
                 existing_details.update!(info)
               else
-                InstanceTypeDetail.new(info).save!
+                InstanceTypeDetail.create!(info)
               end
             else
               Rails.logger.error("Instance details not saved due to missing region and/or instance type.")

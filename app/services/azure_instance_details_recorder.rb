@@ -19,10 +19,7 @@ class AzureInstanceDetailsRecorder < AzureService
 
     size_details = get_instance_sizes
     if size_details
-      size_details.each do |type_details|
-        region = type_details[:location]
-        info = type_details.slice(*[:instance_type, :cpu, :gpu, :mem])
-        info[:region] = region
+      size_details.each do |info|
         if info[:instance_type] && info[:region]
           record_details_to_database(info)
         else
@@ -30,8 +27,8 @@ class AzureInstanceDetailsRecorder < AzureService
           failed_query = true
         end
         unless failed_query
-          database_entries[region] = [] if database_entries[region].nil?
-          database_entries[region].append(info[:instance_type])
+          database_entries[info[:region]] = [] if database_entries[info[:region]].nil?
+          database_entries[info[:region]].append(info[:instance_type])
         end
       end
     else
@@ -41,9 +38,7 @@ class AzureInstanceDetailsRecorder < AzureService
     end
 
     regions.each do |region|
-      if database_entries[region].nil? && !failed_query
-        database_entries[region] = []
-      end
+      database_entries[region] ||= [] unless failed_query
       regional_price_details = get_regional_instance_prices(region)
       if regional_price_details
         regional_price_details.each do |type, details|
@@ -80,7 +75,7 @@ class AzureInstanceDetailsRecorder < AzureService
     if existing_details
       existing_details.update!(info)
     else
-      InstanceTypeDetail.new(info).save!
+      InstanceTypeDetail.create!(info)
     end
   end
 
@@ -130,8 +125,8 @@ class AzureInstanceDetailsRecorder < AzureService
           if instance["resourceType"] == "virtualMachines" && regions.include?(instance["locations"][0]) &&
             instance_types.include?(instance["name"])
             size_info = {
-              instance_type: instance["name"], instance_family: instance["family"],
-              location: instance["locations"][0],
+              instance_type: instance["name"],
+              region: instance["locations"][0],
               cpu: 0, gpu: 0, mem: 0
             }
 
@@ -228,7 +223,7 @@ class AzureInstanceDetailsRecorder < AzureService
       instance_type = details.instance_type.to_s
       unless updated_entries[region] && updated_entries[region].include?(instance_type)
         Rails.logger.error("Database entry for region: #{region} and instance type: #{instance_type} was not updated and will be deleted.")
-        InstanceTypeDetail.find_by(instance_type: instance_type, region: region).destroy
+        details.destroy
       end
     end
   end
