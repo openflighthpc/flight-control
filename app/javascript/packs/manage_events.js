@@ -1,5 +1,4 @@
 window.addEventListener('DOMContentLoaded', (event) => {
-  console.log('Changed!')
   let currentEvents = setTimeout(checkCurrentEvents, 30000);
   $('.tool-tip').tooltip();
 });
@@ -206,6 +205,7 @@ function createRequestButtons(details, type) {
   let viewButton = $(`#${type}-view-button-${details.frontend_id}`)
   let html = "";
   html += `<button class="btn btn-sm btn-link view-button"`
+  html += `id="${type}-view-button-${details.frontend_id}"`
   html += `data-toggle="collapse" data-target="#${type}-event-details-${details.frontend_id}"`
   html += `aria-controls="${type}-event-details-${details.frontend_id}"`
   html += `aria-expanded="${viewButton.attr('aria-expanded')}">`

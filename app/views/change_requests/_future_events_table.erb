@@ -40,8 +40,8 @@
         <% locals[:requests].each do |date, schedules| %>
           <% date_shown = false %>
           <% schedules.each_with_index do |schedule, index| %>
-            <tr class="text-center schedule-row<%= ' border-top' if !date_shown %>
-                id='<%= schedule.front_end_id %>' data-date="<%= schedule.date %>"
+            <tr class="text-center schedule-row<%= ' border-top' if !date_shown %>"
+                id="<%= schedule.front_end_id %>" data-date="<%= schedule.date %>"
                 data-updated_at="<%= schedule.updated_at %>"
                 >
               <td class="future-event-date">
