@@ -197,7 +197,9 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   let override = details.monitor_override_hours;
   if (override) override = `${override} hour${ override > 1 ? 's' : '' }`;
   html += `<td>${override ? override : '-'}</td>`;
-  html += `<td>${details.description ? details.description : '-'}</td>`;
+
+  let description = $(`#future-event-description-${details.frontend_id}`)
+  html += description[0].outerHTML;
 
   let viewButton = $(`#view-button-${details.frontend_id}`);
   html += `<td>`;
@@ -205,14 +207,35 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   html += "</td>";
   html += "</tr>";
 
-  let eventDetails = $(`#event-details-${details.frontend_id}`);
-  html += "<tr>";
+  let detailsExpanded = viewButton.attr('aria-expanded');
+  html += `<tr id="${details.frontend_id}" class="table-row">`;
   html += `<td colspan="7" class="${type} event-details-row" id="${details.frontend_id}" data-date="${details.date}">`;
-  html += eventDetails[0].outerHTML;
+  html += createEventDetails(details, detailsExpanded);
   html += "</td>";
   html += "</tr>";
 
   viewButton.remove();
+  description.remove();
+  return html;
+}
+
+function createEventDetails(details, detailsExpanded) {
+  let eventDetails = $(`#event-details-${details.frontend_id}`);
+  let html = "";
+  html += `<div id="event-details-${details.frontend_id}" class="event-details-row collapse${(detailsExpanded === 'true') ? ` show` : ``}">`;
+  html += `<div class="card event-details-card rounded-0 border-bottom-0">`;
+  html += eventDetails.find(`.event-details-text`)[0].outerHTML;
+  if (eventDetails.find(`.event-details-buttons`)[0]) {
+    html += `<div class="row event-details-buttons justify-content-md-end text-center">`;
+    if(details.editable) {
+      html += eventDetails.find(`.edit-button`)[0].outerHTML;
+    }
+    if(details.cancellable) {
+      html += eventDetails.find(`.button_to`)[0].outerHTML;
+    }
+    html += `</div>`;
+  }
+  html += `</div></div>`;
   eventDetails.remove();
   return html;
 }

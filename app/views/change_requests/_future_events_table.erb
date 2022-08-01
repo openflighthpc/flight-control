@@ -58,7 +58,7 @@
               <td>
                 <%= schedule.monitor_override_hours ? "#{schedule.monitor_override_hours} hour#{'s' if schedule.monitor_override_hours > 1}" : "-" if schedule %>
               </td>
-              <td>
+              <td id="future-event-description-<%= schedule.front_end_id %>">
                 <%= schedule.description || schedule.auto_description %>
               </td>
               <td>
