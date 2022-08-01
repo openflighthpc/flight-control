@@ -8,6 +8,12 @@ class InstanceTypeDetail < ApplicationRecord
               :numericality => { greater_than_or_equal_to: 0 },
               unless: -> { self[attr].nil? }
   end
+  validates :platform,
+            presence: true,
+            inclusion: {
+              in: %w(aws azure),
+              message: "%{value} is not a valid platform"
+            }
 
   def price_per_hour
     self[:price_per_hour] || 0
