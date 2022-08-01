@@ -28,7 +28,7 @@ class Instance
   end
 
   def <=>(other)
-    [self.weighted_priority, self.group_priority, self.mem] <=> [other.weighted_priority, other.group_priority, other.mem]
+    [self.weighted_priority, self.group_priority, self.mem.to_f] <=> [other.weighted_priority, other.group_priority, other.mem.to_f]
   end
 
   def increase_count(state, amount=1)
