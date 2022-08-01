@@ -1,11 +1,12 @@
 class AuditLogList
   ACTION_LOG_PAGE_LENGTH = 5
-  LOG_TYPES = {"change_requests" => "Change requests",
-               "change_request_audit_logs" => "Change request audit logs",
-               "action_logs" => "Action logs",
-               "config_logs" => "Config logs"
+  LOG_TYPES = {"action_logs" => "Action logs",
+               "change_requests" => "Change requests",
+               "change_request_audit_logs" => "CR audit logs",
+               "config_logs" => "Config logs",
+               "funds_transfer_requests" => "Funds transfers"
               }
-  POSSIBLE_STATUSES = %w[pending completed cancelled started]
+  POSSIBLE_STATUSES = %w[completed cancelled failed pending started submitted]
 
   attr_reader :filters
 
@@ -50,8 +51,8 @@ class AuditLogList
             next
           end
 
-          # config logs do not have a compute group
-          next if groups && type == "config_logs"
+          # config logs and funds requests do not have a compute group
+          next if groups && (type == "config_logs" || type == "funds_transfer_requests")
 
           matching_of_type = @project.send(type)
           # assume we get usernames

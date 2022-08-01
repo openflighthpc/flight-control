@@ -56,7 +56,7 @@ class RepeatedChangeRequest < ChangeRequest
 
   def editable?
     (status == "started" || status == "pending") &&
-    next_date_time >= (Time.current + 5.minutes)
+    next_date_time && next_date_time >= (Time.current + 5.minutes)
   end
 
   def cancellable?
