@@ -127,21 +127,30 @@ function updateScheduledTable(scheduledRequests, type) {
   let previousId = null;
   Object.keys(scheduledRequests).forEach((date) => {
     let firstForDate = true;
-    Object.keys(scheduledRequests[date]).forEach((scheduledId) => {
+    Object.keys(scheduledRequests[date]).forEach((scheduledId, index) => {
+      let lastForDate = index === Object.keys(scheduledRequests[date]).length - 1;
       let element = $(`#${type}-events-table`).find(`#${scheduledId}`);
       if(element.length === 0) {
-        addNewSchedule(scheduledRequests[date][scheduledId], type, firstForDate, previousId);
+        addNewSchedule(scheduledRequests[date][scheduledId], type, firstForDate, lastForDate, previousId);
         // update formatting & date display to group things correctly by date
         // when new events/ events removed
       } else {
         if(scheduledRequests[date][scheduledId].updated_at != element.data('updated_at')) {
-          updateScheduleDetails(scheduledRequests[date][scheduledId], type, firstForDate);
-        } else if(firstForDate && !element.hasClass("border-top")) {
-          element.addClass("border-top");
-          element.find(".future-event-date").html(date);
-        } else if(!firstForDate && element.hasClass("border-top")) {
-          element.removeClass("border-top");
-          element.find(".future-event-date").html("");
+          updateScheduleDetails(scheduledRequests[date][scheduledId], type, firstForDate, lastForDate);
+        } else {
+          if(firstForDate && !element.hasClass("border-top")) {
+            element.addClass("border-top");
+            element.find(".future-event-date").html(date);
+          } else if(!firstForDate && element.hasClass("border-top")) {
+            element.removeClass("border-top");
+            element.find(".future-event-date").html("");
+          }
+          let detailsCard = $(`#${scheduledId}.table-row`).find(`.event-details-card`);
+          if (lastForDate && !detailsCard.hasClass('border-bottom-0')) {
+            detailsCard.addClass('border-bottom-0');
+          } else if (!lastForDate && detailsCard.hasClass('border-bottom-0')) {
+            detailsCard.removeClass('border-bottom-0');
+          }
         }
       }
       firstForDate = false;
@@ -154,8 +163,8 @@ function updateFuture(scheduledRequests) {
   updateScheduledTable(scheduledRequests, "future");
 }
 
-function addNewSchedule(details, type, firstForDate, previousId) {
-  let html = buildNewSchedule(details, type, firstForDate);
+function addNewSchedule(details, type, firstForDate, lastForDate, previousId) {
+  let html = buildNewSchedule(details, type, firstForDate, lastForDate);
   if(previousId === null) {
     $(`#${type}-events-table-body`).prepend(html);
   } else {
@@ -165,12 +174,12 @@ function addNewSchedule(details, type, firstForDate, previousId) {
   $(`#${type}-events-table`).find(`#${details.frontend_id}`).fadeIn('slow');
 }
 
-function updateScheduleDetails(details, type, firstForDate) {
-  let html = buildNewSchedule(details, type, firstForDate, true);
+function updateScheduleDetails(details, type, firstForDate, lastForDate) {
+  let html = buildNewSchedule(details, type, firstForDate, lastForDate, true);
   $(`#${type}-events-table`).find(`#${details.frontend_id}`).replaceWith(html);
 }
 
-function buildNewSchedule(details, type, firstForDate, display=false) {
+function buildNewSchedule(details, type, firstForDate, lastForDate, display=false) {
   let html = `<tr class='text-center schedule-row ${firstForDate ? "border-top" : ""}' id='${details.frontend_id}' data-date='${details.date}'`;
   html += `data-updated_at="${details.updated_at}" ${display ? "" : "style='display:none;'"}>`;
   html += `<td>${firstForDate ? details.date : ""}</td>`;
@@ -210,7 +219,7 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   let detailsExpanded = viewButton.attr('aria-expanded');
   html += `<tr id="${details.frontend_id}" class="table-row">`;
   html += `<td colspan="7" class="${type} event-details-row" id="${details.frontend_id}" data-date="${details.date}">`;
-  html += createEventDetails(details, detailsExpanded);
+  html += createEventDetails(details, detailsExpanded, lastForDate);
   html += "</td>";
   html += "</tr>";
 
@@ -219,11 +228,11 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   return html;
 }
 
-function createEventDetails(details, detailsExpanded) {
+function createEventDetails(details, detailsExpanded, lastForDate) {
   let eventDetails = $(`#event-details-${details.frontend_id}`);
   let html = "";
   html += `<div id="event-details-${details.frontend_id}" class="event-details-row collapse${(detailsExpanded === 'true') ? ` show` : ``}">`;
-  html += `<div class="card event-details-card rounded-0 border-bottom-0">`;
+  html += `<div class="card event-details-card rounded-0 ${lastForDate ? 'border-bottom-0' : ''}">`;
   html += eventDetails.find(`.event-details-text`)[0].outerHTML;
   if (eventDetails.find(`.event-details-buttons`)[0]) {
     html += `<div class="row event-details-buttons justify-content-md-end text-center">`;
