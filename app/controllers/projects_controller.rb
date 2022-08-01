@@ -5,12 +5,12 @@ class ProjectsController < ApplicationController
       no_project_redirect
     else
       authorize @project, policy_class: ProjectPolicy
+      @nav_view = "dashboard"
+      get_billing_data
+      get_upcoming_events
+      get_group_data
+      check_missing_instance_details
     end
-    @nav_view = "dashboard"
-    get_billing_data
-    get_upcoming_events
-    get_group_data
-    check_missing_instance_details
   end
 
   def costs_breakdown
