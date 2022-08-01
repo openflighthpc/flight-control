@@ -29,7 +29,7 @@ class FlightHubCommunicator
     end
   end
 
-  def move_funds(amount, action, reference_text, reference_url=nil)
+  def move_funds(amount, action, reference_text, return_unused=false, reference_url=nil)
     # This is a bit confusing: if I 'send' a negative amount, that's how much I receive.
     # Would be clearer if one endpoint for sending to hub, and one for receiving from hub.
     if action == "receive"
@@ -39,7 +39,7 @@ class FlightHubCommunicator
     else
       raise ArgumentError.new("Invalid action")
     end
-    record = create_funds_transfer_request(amount, action, reference_text)
+    record = create_funds_transfer_request(amount, action, reference_text, return_unused)
     if record.save
       begin
         reference_id = "Control: #{record.id}"
@@ -72,10 +72,11 @@ class FlightHubCommunicator
 
   private
 
-  def create_funds_transfer_request(amount, action, reason)
+  def create_funds_transfer_request(amount, action, reason, return_unused)
     FundsTransferRequest.new(
       amount: amount, action: action,
-      reason: reason, project_id: @project.id
+      reason: reason, project_id: @project.id,
+      return_unused: return_unused
     )
   end
 

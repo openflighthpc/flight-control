@@ -89,6 +89,40 @@ class FundsManager
     end
   end
 
+  # This must be run after the cost logs are recorded for the last day of last cycle.
+  # Which makes this brittle if, for example, there are errors recording the cost logs.
+  def validate_sent_against_actual
+    start_of_current_cycle = @costs_plotter.start_of_current_billing_interval
+    end_of_last_cycle = start_of_current_cycle - 1.day
+    return if Project::DEFAULT_COSTS_DATE != end_of_last_cycle
+    return unless @project.cost_logs.where(date: end_of_last_cycle).exists?
+
+    transfer_back = @project.funds_transfer_requests.completed
+                            .where(date:  start_of_current_cycle)
+                            .where(return_unused: true).first
+
+    return unless transfer_back
+
+    actual_remaining = remaining_last_cycle_end
+    if actual_remaining != transfer_back.amount
+      difference = actual_remaining - transfer_back.amount
+      if difference < 0
+        direction = "less"
+        charge = "Under"
+      else
+        direction = "more"
+        charge = "Over"
+      end
+      msg = "Actual remaining c.u. for project *#{@project.name}* is *#{direction}* than amount sent back to Hub.\n"
+      msg << "*Forecast*: #{transfer_back.amount}c.u.\n"
+      msg << "*Actual*: #{actual_remaining.to_i}c.u.\n"
+      msg << "*#{charge} charge*: #{difference.abs.to_i}c.u."
+    else
+      msg = "Actual remaining c.u. for project *#{@project.name}* matches amount sent back to Hub.\n"
+    end
+    @project.send_slack_message(msg)
+  end
+
   private
 
   def send_back_unused_compute_units
@@ -97,26 +131,30 @@ class FundsManager
     return if @project.continuous_budget? && !end_of_project
     return if Date.current <= @project.start_date # Don't attempt on first cycle
 
-    end_of_last_cycle = Date.current - 1.day
-    start_of_last_cycle = @costs_plotter.start_of_billing_interval(Date.current - 1.day)
-    costs = @costs_plotter.costs_between_dates(end_of_last_cycle, end_of_last_cycle + 1.day)
-    # Budget can change during cycle, so determine what it was on start of the very last day
-    remaining_start_of_last_day = @costs_plotter.budget_on_date(end_of_last_cycle)
-    remaining = remaining_start_of_last_day - costs
+    remaining = remaining_last_cycle_end
     if remaining > 0
       request_log = @flight_hub_communicator.move_funds(
           remaining.to_i,
           "send",
-          "Unused compute units at end of #{end_of_project ? "project" : "billing cycle"}"
+          "Unused compute units at end of #{end_of_project ? "project" : "billing cycle"}",
+          true
         )
       @project.send_slack_message(request_log.description)
       check_and_update_hub_balance
     elsif remaining < 0 # Gone over budget. For now just send a slack message
       msg = "*Warning* project *#{@project.name}* has gone over budget"
-      msg << "\n Compute units have not been transfered to/from Flight Hub"
+      msg << "\n Compute units have not been transferred to/from Flight Hub"
       @project.send_slack_message(msg)
     end
     request_log
+  end
+
+  def remaining_last_cycle_end
+    end_of_last_cycle = @costs_plotter.start_of_current_billing_interval - 1.day
+    costs = @costs_plotter.costs_between_dates(end_of_last_cycle, end_of_last_cycle + 1.day)
+    # Budget can change during cycle, so determine what it was on start of the very last day
+    remaining_start_of_last_day = @costs_plotter.budget_on_date(end_of_last_cycle)
+    remaining_start_of_last_day - costs
   end
 
   # Assume only run on first day of cycle
