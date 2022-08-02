@@ -24,7 +24,7 @@
           <% end %>
           <td class="border-left"></td>
         </tr>
-        <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem] } %>
+        <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem.to_f] } %>
         <% instances.each do |instance| %>
           <% next if instance.node_limit == 0 %>
           <% if @request && @request.counts[group] && @request.counts[group][instance.instance_type] %>
