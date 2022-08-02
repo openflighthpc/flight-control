@@ -116,7 +116,7 @@ function updateScheduledTable(scheduledRequests, type) {
       $(this).fadeOut('slow');
     }
   });
-  let existingDetails = eventsTable.find(`.${type}.event-details-row`);
+  let existingDetails = eventsTable.find(`.${type}.event-details-container`);
   existingDetails.each(function() {
     let id = $(this).attr('id');
     let date = $(this).data('date');
@@ -218,7 +218,7 @@ function buildNewSchedule(details, type, firstForDate, lastForDate, display=fals
 
   let detailsExpanded = viewButton.attr('aria-expanded');
   html += `<tr id="${details.frontend_id}" class="table-row">`;
-  html += `<td colspan="7" class="${type} event-details-row" id="${details.frontend_id}" data-date="${details.date}">`;
+  html += `<td colspan="7" class="${type} event-details-container" id="${details.frontend_id}" data-date="${details.date}">`;
   html += createEventDetails(details, detailsExpanded, lastForDate);
   html += "</td>";
   html += "</tr>";
@@ -231,7 +231,7 @@ function buildNewSchedule(details, type, firstForDate, lastForDate, display=fals
 function createEventDetails(details, detailsExpanded, lastForDate) {
   let eventDetails = $(`#event-details-${details.frontend_id}`);
   let html = "";
-  html += `<div id="event-details-${details.frontend_id}" class="event-details-row collapse${(detailsExpanded === 'true') ? ` show` : ``}">`;
+  html += `<div id="event-details-${details.frontend_id}" class="event-details-container collapse${(detailsExpanded === 'true') ? ` show` : ``}">`;
   html += `<div class="card event-details-card rounded-0 ${lastForDate ? 'border-bottom-0' : ''}">`;
   html += eventDetails.find(`.event-details-text`)[0].outerHTML;
   if (eventDetails.find(`.event-details-buttons`)[0]) {

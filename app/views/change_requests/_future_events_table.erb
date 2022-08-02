@@ -74,10 +74,10 @@
             </tr>
           <tr id="<%= schedule.front_end_id %>" class="table-row">
             <td colspan="7"
-                class="<%= locals[:type] %> event-details-row"
-              id="<%= schedule.front_end_id %>"
-              data-date="<%= schedule.date %>">
-        <div id="event-details-<%= schedule.front_end_id %>" class="event-details-row collapse">
+                class="<%= locals[:type] %> event-details-container"
+                id="<%= schedule.front_end_id %>"
+                data-date="<%= schedule.date %>">
+        <div id="event-details-<%= schedule.front_end_id %>" class="event-details-container collapse">
           <% unless locals[:requests].empty? %>
             <% if schedule.is_a?(BudgetSwitchOffDecorator) %>
               <%= render '/change_requests/budget_switch_off_details_card', locals: { bottom_border: index == schedules.length-1 } %>
