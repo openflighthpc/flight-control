@@ -36,6 +36,6 @@ class InstanceTypeDetail < ApplicationRecord
   end
 
   def missing_attributes?
-    attributes.except(*%w(id created_at updated_at)).values.any?(&:nil?)
+    attributes.slice(*%w(mem cpu gpu price_per_hour)).values.any?(&:nil?)
   end
 end
