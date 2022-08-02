@@ -1,0 +1,13 @@
+<% content_for :page_specific_js do %>
+  <%= javascript_pack_tag 'new_data_check'%>
+<% end %>
+
+<div class="mt-4 text-center mb-4">
+  <h2>Awaiting Budget Update</h2>
+  <p>
+    The project's budget is currently being updated. Please wait 5 minutes
+    and try again.
+  </p>
+</div>
+<%= render '/projects/latest_change' %>
+

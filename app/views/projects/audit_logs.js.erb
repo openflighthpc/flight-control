@@ -1,0 +1,6 @@
+<% audit_logs = escape_javascript(render 'partials/audit_logs', locals: {logs: @logs}) %>
+$('<%= audit_logs %>').insertAfter($('.audit-row').last());
+$('.tool-tip').tooltip();
+<% if !@more %>
+  $('#load-more-logs').addClass('d-none');
+<% end %>

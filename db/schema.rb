@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_07_07_092226) do
+ActiveRecord::Schema.define(version: 2022_08_01_090649) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -33,15 +33,6 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
     t.index ["user_id"], name: "index_action_logs_on_user_id"
   end
 
-  create_table "balances", force: :cascade do |t|
-    t.bigint "project_id"
-    t.integer "amount"
-    t.date "effective_at"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["project_id"], name: "index_balances_on_project_id"
-  end
-
   create_table "budget_policies", force: :cascade do |t|
     t.bigint "project_id"
     t.string "cycle_interval"
@@ -52,6 +43,18 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["project_id"], name: "index_budget_policies_on_project_id"
+  end
+
+  create_table "budgets", force: :cascade do |t|
+    t.bigint "project_id"
+    t.bigint "amount"
+    t.date "effective_at"
+    t.date "expiry_date"
+    t.boolean "final", default: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["effective_at"], name: "index_budgets_on_effective_at"
+    t.index ["project_id"], name: "index_budgets_on_project_id"
   end
 
   create_table "change_request_audit_logs", force: :cascade do |t|
@@ -119,6 +122,32 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
   create_table "data_migrations", primary_key: "version", id: :string, force: :cascade do |t|
   end
 
+  create_table "funds_transfer_requests", force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.bigint "amount"
+    t.bigint "signed_amount"
+    t.string "action"
+    t.string "status"
+    t.text "reason"
+    t.text "request_errors"
+    t.date "date"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.boolean "return_unused", default: false
+    t.index ["date"], name: "index_funds_transfer_requests_on_date"
+    t.index ["project_id"], name: "index_funds_transfer_requests_on_project_id"
+  end
+
+  create_table "hub_balances", force: :cascade do |t|
+    t.bigint "project_id"
+    t.integer "amount"
+    t.date "date"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["date"], name: "index_hub_balances_on_date"
+    t.index ["project_id"], name: "index_hub_balances_on_project_id"
+  end
+
   create_table "instance_logs", force: :cascade do |t|
     t.bigint "project_id"
     t.string "instance_type"
@@ -165,6 +194,7 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.date "archived_date"
+    t.bigint "flight_hub_id"
   end
 
   create_table "user_roles", force: :cascade do |t|
@@ -198,6 +228,7 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
   add_foreign_key "action_logs", "users"
   add_foreign_key "change_request_audit_logs", "users"
   add_foreign_key "change_requests", "users"
+  add_foreign_key "funds_transfer_requests", "projects"
   add_foreign_key "user_roles", "projects"
   add_foreign_key "user_roles", "users"
 end

@@ -1,14 +1,10 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
   protect_from_forgery
-  before_action :authenticate_user_from_jwt!, :authenticate_user!
+  before_action :authenticate_user_from_jwt!, :authenticate_user!,
+    :check_user_has_project!, :get_project!, :check_project_budget_status!
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
-
-  def get_project
-    @project = current_user.projects.find_by_name(params['project'])
-    @project ||= current_user.projects.visualiser.active.first
-  end
 
   def format_errors(model)
     model.errors.messages.map do |field, messages|
@@ -41,5 +37,28 @@ class ApplicationController < ActionController::Base
   def user_not_authorized
     flash[:alert] = "You are not authorised to perform this action."
     redirect_to(request.referrer || authenticated_root_path)
+  end
+
+  def check_user_has_project!
+    if current_user && current_user.projects.empty?
+      render "projects/no_project"
+    end
+  end
+
+  # This will need updating when we move to using /project/:id routes.
+  def get_project!
+    if current_user
+      if params['project'].present?
+        @project = current_user.projects.find_by_name(params['project'])
+      else
+        @project = current_user.projects.active.first
+      end
+    end
+  end
+
+  def check_project_budget_status!
+    if current_user && @project && FundsManager.new(@project).pending_budget_updates?
+      render "projects/pending_budget_updates"
+    end
   end
 end

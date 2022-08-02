@@ -1,12 +1,3 @@
-require_relative 'project'
-require_relative '../services/azure_service'
-require_relative '../services/azure_instance_recorder'
-require_relative '../services/azure_costs_recorder'
-require_relative '../services/azure_authoriser'
-require_relative '../services/azure_instance_details_recorder'
-require_relative '../services/azure_instance_manager'
-require_relative '../services/azure_monitor'
-
 class AzureProject < Project
   alias_attribute :azure_client_id, :security_id
   alias_attribute :client_secret, :security_key

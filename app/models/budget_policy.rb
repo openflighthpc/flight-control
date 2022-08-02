@@ -1,5 +1,3 @@
-require_relative 'project'
-
 class BudgetPolicy < ApplicationRecord
   belongs_to :project
   validates :cycle_interval,
@@ -15,10 +13,11 @@ class BudgetPolicy < ApplicationRecord
       in: %w[fixed rolling continuous dynamic],
       message: "%{value} is not a valid spend profile"
     }
-  validate :cycle_limit_if_fixed_or_rolling
   validates :effective_at, presence: true
   default_scope { order(:effective_at, :created_at) }
 
+  after_save { adjust_project_start_date_if_required }
+   
   def cycle_length
     case cycle_interval
     when "monthly"
@@ -41,6 +40,13 @@ class BudgetPolicy < ApplicationRecord
   def cycle_limit_if_fixed_or_rolling
     if %w[fixed rolling].include?(spend_profile) && (!cycle_limit || cycle_limit < 0) 
       errors.add(:cycle_limit, "Must set cycle limit if fixed or rolling spend profile")
+    end
+  end
+
+  def adjust_project_start_date_if_required
+    if cycle_interval == "monthly" && project.start_date.day != 1
+      project.start_date = project.start_date.beginning_of_month
+      project.save!
     end
   end
 end

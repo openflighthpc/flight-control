@@ -254,44 +254,53 @@ input[type=date] {
   margin-bottom: 2rem;
 }
 
-.change-request-header {
-  background-color: #3ba549 !important;
+.card-header.change-request-header {
+  background-color: #3ba549;
   color: white;
 }
 
-.request-change-header {
-  background-color: #fca24e !important;
+.card-header.request-change-header {
+  background-color: #fca24e;
   color: white;
 }
 
-.automated-action-header {
-  background-color: #17a2b8 !important;
+.card-header.automated-action-header {
+  background-color: #17a2b8;
 }
 
-.action-header {
-  background-color: #6C757D !important;
+.card-header.action-header {
+  background-color: #6C757D;
 }
 
-.request-cancel-header {
-  background-color: #ea2309 !important;
+.card-header.request-cancel-header {
+  background-color: #c42311;
   color: white;
 }
 
-.config-log-header {
-  background-color: #875F9A !important;
+.card-header.config-log-header {
+  background-color: #875F9A;
   color: white;
 }
 
-.card-footer {
-  padding: 0.5rem !important;
+.card-header.funds-transfer-header {
+  background-color: #2C3E50;
+  color: white;
+}
+
+.audit-log > .card-footer {
+  padding: 0.5rem;
 }
 
 .change-details {
   padding-left: 2rem;
 }
 
+.transfer-details {
+  padding-left: 2rem;
+}
+
 .edit-request-link {
-  margin-left: 0.5rem !important;
+  margin-left: 0.5rem;
 }
 
 .audit-form-label {

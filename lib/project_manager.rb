@@ -28,7 +28,7 @@ class ProjectManager
     elsif action == "list"
       formatter = NoMethodMissingFormatter.new
       tp.set :max_width, 100
-      tp Project.all, :id, :name, :platform, :start_date, :end_date, :archived_date,
+      tp Project.all, :id, :name, :flight_hub_id, :platform, :start_date, :end_date, :archived_date,
       :visualiser, :slack_channel, {regions: {:display_method => :describe_regions, formatters: [formatter]}},
       {resource_groups: {:display_method => :describe_resource_groups, formatters: [formatter]}}, {filter_level: {formatters: [formatter]}},
       {project_tag: {formatters: [formatter]}}, :monitor_active
@@ -46,7 +46,7 @@ class ProjectManager
     while !valid
       puts "What would you like to update?"
       attribute = STDIN.gets.chomp.strip
-      if project.respond_to?(attribute.downcase) || attribute == "balance" || attribute == "budget_policy"
+      if project.respond_to?(attribute.downcase) || attribute == "budget_policy"
         valid = true
       else
         puts "That is not a valid attribute for this project. Please try again."
@@ -57,8 +57,6 @@ class ProjectManager
       update_regions(project)
     elsif attribute == "resource_groups" || attribute == "resource groups"
       update_resource_groups(project)
-    elsif attribute == "balance"
-      add_balance(project)
     elsif attribute == "budget_policy"
       add_budget_policy(project)
     else
@@ -264,7 +262,7 @@ class ProjectManager
     attributes[:type] = "#{attributes[:platform].capitalize}Project"
     valid_date = false
     while !valid_date
-      print "Start date (YYYY-MM-DD): "
+      print "Start date (YYYY-MM-DD). If a monthly billing cycle, please enter the 1st of a month: "
       valid_date = begin
         Date.parse(STDIN.gets.chomp.strip)
       rescue ArgumentError
@@ -276,25 +274,10 @@ class ProjectManager
         puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
       end
     end
-    valid_date = false
-    while !valid_date
-      print "End date (YYYY-MM-DD). Press enter to leave blank: "
-      date = STDIN.gets.chomp.strip
-      break if date.empty?
-      valid_date = begin
-        Date.parse(date)
-      rescue ArgumentError
-        false
-      end
-      if valid_date
-        attributes[:end_date] = valid_date
-      else
-        puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
-      end
-    end
+    attributes[:flight_hub_id] = get_non_blank("Flight Hub Dept Id")
     attributes[:slack_channel] = get_non_blank("Slack Channel")
     attributes[:monitor_active] = get_non_blank("Monitor active")
-    if attributes[:monitor_active]
+    if attributes[:monitor_active] == "true"
       attributes[:utilisation_threshold] = get_non_blank("Utilisation threshold")
     end
 
@@ -317,10 +300,33 @@ class ProjectManager
     end
     project.save!
     puts "Project #{project.name} created"
-    puts "A new project requires a balance."
-    add_balance(project, true)
     puts "A new project requies a budget policy"
     add_budget_policy(project, true)
+    if !project.end_date
+      # End date needs to be done once we have a budget policy,
+      # as triggers various budget actions.
+      valid_date = false
+      while !valid_date
+        print "Set project End date (YYYY-MM-DD). Press enter to leave blank: "
+        date = STDIN.gets.chomp.strip
+        break if date.empty?
+        valid_date = begin
+          Date.parse(date)
+        rescue ArgumentError
+          false
+        end
+        if valid_date
+          end_date = valid_date
+        else
+          puts "Invalid date. Please ensure it is in the format YYYY-MM-DD"
+        end
+      end
+      if end_date
+        project.end_date = end_date
+        project.save!
+        puts "Project end date added"
+      end
+    end
   
     credentials = nil
     valid = false
@@ -353,7 +359,7 @@ class ProjectManager
           project = Project.find(project.id)
           begin
             project.record_instance_logs
-            project.record_cost_logs(project.start_date, Project::DEFAULT_COSTS_DATE - 1.day)
+            project.record_cost_logs_for_range(project.start_date, Project::DEFAULT_COSTS_DATE - 1.day)
           rescue AzureApiError, AwsSdkError => e
             puts "Generation of logs for project #{project.name} stopped due to error: "
             puts e
@@ -435,36 +441,6 @@ class ProjectManager
   def validate_credentials(project_id)
     project = Project.find(project_id)
     project.validate_credentials
-  end
-
-  def add_balance(project, first=false)
-    valid = false
-    while !valid
-      amount = get_non_blank("Balance amount", "Balance")
-      valid = begin
-        Integer(amount, 10)
-      rescue ArgumentError, TypeError
-        false
-      end
-      puts "Please enter a number" if !valid
-    end
-    valid_date = false
-    if first
-      valid_date = project.start_date
-    else
-      while !valid_date
-        print "Effective at (YYYY-MM-DD): "
-        valid_date = begin
-          Date.parse(STDIN.gets.chomp.strip)
-        rescue ArgumentError
-          false
-        end
-        puts "Invalid date. Please ensure it is in the format YYYY-MM-DD" if !valid_date
-      end
-    end
-    budget = Balance.new(project_id: project.id, amount: amount, effective_at: valid_date)
-    budget.save!
-    puts "Balance created"
   end
 
   def add_budget_policy(project, first=false)
@@ -553,12 +529,13 @@ class ProjectManager
 
   def show_attributes(project)
     puts project.name
+    puts "flight_hub_id: #{project.flight_hub_id}"
     puts "platform: #{project.platform}"
     puts "start_date: #{project.start_date}"
     puts "end_date: #{project.end_date}"
     puts "archived_date: #{project.archived_date}"
     puts "visualiser: #{project.visualiser}"
-    puts "balance: #{project.current_balance.amount}c.u."
+    puts "hub balance: #{project.current_hub_balance&.amount}c.u."
     puts "filter_level: #{project.filter_level}"
     puts "slack_channel: #{project.slack_channel}"
     show_class_specific_fields(project)

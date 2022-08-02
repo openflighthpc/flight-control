@@ -1,11 +1,7 @@
-require_relative 'balance'
-require_relative 'budget_policy'
-require_relative 'instance_log'
-require_relative 'cost_log'
-require_relative 'action_log'
 require_relative '../services/project_config_creator'
 require_relative '../services/costs_plotter'
 require_relative '../services/instance_tracker'
+require_relative '../services/funds_manager'
 require_relative '../decorators/budget_switch_off_decorator'
 require 'httparty'
 
@@ -21,24 +17,28 @@ class Project < ApplicationRecord
   has_many :change_request_audit_logs
   has_many :one_off_change_requests
   has_many :repeated_change_requests
-  has_many :balances
+  has_many :hub_balances
   has_many :budget_policies
+  has_many :budgets
+  has_many :funds_transfer_requests
   has_many :user_roles
 
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
   validates :name, presence: true, uniqueness: true
+  validates :flight_hub_id, presence: true, uniqueness: true
   validates :name, :format => { with: /\A[a-zA-Z]+[0-9a-zA-Z_-]*[0-9a-zA-Z]+\z/,
             message: 'Must start with letters and only include letters, numbers, dashes or underscores.' }
   validates :slack_channel, :start_date, :filter_level, :security_id, :security_key,
             :type, presence: true
   validate :end_date_after_start, on: [:update, :create], if: -> { end_date != nil }
+  validate :start_date_if_monthly
   validates :platform,
     presence: true,
     inclusion: {
       in: %w(aws azure),
       message: "%{value} is not a valid platform"
     }
-  after_save :update_end_balance
+  after_save :update_end_budget
   scope :active, -> { where("archived_date IS NULL OR archived_date > ?", Date.current) }
   scope :visualiser, -> { where(visualiser: true) }
 
@@ -130,7 +130,6 @@ class Project < ApplicationRecord
     results
   end
 
-  # In future this will include over budget switch offs
   def events(groups=nil, recalculate_budget_off=true)
     events = pending_one_off_and_repeat_requests.concat(decorated_switch_offs(recalculate_budget_off))
     events = events.select { |event| event.included_in_groups?(groups) } if groups
@@ -201,20 +200,28 @@ class Project < ApplicationRecord
     action_logs.where(status: "pending")
   end
 
-  def current_balance
-    balances.where("effective_at <= ?", Date.current).last
+  def current_hub_balance
+    hub_balances.where("date <= ?", Date.current).last
   end
 
   def current_budget_policy
     @budget_policy ||= budget_policies.where("effective_at <= ?", Date.current).last
   end
 
+  def continuous_budget?
+    current_budget_policy&.spend_profile == "continuous"
+  end
+
+  def fixed_budget?
+    current_budget_policy&.spend_profile == "fixed"
+  end
+
   def cycle_days
-    current_budget_policy.days
+    current_budget_policy&.days
   end
 
   def cycle_interval
-    current_budget_policy.cycle_interval
+    current_budget_policy&.cycle_interval
   end
 
   def current_compute_groups
@@ -251,16 +258,15 @@ class Project < ApplicationRecord
   end
 
   def time_of_latest_change
-    latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.exists?
-    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.exists?
-    latest_action_log = action_logs.maximum("updated_at") if action_logs.exists?
-    latest_change_request = change_requests.maximum("updated_at") if change_requests.exists?
-    if latest_cost_data || latest_instance_data || latest_action_log || latest_change_request
-      latest = [latest_cost_data, latest_instance_data, latest_action_log, latest_change_request].compact.max
+    latests = %w[cost_logs instance_logs action_logs change_requests budgets].map do |log_type|
+      self.send(log_type).maximum("updated_at")
+    end.compact
+
+    if latests.empty?
+      Date.current.to_time
     else
-      latest = Date.current.to_time
+      latests.max
     end
-    latest
   end
 
   # Timestamps are stored in db with more precision than can be easily represented,
@@ -360,6 +366,10 @@ class Project < ApplicationRecord
 
   def costs_plotter
     @costs_plotter ||= CostsPlotter.new(self)
+  end
+
+  def funds_manager
+    @funds_manager ||= FundsManager.new(self)
   end
 
   def check_and_switch_off_idle_nodes(slack=false)
@@ -663,9 +673,13 @@ class Project < ApplicationRecord
   end
 
   def send_slack_message(msg)
-    HTTParty.post("https://slack.com/api/chat.postMessage",
+    begin
+      HTTParty.post("https://slack.com/api/chat.postMessage",
                   headers: {"Authorization": "Bearer #{Project.slack_token}"},
                   body: {"text": msg, "channel": slack_channel, "as_user": true})
+    rescue => error
+      Rails.logger.error "Unable to send slack message: #{error}"
+    end
   end
 
   def all_associated_users
@@ -700,6 +714,12 @@ class Project < ApplicationRecord
     end
   end
 
+  def start_date_if_monthly
+    if cycle_interval == "monthly" && start_date.day != 1
+      errors.add(:start_date, "Must be first of a month if budget policy is monthly")
+    end
+  end
+
   def check_costs_date(date)
     if date < start_date
       puts "#{name}: given date is before the project start date for"
@@ -711,21 +731,7 @@ class Project < ApplicationRecord
     return true
   end
 
-  # If an end date, ensure we have a corresponding balance
-  # with an amount of 0.
-  def update_end_balance
-    end_balance = balances.where(amount: 0).last
-    return if !end_date && !end_balance
-
-    if !end_date && end_balance
-      end_balance.delete
-    else
-      if !end_balance
-        Balance.create(project: self, amount: 0, effective_at: end_date)
-      elsif end_balance && end_balance.effective_at != end_date
-        end_balance.effective_at = end_date
-        end_balance.save!
-      end
-    end
+  def update_end_budget
+    FundsManager.new(self).update_end_budget
   end
 end

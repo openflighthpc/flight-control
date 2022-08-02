@@ -10,13 +10,13 @@ namespace :instance_details do
     if azure
       azure.record_instance_details
     else
-      puts "No active azure project to record instance details with"
+      puts "No active Azure project to record instance details with"
     end
     aws = AwsProject.active.first
     if aws
       aws.record_instance_details
     else
-      puts "No active azure project to record instance details with"
+      puts "No active AWS project to record instance details with"
     end
   end
 end

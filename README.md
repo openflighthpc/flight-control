@@ -6,6 +6,8 @@ A tool for tracking costs and managing instances on AWS and Azure.
 
 A Ruby on Rails application for recording and viewing costs for projects hosted on AWS and Azure, and for recording, viewing and managing instance statuses.
 
+The application has a hard dependency on https://github.com/alces-flight/flight-hub for managing budgets.
+
 ## Initial Setup
 
 - Esure Ruby (2.5.1) and Bundler are installed on your device
@@ -16,6 +18,7 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
   - `database_password`
   - `slack_token`
   - `secret_key_base`, generated using `rake secret`
+  - `jwt_secret`, matching that used by Flight SSO and Flight Hub
 - Ensure you save a backup copy of the file `config/master.key` (used for encryption of these credentials)
 - If running in production:
   - Set the `RAILS_ENV` environment variable to `production`
@@ -38,9 +41,11 @@ A Ruby on Rails application for recording and viewing costs for projects hosted 
 
 In addition to setting the database username and password in `config/database.yaml`, the following config variables should be set for the development and production files in `config/environments`:
 
+- `config.flight_hub_url`: the URL of the associated Flight Hub application
 - `config.usd_gbp_conversion`: USD to GBP exchange rate
 - `config.gbp_compute_conversion`: conversion rate for GBP to compute units
 - `config.at_risk_conversion`: conversion rate for compute units to 'at risk' compute units
+
 
 ### AWS
 
@@ -113,9 +118,9 @@ A `Project` must be created for each project you wish to track. These can be cre
 
 Project names must start with a letter, only include lower or uppercase letters, numbers, dashes or underscores, and must end in a letter or number.
 
-#### Balances and budgets
+#### Budget Policies
 
-As part of creating and updating a project, a balance and budget policy must be set. Balances represent the total amount of compute units assigned to the project and budget policies describe how those compute units will be allocated over time.
+As part of creating and updating a project, a budget policy must be set. Budget policies describe how compute units will be allocated to the project over time.
 
 Budget policies include a number of attributes:
 - Cycle interval: length of a billing cycle. Can be monthly, weekly or custom
@@ -127,7 +132,31 @@ Budget policies include a number of attributes:
   - Dynamic: (balance - total spend so far) / remaining cycles
 - Cycle limit: compute units assigned to the cycle, for fixed and rolling spend profiles.
 
-Both balances and budget policies have an `effective_at` date. When a project reaches its end date, the balance will become zero.
+Budget policies have an `effective_at` date.
+
+#### Flight Hub Integration and Budgets
+
+Budget policies are used to determine how many compute units a project should have over its lifetime, but before a `Budget` can be created, the required amount of compute units must be withdrawn from the [Flight Hub](https://github.com/alces-flight/flight-hub) application.
+
+To integrate the two applications, a Department must be created in Flight Hub that represents the Control project (and only that project). The two must then be linked by using the Department's numerical ID to set the Control project's `flight_hub_id`. In Flight Hub, compute units must be transfered into the department before the project starts.
+
+At the start of the project, Control will calulate the project's required compute units (based on the Budget Policy) and request that amount from Hub. If successful, a new Budget object will be created. If this fails, no Budget will be created. Any attempts are saved in a `FundsTransferRequest` and their result, including any errors, sent as a slack message.
+
+For continuous projects compute units will be requested from Hub whenever new compute units are detected in the Hub Department (see Balances, below).
+
+For non continuous projects, at the start of each billing cycle, any unused compute units from the previous cycle will be sent back to Hub. Compute units will be requested from Hub for the current billing cycle.
+
+For all project types, any remaining compute units are sent back to Hub at the end of the project and a new Budget of 0 created.
+
+Checks for budget management actions can be run using the task `rake funds:check_and_update_funds:all` or `rake funds:check_and_update_funds:by_project[project_name]`. This is scheduled to run for all active projects every day at midnight.
+
+If a user tries to access a project when it has pending budget management actions (e.g. at midnight at the start of a new billing cycle), they will be prevented from taking actions and shown a page asking them to try again in 5 minutes.
+
+#### Balances
+
+Control will also make regular queries of the associated Hub Department's remaining compute units, saving this in a `HubBalance` object. This is used in combination with the number of compute units received by the control project and its actual & forecast costs to estimate when the project's total compute units are forecast to run out.
+
+Balance checks can be made using `rake funds:check_balance:all` or `rake funds:check_balance:by_project[project_name]`. This is scheduled to run for all active projects every hour.
 
 ### Instance Mappings
 
@@ -258,13 +287,13 @@ The most important user role tasks are as follows:
 
 This application has the capacity to authenticate users via a Flight SSO server. To do so, some configuration is required:
 
-- The `JWT_SECRET` environment variable must be set. This is a shared secret used to decode JSON Web Tokens given out by Flight SSO.
+- The `jwt_secret` credential must be set. This is a shared secret used to decode JSON Web Tokens given out by Flight SSO.
 - The `sso_cookie_name` and `sso_uri` keys must be set in `config/environments/*.rb`.
   - `sso_cookie_name` is the name of the cookie that the SSO session will be stored in. This must match the cookie name being used by SSO.
   - `sso_uri` is the URI used to reach the SSO server. It should be the host and port, _not_ including the path.
   - `sso_domain` is the domain that the cookie will be created under. Again, it should match the SSO server in use.
 
-A rake task (`rake sso:sync`) and cron schedule item have been created for syncing the user database to the SSO database. The `JWT_SECRET` environment variable is required for it to work. The sync task will query the SSO database for users, create an SSO user in Control for any that don't already exist, and update any username/email discrepancies locally.
+A rake task (`rake sso:sync`) and cron schedule item have been created for syncing the user database to the SSO database. The `jwt_secret` credential is required for it to work. The sync task will query the SSO database for users, create an SSO user in Control for any that don't already exist, and update any username/email discrepancies locally.
 
 SSO user objects should be treated like any 'local' user, in that it can be archived/activated and have user roles created/revoked for it.
 
