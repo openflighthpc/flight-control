@@ -1,5 +1,5 @@
 class InstanceTypeDetail < ApplicationRecord
-  validates :region, presence: true
+  validates :region, :currency, presence: true
   validates :instance_type,
             presence: true,
             uniqueness: { scope: :region, message: 'Instance type and region combination already exists' }
@@ -29,14 +29,6 @@ class InstanceTypeDetail < ApplicationRecord
 
   def mem
     self[:mem] || default
-  end
-
-  def currency
-    self[:currency] || default
-  end
-
-  def platform
-    self[:platform] || default
   end
 
   def default
