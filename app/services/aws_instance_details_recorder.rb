@@ -4,12 +4,7 @@ require 'aws-sdk-pricing'
 
 class AwsInstanceDetailsRecorder
   @@region_mappings = {}
-  @@details_file = nil
   @@regions_file = nil
-
-  def self.details_file
-    @@details_file ||= File.join(Rails.root, 'lib', 'platform_files', 'aws_instance_details.txt')
-  end
 
   def self.regions_file
     @@regions_file ||= File.join(Rails.root, 'lib', 'platform_files', 'aws_region_names.txt')
@@ -23,11 +18,10 @@ class AwsInstanceDetailsRecorder
   end
 
   def record
-    regions.each.with_index do |region, index|
-      if index == 0
-        File.write(self.class.details_file, "#{Time.current}\n")
-      end
+    database_entries = {}
+    regions.each do |region|
       first_query = true
+      failed_query = false
       results = nil
       while first_query || results&.next_token
         begin
@@ -35,28 +29,48 @@ class AwsInstanceDetailsRecorder
         rescue Aws::Pricing::Errors::ServiceError, Aws::Errors::MissingRegionError, Seahorse::Client::NetworkingError => error
           raise AwsSdkError.new("Unable to determine AWS instances in region #{region}. #{error}")
         end
-        results.price_list.each do |result|
-          details = JSON.parse(result)
-          attributes = details["product"]["attributes"]
-          next if !instance_types.include?(attributes["instanceType"])
+        if results
+          database_entries[region] ||= [] unless failed_query
+          results.price_list.each do |result|
+            details = JSON.parse(result)
+            attributes = details["product"]["attributes"]
+            next unless instance_types.include?(attributes["instanceType"])
 
-          price = details["terms"]["OnDemand"]
-          price = price[price.keys[0]]["priceDimensions"]
-          price = price[price.keys[0]]["pricePerUnit"]["USD"].to_f
-          mem = attributes["memory"].gsub(" GiB", "")
-          info = {
-            instance_type: attributes["instanceType"],
-            location: region, 
-            price_per_hour: price,
-            cpu: attributes["vcpu"].to_i,
-            mem: mem.to_f,
-            gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0
-          }
-          File.write(self.class.details_file, "#{info.to_json}\n", mode: 'a')
+            price = details["terms"]["OnDemand"]
+            price = price[price.keys[0]]["priceDimensions"]
+            price = price[price.keys[0]]["pricePerUnit"]["USD"].to_f
+            mem = attributes["memory"].gsub(" GiB", "")
+            info = {
+              instance_type: attributes["instanceType"],
+              region: region,
+              platform: "aws",
+              currency: "USD",
+              price_per_hour: price,
+              cpu: attributes["vcpu"].to_i,
+              gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0,
+              mem: mem.to_f,
+            }
+            if info[:instance_type] && info[:region]
+              existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
+              if existing_details
+                existing_details.update!(info)
+              else
+                InstanceTypeDetail.create!(info)
+              end
+            else
+              Rails.logger.error("Instance details not saved due to missing region and/or instance type.")
+              failed_query = true
+            end
+            database_entries[region].append(attributes["instanceType"]) unless failed_query
+          end
+          first_query = false
+        else
+          failed_query = true
+          database_entries = nil
         end
-        first_query = false
       end
     end
+    keep_only_updated_entries(database_entries) if database_entries
   end
 
   def validate_credentials
@@ -81,17 +95,17 @@ class AwsInstanceDetailsRecorder
   end
 
   def instance_types
-    @instance_types ||= instance_types = InstanceLog.where(platform: "aws").pluck(Arel.sql("DISTINCT instance_type"))
+    @instance_types ||= InstanceLog.where(platform: "aws").pluck(Arel.sql("DISTINCT instance_type"))
   end
-  
+
   def instances_info_query(region, token=nil)
     details = {
       service_code: "AmazonEC2",
-      filters: [ 
+      filters: [
         {
-          field: "location", 
-          type: "TERM_MATCH", 
-          value: @@region_mappings[region], 
+          field: "location",
+          type: "TERM_MATCH",
+          value: @@region_mappings[region],
         },
         {
           field: "tenancy",
@@ -110,11 +124,11 @@ class AwsInstanceDetailsRecorder
         },
         {
           field: "preInstalledSW",
-          type: "TERM_MATCH", 
+          type: "TERM_MATCH",
           value: "NA"
         }
-     ], 
-     format_version: "aws_v1"
+      ],
+      format_version: "aws_v1"
     }
     details[:next_token] = token if token
     details
@@ -126,6 +140,17 @@ class AwsInstanceDetailsRecorder
       file.readlines.each do |line|
         line = line.split(",")
         @@region_mappings[line[0]] = line[1].strip
+      end
+    end
+  end
+
+  def keep_only_updated_entries(updated_entries)
+    InstanceTypeDetail.where(platform: 'aws').each do |details|
+      region = details.region.to_s
+      instance_type = details.instance_type.to_s
+      unless updated_entries[region] && updated_entries[region].include?(instance_type)
+        Rails.logger.error("Database entry for region: #{region} and instance type: #{instance_type} was not updated and will be deleted.")
+        InstanceTypeDetail.find_by(instance_type: instance_type, region: region).destroy
       end
     end
   end

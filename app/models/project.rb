@@ -191,6 +191,20 @@ class Project < ApplicationRecord
   def nodes_up
     InstanceTracker.new(self).nodes_up
   end
+  
+  def missing_instance_details?
+    latest_instances.each do |_, instances|
+      instances.each do |instance|
+        return true if instance.missing_details?
+      end
+    end
+    false
+  end
+
+  def missing_instance_details_flash
+    "Values displayed based on incomplete or invalid instance details. \n
+    Please ask an administrator to generate new instance detail records."
+  end
 
   # For resetting after temp
   def reset_latest_instances

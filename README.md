@@ -209,13 +209,15 @@ If `slack` is set to `true`, the daily report will be sent to the project's `sla
 
 ### Instance Prices and Sizes
 
-Instance prices and sizes (GPUS, CPUs and RAM) are saved in text files in `lib/platform_files`. These should be updated regularly, by running `rake instance_details:record`.
+Instance prices and sizes (GPUS, CPUs and RAM) are recorded automatically each day. These details can also be updated manually by running `rake instance_details:record`.
 
 This may take a few minutes to complete, especially for Azure data due to limitations in the Azure APIs.
 
 As there are thousands of instance type and region combinations, these are only recorded for those matching existing instance logs (for all projects, for all dates). If a new instance is created with a new region and/or instance type, this task should be rerun.
 
 This uses the credentials of the first active project for each platform. If there are no such projects an alert highting this will be shown on the command line and it will not run for that platform.
+
+If a query to the AWS/Azure API fails for any reason, no changes will be made to the recorded details. However, if the data obtained from a query contains missing or invalid values, these will be replaced with default values (`nil` for numeric values and 'UNKNOWN' for string values). A warning will also be displayed on the 'Costs breakdown' and 'Create/Manage events' web pages.
 
 #### Region name mappings
 

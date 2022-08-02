@@ -8,7 +8,6 @@ class InstanceTracker
     return @latest_instances if @latest_instances
     changes = pending_action_log_changes
     all_instances = latest_instance_count
-
     all_instances.each do |group, instances|
       instances.each do |instance|
         change = changes.dig(group, instance.instance_type)
@@ -35,7 +34,7 @@ class InstanceTracker
       group_logs = logs.where(compute_group: node_group)
       instance_mappings.each do |mapping|
         instance = Instance.new(mapping.instance_type, region, node_group, @project.platform, @project)
-        if instance.node_limit > 0 && instance.present_in_region?
+        if instance.node_limit > 0
           group_logs.where(instance_type: mapping.instance_type).each do |log|
             instance.increase_count(InstanceLog::ON_STATUSES[@platform] == log.status ? :on : :off)
           end
@@ -51,13 +50,13 @@ class InstanceTracker
         if !last || last && group[0][0] != last.instance_type
           instance = Instance.new(group[0][0], region, node_group, @project.platform, @project)
           instance.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
-          instances << last if last&.present_in_region?
+          instances << last if last
           last = instance
         elsif last
           last.increase_count(InstanceLog::ON_STATUSES[@platform] == group[0][1] ? :on : :off, group[1])
         end
       end
-      instances << last if last&.present_in_region?
+      instances << last if last
 
       all_instances[node_group] = instances
     end

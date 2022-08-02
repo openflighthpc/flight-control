@@ -20,6 +20,12 @@ class ApplicationController < ActionController::Base
     field.to_s.split('.').map { |f| f.singularize.humanize }.join(' ')
   end
 
+  def check_missing_instance_details
+    if @project.missing_instance_details?
+      flash.now[:danger] = @project.missing_instance_details_flash
+    end
+  end
+
   private
 
   def authenticate_user_from_jwt!

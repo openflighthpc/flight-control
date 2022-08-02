@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_07_07_092226) do
+ActiveRecord::Schema.define(version: 2022_07_27_094146) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -139,6 +139,21 @@ ActiveRecord::Schema.define(version: 2022_07_07_092226) do
     t.string "platform"
     t.string "instance_type"
     t.string "customer_facing_type"
+  end
+
+  create_table "instance_type_details", force: :cascade do |t|
+    t.string "instance_type"
+    t.string "region"
+    t.decimal "price_per_hour"
+    t.integer "cpu"
+    t.integer "gpu"
+    t.decimal "mem"
+    t.string "currency"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "platform"
+    t.index ["instance_type", "region"], name: "index_instance_type_details_on_instance_type_and_region", unique: true
+    t.index ["platform"], name: "index_instance_type_details_on_platform"
   end
 
   create_table "projects", force: :cascade do |t|

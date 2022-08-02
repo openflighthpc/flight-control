@@ -30,7 +30,7 @@
               <td></td>
             <% end %>
           </tr>
-          <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem] } %>
+          <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem.to_f] } %>
           <% instances.each do |instance| %>
             <% next if instance.node_limit == 0 %>
             <% on = instance.count[:on] %>

@@ -19,10 +19,10 @@ class InstanceLog < ApplicationRecord
 
   # including at risk margin
   def hourly_compute_cost
-    if !@hourly_compute_cost
-      price = Instance.instance_details.dig(region, instance_type, :price)
-      @hourly_compute_cost = price || 0
-      @hourly_compute_cost = @hourly_compute_cost * CostLog.usd_gbp_conversion if platform == "aws"
+    unless @hourly_compute_cost
+      instance_details = InstanceTypeDetail.find_by(instance_type: instance_type, region: region) || InstanceTypeDetail.new
+      @hourly_compute_cost = instance_details.price_per_hour
+      @hourly_compute_cost = @hourly_compute_cost * CostLog.usd_gbp_conversion if instance_details.currency == "USD"
       @hourly_compute_cost = @hourly_compute_cost * CostLog.gbp_compute_conversion
       @hourly_compute_cost = @hourly_compute_cost * CostLog.at_risk_conversion
     end
