@@ -215,6 +215,16 @@ input[type=date] {
   padding-bottom: 0.5rem;
 }
 
+.budget-switch-off-details-card {
+  max-width: 45.5rem !important;
+  min-width: 45.5rem !important;
+}
+
+.budget-switch-off-text {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
 .timezone-tooltip {
   color: white;
   text-decoration: none

@@ -72,17 +72,21 @@
                 </button>
               </td>
             </tr>
-      <tr id="<%= schedule.front_end_id %>" class="table-row">
-        <td colspan="7"
-              class="<%= locals[:type] %> event-details-row"
+          <tr id="<%= schedule.front_end_id %>" class="table-row">
+            <td colspan="7"
+                class="<%= locals[:type] %> event-details-row"
               id="<%= schedule.front_end_id %>"
               data-date="<%= schedule.date %>">
         <div id="event-details-<%= schedule.front_end_id %>" class="event-details-row collapse">
           <% unless locals[:requests].empty? %>
-            <%= render '/change_requests/event_details_card', locals: { event: schedule,
-                                                                        parent_event: schedule.parent_request,
-                                                                        editor: @editor,
-                                                                        bottom_border: index == schedules.length-1 } %>
+            <% if schedule.is_a?(BudgetSwitchOffDecorator) %>
+              <%= render '/change_requests/budget_switch_off_details_card', locals: { bottom_border: index == schedules.length-1 } %>
+            <% else %>
+              <%= render '/change_requests/event_details_card', locals: { event: schedule,
+                                                                          parent_event: schedule.is_a?(BudgetSwitchOffDecorator) ? nil : schedule.parent_request,
+                                                                          editor: @editor,
+                                                                          bottom_border: index == schedules.length-1 } %>
+            <% end %>
           <% end %>
         </div>
       </td></tr>
