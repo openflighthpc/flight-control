@@ -128,7 +128,6 @@ class AzureInstanceDetailsRecorder < AzureService
               instance_type: instance["name"],
               region: instance["locations"][0],
               platform: 'azure',
-              currency: 'GBP',
               cpu: 0, gpu: 0, mem: 0
             }
 

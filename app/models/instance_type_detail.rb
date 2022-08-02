@@ -1,5 +1,5 @@
 class InstanceTypeDetail < ApplicationRecord
-  validates :region, :currency, presence: true
+  validates :region, presence: true
   validates :instance_type,
             presence: true,
             uniqueness: { scope: :region, message: 'Instance type and region combination already exists' }
