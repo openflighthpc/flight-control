@@ -54,8 +54,8 @@ window.forecastAndActual = function() {
 window.overlapDateIndex = function() {
   let date_index = null;
   let chart = typeof cumulative_chart !== 'undefined' ? cumulative_chart : simple_chart;
-  forecast = chart.data.datasets.find((dataset) => dataset.label === "forecast total");
-  actual = chart.data.datasets.find((dataset) => dataset.label === "total");
+  forecast = chart.data.datasets.find((dataset) => ["forecast cycle total", "forecast total"].includes(dataset.label));
+  actual = chart.data.datasets.find((dataset) => ["cycle total", "total"].includes(dataset.label));
   if(forecast != undefined && actual != undefined) {
     for (let i=0; i<actual.data.length; i++) {
       if(actual.data[i] === forecast.data[i]) date_index = i;
