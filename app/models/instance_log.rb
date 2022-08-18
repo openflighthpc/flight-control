@@ -13,6 +13,8 @@ class InstanceLog < ApplicationRecord
       message: "%{value} is not a valid platform"
     }
 
+  before_save :set_if_status_changed
+
   def on?
     status == ON_STATUSES[platform]
   end
@@ -77,5 +79,13 @@ class InstanceLog < ApplicationRecord
     return if platform == "aws"
     
     instance_id.split("/")[4]
+  end
+
+  private
+
+  def set_if_status_changed
+    if status_changed?
+      self.last_status_change = Time.current
+    end
   end
 end
