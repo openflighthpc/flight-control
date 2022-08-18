@@ -5,7 +5,8 @@ class InstanceLog < ApplicationRecord
                  "aws" => "stopped"}
   belongs_to :project
   validates :instance_type, :instance_name, :instance_id,
-            :region, :status, :date, presence: true
+            :region, :status, :date, :last_checked,
+            :last_status_change, presence: true
   validates :platform,
     presence: true,
     inclusion: {

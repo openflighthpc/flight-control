@@ -38,7 +38,8 @@ class AzureInstanceRecorder < AzureService
             platform: 'azure',
             region: region,
             date: Date.current,
-            last_checked: Time.current
+            last_checked: Time.current,
+            last_status_change: Time.now
           )
         else
           log.status = status

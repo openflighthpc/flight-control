@@ -9,7 +9,7 @@ class AwsInstanceRecorder
     @project = project
   end
 
-  def record_logs(rerun=false, verbose=false)
+  def record_logs(rerun=false, verbose=true)
     today_logs = @project.instance_logs.where(date: Date.current)
     any_nodes = false
     log_recorded = false
@@ -55,7 +55,8 @@ class AwsInstanceRecorder
                 platform: "aws",
                 region: region,
                 date: Date.current,
-                last_checked: Time.now
+                last_checked: Time.now,
+                last_status_change: Time.now
               )
             else
               log.status = status
