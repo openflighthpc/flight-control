@@ -58,9 +58,7 @@ class AzureCostsRecorder < AzureService
       costs["total"][:total] += value
       # Other than total, all other datasets are mutually exclusive,
       # so we can iterate once through all costs to get values.
-      if data_out_cost?(meter_name)
-        costs["data_out"][:total] += value
-      elsif core_cost?(cost)
+      if core_cost?(cost)
         if storage_cost?(meter_name)
           costs["core_storage"][:total] += value
         else
@@ -81,6 +79,8 @@ class AzureCostsRecorder < AzureService
             costs[compute_group][:total] += value
           end
         end
+      elsif data_out_cost?(meter_name)
+        costs["data_out"][:total] += value
       end
     end
     costs
@@ -199,7 +199,7 @@ class AzureCostsRecorder < AzureService
   end
 
   def data_out_cost?(meter_name)
-    meter_name == "Data Transfer Out"
+    meter_name.include?("Data Transfer Out")
   end
 
   def storage_cost?(meter_name)
