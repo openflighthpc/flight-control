@@ -37,11 +37,13 @@ class AzureInstanceRecorder < AzureService
             status: status,
             platform: 'azure',
             region: region,
-            date: Date.current
+            date: Date.current,
+            last_checked: Time.current
           )
         else
           log.status = status
           log.compute_group = compute_group # rare, but could have changed
+          log.last_checked = Time.current
           log.save
         end
         log_recorded = true if log.valid? && log.persisted?

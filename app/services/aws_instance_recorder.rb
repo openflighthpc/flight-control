@@ -54,11 +54,13 @@ class AwsInstanceRecorder
                 status: status,
                 platform: "aws",
                 region: region,
-                date: Date.current
+                date: Date.current,
+                last_checked: Time.now
               )
             else
               log.status = status
               log.compute_group = compute_group # rare, but could have changed
+              log.last_checked = Time.now
               log.save
             end
             log_recorded = true if log.valid? && log.persisted?
