@@ -5,7 +5,7 @@
       <h4 class="mr-auto p-2 audit-logs-title text-center">
         In Progress
         <% if @editor %>
-          <a href="/events/new?project=<%= @project.name %>" class="btn btn-warning">+ Event</a>
+          <%= link_to "+ Event", new_project_event_path(@project), class: "btn btn-warning" %>
         <% end %>
       </h4>
     </div>

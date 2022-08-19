@@ -139,7 +139,7 @@ td {
 }
 
 .disabled {
-  pointer-events: auto !important;
+  pointer-events: none !important;
 }
 
 input[type=date] {

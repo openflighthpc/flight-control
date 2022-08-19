@@ -26,23 +26,24 @@
     <div class="row justify-content-md-center mt-auto text-center">
       <% unless locals[:compute_group] == "core" %>
         <% disable = locals[:end_date] && locals[:end_date] < Date.today %>
-        <a class="btn btn-warning dashboard-btn groups <%= "disabled" if disable %>"
-           href="<%= disable ? "#" : "events?groups[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>"
-           role="button">
-          Events
-        </a>
+        <%= link_to 'Events',
+                    project_events_path(@project, groups: [locals[:compute_group]]),
+                    class: "btn btn-warning dashboard-btn groups #{'disabled' if disable}",
+                    role: "button",
+                    onClick: "return #{!disable}"
+        %>
       <% end %>
-      <a class="btn btn-info dashboard-btn groups <%= 'core' if locals[:compute_group] == "core" %>"
-         role="button"
-         href=<%= "costs-breakdown?datasets[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>>
-        Costs
-      </a>
+      <%= link_to 'Costs',
+                  project_costs_breakdown_path(@project, datasets: [locals[:compute_group]]),
+                  class: "btn btn-info dashboard-btn groups #{'core' if locals[:compute_group] == 'core'}",
+                  role: "button"
+      %>
       <% unless locals[:compute_group] == "core" %>
-        <a class="btn btn-info dashboard-btn groups"
-           href="<%= "audit?groups[]=#{ locals[:compute_group] }&project=#{ locals[:project_name] }" %>"
-           role="button">
-          Logs
-        </a>
+        <%= link_to 'Logs',
+                    project_audit_path(@project, groups: [locals[:compute_group]]),
+                    role: "button",
+                    class: "btn btn-info dashboard-btn groups"
+        %>
       <% end %>
     </div>
   </div>

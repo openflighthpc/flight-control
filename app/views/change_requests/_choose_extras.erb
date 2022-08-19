@@ -12,7 +12,7 @@
                    name="description"
                    class="form-control"
                    id="scheduled-description"
-                   value='<%= "#{sanitize(@request.description)}" if @request %>'>
+                   value='<%= "#{sanitize(@change_request.description)}" if @change_request %>'>
           </label>
         </div>
       </div>
@@ -26,7 +26,7 @@
                class="form-control extras-input"
                id="override-hours"
                name="monitor_override_hours"
-               <%= "value=#{@request.monitor_override_hours}" if @request %>
+               <%= "value=#{@change_request.monitor_override_hours}" if @change_request %>
         >  hour(s)
       </div>
     </div>

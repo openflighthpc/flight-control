@@ -79,7 +79,7 @@ class ProjectsController < ApplicationController
       else
         flash[:danger] = result.errors.full_messages.join(", ")
       end
-      redirect_to policies_path(project: @project.name)
+      redirect_to project_policies_path(@project)
     end
   end
 

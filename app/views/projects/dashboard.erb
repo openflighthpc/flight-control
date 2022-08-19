@@ -46,9 +46,11 @@
 
         <!-- Button -->
         <div class="mt-auto text-center">
-          <a class="btn btn-info dashboard-btn" href="billing-management?project=<%= @project.name %>" role="button">
-            View spending breakdown
-          </a>
+          <%= link_to 'View spending breakdown',
+                      project_billing_management_path(@project),
+                      class: "btn btn-info dashboard-btn",
+                      role: "button"
+          %>
         </div>
       </div>
     </div>
@@ -69,16 +71,19 @@
             <% if @project.end_date && @project.end_date < Date.today %>
               <% disable = true %>
             <% end %>
-            <a class="btn btn-warning dashboard-btn mt-auto <%= "disabled" if disable %>"
-               href="<%= disable ? "#" : "events?project=#{@project.name}" %>"
-               role="button">
-              Create/Manage events
-            </a>
+            <%= link_to 'Create/Manage events',
+                           project_events_path(@project),
+                           class: "btn btn-warning dashboard-btn mt-auto #{'disabled' if disable}",
+                           role: 'button',
+                           onClick: "return #{!disable}"
+            %>
           </div>
           <div class="col col-lg-5">
-            <a class="btn btn-info dashboard-btn mt-auto" href="audit?project=<%= @project.name %>" role="button">
-              View audit log
-            </a>
+            <%= link_to "View audit logs",
+                        project_audit_path(@project),
+                        class: "btn btn-info dashboard-btn mt-auto",
+                        role: "button"
+            %>
           </div>
         </div>
       </div>

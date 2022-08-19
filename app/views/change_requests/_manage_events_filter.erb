@@ -1,6 +1,6 @@
 <div class="row" id="manage-events-form">
   <div class="mt-1 mb-4 col-12">
-    <form class="form" action="/events" method="get" id="manage-events-filter">
+    <form class="form" action="/projects/<%= @project.name %>/events" method="get" id="manage-events-filter">
       <div class="form-row justify-content-center">
         <div class="form-group col-md-3">
           <label for="groups-list">Compute Groups:</label>
@@ -22,7 +22,7 @@
         <div class="form-group col-md-3">
           <input type="submit" value="Filter" class="btn btn-primary"
                  id="submit-chart-filter">
-          <%= link_to "Clear all", events_path(project: @project.name),  class: "btn btn-danger" %>
+          <%= link_to "Clear all", project_events_path(@project),  class: "btn btn-danger" %>
         </div>
       </div>
     </form>

@@ -37,12 +37,12 @@ class ChangeRequestsController < ApplicationController
   end
 
   def edit
-    get_project
     @change_request = ChangeRequest.find_by_id(params[:id])
     unless @change_request
       flash[:danger] = "Request not found"
     else
       authorize @change_request, policy_class: ChangeRequestPolicy
+      @project = @change_request.project
       unless @change_request.editable?
         flash[:danger] = "Cannot edit that request"
         redirect_to request.referrer
@@ -54,7 +54,7 @@ class ChangeRequestsController < ApplicationController
     start_date = cost_plotter.start_of_billing_interval(Date.current)
     end_date = cost_plotter.end_of_billing_interval(Date.current)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
-    @existing_timings = @project.request_dates_and_times(@request)
+    @existing_timings = @project.request_dates_and_times(@change_request)
     @nav_view = "event wizard"
     check_missing_instance_details
     render :new
@@ -77,17 +77,17 @@ class ChangeRequestsController < ApplicationController
         flash[:danger] = format_errors(request)
       end
     end
-    redirect_to events_path(project: @project.name)
+    redirect_to project_events_path(@project)
   end
 
   def update
-    get_project
     parameters = filtered_change_request_params
     request = ChangeRequest.find_by_id(params[:id])
     if !request
       flash[:danger] = "Request not found"
     else
       authorize request, policy_class: ChangeRequestPolicy
+      @project = request.project
       if request.id != parameters[:id].to_i
         flash[:danger] = "Ids do not match"
       else
@@ -110,16 +110,16 @@ class ChangeRequestsController < ApplicationController
         end
       end
     end
-    redirect_to events_path(project: @project.name)
+    redirect_to project_events_path(@project)
   end
 
   def cancel
-    get_project
     change_request = ChangeRequest.find_by_id(params[:id])
     if !change_request
       flash[:danger] = "Request not found"
     else
       authorize change_request, policy_class: ChangeRequestPolicy
+      @project = change_request.project
       success = @project.cancel_change_request(change_request, current_user)
       if success
         flash[:success] = "Request cancelled"
