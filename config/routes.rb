@@ -14,24 +14,28 @@ Rails.application.routes.draw do
     end
   end
 
-  # Projects
-  get '/dashboard', to: 'projects#dashboard'
-  get '/costs-breakdown', to: 'projects#costs_breakdown'
-  get '/billing-management', to: 'projects#billing_management'
-  get '/policies', to: 'projects#policy_page'
-  get '/audit', to: 'projects#audit'
-  get '/json/data-check', to: 'projects#data_check'
-  get '/json/audit-logs', to: 'projects#audit_logs'
-  post '/config-update', to: 'projects#config_update'
+  resources :projects, only: [] do
+    get 'dashboard'
+    get 'costs-breakdown'
+    get 'billing-management'
+    get 'policies', to: 'projects#policy_page'
+    get 'audit'
+    post 'config-update'
+    get 'json/data-check', to: 'projects#data_check'
+    get 'json/audit-logs', to: 'projects#audit_logs'
 
-  # Events (change requests and their resulting actions)
-  get '/events', to: 'change_requests#manage'
-  get '/events/new', to: 'change_requests#new'
-  get '/events/:id/edit', to: 'change_requests#edit', as: :event_edit
-  get '/json/events/latest', to: 'change_requests#latest'
-  get '/json/events/costs-forecast', to: 'change_requests#costs_forecast'
-  post '/events/', to: 'change_requests#create'
-  post '/events/:id/cancel', to: 'change_requests#cancel'
-  post '/events/:id/update', to: 'change_requests#update'
-  post '/dashboard/:id/cancel', to: 'change_requests#cancel'
+    resources :events, controller: :change_requests, only: [:new, :create] do
+      collection do
+        get '', to: 'change_requests#manage', as: 'manage'
+        get 'json/latest', to: 'change_requests#latest', as: 'latest'
+        get 'json/costs-forecast', to: 'change_requests#costs_forecast', as: 'cost_forecast'
+      end
+    end
+  end
+
+  resources :events, controller: :change_requests, only: [:edit, :update] do
+    post 'cancel', to: 'change_requests#cancel', on: :member
+  end
+
+  post 'dashboard/:id/cancel', to: 'change_requests#cancel'
 end
