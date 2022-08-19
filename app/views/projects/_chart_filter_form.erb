@@ -1,6 +1,6 @@
 <div class="row" id="costs-chart-form">
   <div class="mt-4 col-12">
-    <form class="form" action="/costs-breakdown" method="get" id="cost-chart-filter">
+    <form class="form" action="/projects/<%= @project.name %>/costs-breakdown" method="get" id="cost-chart-filter">
       <div class="form-row">
         <div class="col-md-3"></div>
         <div class="form-group col-md-2">
@@ -41,7 +41,7 @@
         <div class="form-group col-md-4">
           <input type="submit" value="Filter" class="btn btn-primary"
                  id="submit-chart-filter">
-          <%= link_to "Clear all", costs_breakdown_path(project: @project.name), class: "btn btn-danger" %>
+          <%= link_to "Clear all", project_costs_breakdown_path(@project), class: "btn btn-danger" %>
         </div>
       </div>
     </form>
