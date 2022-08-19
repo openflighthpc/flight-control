@@ -14,7 +14,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :projects, only: [] do
+  resources :projects, param: :name, only: [] do
     get 'dashboard'
     get 'costs-breakdown'
     get 'billing-management'

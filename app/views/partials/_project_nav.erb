@@ -9,12 +9,8 @@
           </h6>
           <% projects.each do |project| %>
             <% if !project.archived? %>
-              <a
-                class="list-group-item list-group-item-action project-link <%= 'active' if project.name == @project.name %>"
-                href="/?project=<%= project.name %>"
-              >
-                <%= project.name %>
-              </a>
+              <% klass = "list-group-item list-group-item-action project-link #{'active' if project.name == @project.name}" %>
+              <%= link_to project.name, project_dashboard_path(project), class: klass %>
             <% end %>
           <% end %>
         <% end %>
@@ -25,12 +21,8 @@
           </h6>
           <% projects.each do |project| %>
             <% if project.archived? %>
-              <a
-                class="list-group-item list-group-item-action project-link <%= 'active' if project.name == @project.name %>"
-                href="/?project=<%= project.name %>"
-              >
-                <%= project.name %>
-              </a>
+              <% klass = "list-group-item list-group-item-action project-link #{'active' if project.name == @project.name}" %>
+              <%= link_to project.name, project_dashboard_path(project), class: klass %>
             <% end %>
           <% end %>
         <% end %>

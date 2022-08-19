@@ -46,6 +46,10 @@ class Project < ApplicationRecord
     @@slack_token ||= Rails.application.config.slack_token
   end
 
+  def to_param
+    name
+  end
+
   def archived?
     # use !! so returns false instead nil, which confuses table print
     !!(archived_date && archived_date <= Date.current)
