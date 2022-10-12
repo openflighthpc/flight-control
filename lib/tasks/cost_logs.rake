@@ -49,7 +49,7 @@ end
 def record_cost_logs(project, date, rerun, verbose, text)
   begin
     print "Project #{project.name}: " if text
-    print project.record_cost_logs(date, rerun, text, verbose)
+    project.record_cost_logs(date, rerun, text, verbose)
     puts if text
   rescue AzureApiError, AwsSdkError => e
     error = <<~MSG
