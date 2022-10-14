@@ -114,12 +114,12 @@ class AzureInstanceRecorder < AzureService
         raise Net::ReadTimeout
       else
         raise AzureApiError.new("Error querying compute nodes for project #{@project.name}."\
-                                "\nError code #{response.code}.\n#{response if @verbose}")
+                                "\nError code #{response.code}.\n#{response if verbose}")
       end
     rescue Net::ReadTimeout
       msg = "Attempt #{attempt}: Request timed out.\n"
       if response
-        msg << "Error code #{response.code}.\n#{response if @verbose}\n"
+        msg << "Error code #{response.code}.\n#{response if verbose}\n"
       end
       error.error_messages.append(msg)
       if attempt < MAX_API_ATTEMPTS
