@@ -75,7 +75,9 @@ class AwsMonitor
   def get_node_usage(node_id, region, logger=nil)
     logger ||= setup_logger(region)
     logger.info("Getting utilisation data for #{node_id}")
-    watcher = Aws::CloudWatch::Client.new(region: region)
+    watcher = Aws::CloudWatch::Client.new(access_key_id: @project.access_key_ident,
+                                          secret_access_key: @project.key,
+                                          region: region)
     response = watcher.get_metric_statistics({
       namespace: "AWS/EC2",
       metric_name: "CPUUtilization",
