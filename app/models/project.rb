@@ -235,9 +235,17 @@ class Project < ApplicationRecord
     @current_groups ||= latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
   end
 
+  def has_config_file?
+    File.file?((File.join(Rails.root, 'config', 'projects', "#{name}.yaml")))
+  end
+
   def settings
     if !@settings
-      @settings = YAML.load(File.read(File.join(Rails.root, 'config', 'projects', "#{name}.yaml")))
+      if has_config_file?
+        @settings = YAML.load(File.read(File.join(Rails.root, 'config', 'projects', "#{name}.yaml")))
+      else
+        @settings = YAML.load(File.read(File.join(Rails.root, 'config', 'projects', "default.yaml")))
+      end
     end
     @settings
   end
