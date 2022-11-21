@@ -60,6 +60,8 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
+  config.active_job.queue_adapter = ENV.fetch('QUEUE_ADAPTER', :inline)
+
   config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME', 'flight_sso_dev')
   config.sso_domain = "alces-flight.lvh.me"
   config.sso_uri = "http://accounts.alces-flight.lvh.me:4000"
