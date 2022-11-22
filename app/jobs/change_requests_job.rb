@@ -1,5 +1,5 @@
 class ChangeRequestsJob < ApplicationJob
-  queue_as :default
+  queue_as :high
 
   def perform(project_id, slack, text)
     project = Project.find(project_id)

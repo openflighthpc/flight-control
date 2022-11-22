@@ -1,5 +1,5 @@
 class DailyReportJob < ApplicationJob
-  queue_as :default
+  queue_as :low
 
   def perform(project_id, date, rerun, slack, text, verbose)
     project = Project.find(project_id)

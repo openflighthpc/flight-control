@@ -1,5 +1,5 @@
 class RecordCostLogsJob < ApplicationJob
-  queue_as :default
+  queue_as :medium
 
   def perform(project_id, date, rerun, text, verbose)
     project = Project.find(project_id)

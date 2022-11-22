@@ -1,5 +1,5 @@
 class RecordInstanceLogsJob < ApplicationJob
-  queue_as :default
+  queue_as :high
 
   def perform(project_id, rerun, verbose)
     project = Project.find(project_id)

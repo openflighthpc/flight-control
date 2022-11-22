@@ -2,7 +2,7 @@ require 'open-uri'
 require 'json_web_token'
 
 class SsoSyncJob < ApplicationJob
-  queue_as :default
+  queue_as :low
 
   def perform
     jwt = JsonWebToken.encode(

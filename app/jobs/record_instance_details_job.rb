@@ -1,5 +1,5 @@
 class RecordInstanceDetailsJob < ApplicationJob
-  queue_as :default
+  queue_as :low
 
   def perform(project_id)
     project = Project.find(project_id)
