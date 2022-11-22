@@ -47,7 +47,7 @@ namespace :projects do
       elsif !project.monitor_currently_active?
         puts "Monitor not currently active for this project"
       else
-        MonitorJob.perform_late(project.id)
+        MonitorJob.perform_later(project.id)
       end
     end
 
@@ -68,16 +68,9 @@ namespace :projects do
   namespace :budget_switch_off_schedule do
     desc "Show over budget switch off schedules for all active projects"
     task :all, [:slack, :text] => :environment do |task, args|
-      Project.active.each do |project|
-        begin
-        rescue StandardError => e
-          puts "Error determining over budget switch offs for #{project.name}: #{e.message}"
-          next
-        end
-        fork do
-          Rake::Task['projects:budget_switch_off_schedule:by_project'].invoke(project.name,args[:slack],args[:text])
-          Rake::Task['projects:budget_switch_off_schedule:by_project'].reenable
-        end
+      args = TaskArgsHelper.truthify_args(args)
+      Project.active.pluck(:id).each do |project_id|
+        SwitchOffScheduleJob.perform_later(project_id, args[:slack], args[:text])
       end
     end
 
@@ -87,12 +80,7 @@ namespace :projects do
       if !project
         puts "No project found with that name"
       else
-        begin
-          msg = project.budget_switch_off_schedule(args["slack"] == "true")
-          puts msg if args["text"] == "true"
-        rescue StandardError => e
-          puts "Error determining over budget switch offs for #{project.name}: #{e.message}"
-        end
+        SwitchOffScheduleJob.perform_later(project.id, args[:slack] == "true", args[:text] == "true")
       end
     end
   end
@@ -100,16 +88,9 @@ namespace :projects do
   namespace :budget_switch_offs do
     desc "Carry out any over budget scheduled switch offs for all active projects"
     task :all, [:slack, :text]  => :environment do |task, args|
-      Project.active.each do |project|
-        begin
-        rescue Errno::ENOENT
-          puts "No config file found for project #{project.name}"
-          next
-        end
-        fork do
-          Rake::Task['projects:budget_switch_offs:by_project'].invoke(project.name,args[:slack],args[:text])
-          Rake::Task['projects:budget_switch_offs:by_project'].reenable
-        end
+      args = TaskArgsHelper.truthify_args(args)
+      Project.active.pluck(:id).each do |project_id|
+        BudgetSwitchOffsJob.perform_later(project_id, args[:slack], args[:text])
       end
     end
 
@@ -119,12 +100,7 @@ namespace :projects do
       if !project
         puts "No project found with that name"
       else
-        begin
-          msg = project.perform_budget_switch_offs(args[:slack] == "true")
-          puts msg if args[:text] == "true"
-        rescue Errno::ENOENT
-          puts "No config file found for project #{project.name}"
-        end
+        BudgetSwitchOffsJob.perform_later(project.id, args[:slack] == "true", args[:text] == "true")
       end
     end
   end
