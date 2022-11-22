@@ -47,7 +47,7 @@ namespace :projects do
       elsif !project.monitor_currently_active?
         puts "Monitor not currently active for this project"
       else
-        project.check_and_switch_off_idle_nodes(true)
+        MonitorJob.perform_late(project.id)
       end
     end
 
@@ -60,10 +60,7 @@ namespace :projects do
           puts "Error monitoring #{p.name}: #{e.message}"
           next
         end
-        fork do
-          Rake::Task['projects:monitor:by_project'].invoke([p.name])
-          Rake::Task['projects:monitor:by_project'].reenable
-        end
+        MonitorJob.perform_later(p.id)
       end
     end
   end
