@@ -230,6 +230,33 @@ For AWS projects, a missing mapping will be highlighted when adding regions usin
 
 Rake tasks such as generating daily reports, recording instance logs and recording instance details can be scheduled by defining their timings in `config/schedule.rb`. Once updated in this file, corresponding cron syntax can be determined by running `whenever` in the command line, or your crontab updated automatically with these lines by running `whenever --w`.
 
+In production, if deployed using dokku, whenever should not be used. Instead, necessary cron entries can be determined
+using the rake task `rake deployment:crontab:staging` or `rake deployment:crontab:production`
+These should be added to the host's crontab, not the application container's.
+
+### Background jobs
+
+The majority of scheduled tasks are carried out as background jobs. In development these are by default
+performed `inline`, meaning they are sequential. In production, if a `REDIS_URL` environment
+variable is set, resque is used instead to process these jobs, with jobs assigned to queues
+and carried out by resque workers in parallel. Jobs are placed in the queues high, medium and low,
+reflecting the priority the resque workers will complete them in.
+
+The application's `Procfile` creates a container specifically for resque in dokku and creates
+5 resque workers. This will require monitoring and possibly increasing as the number of active
+projects grows.
+
+The use of `inline` or `resque` can be overridden by defining an environment variable of `QUEUE_ADAPTER`.
+This may be useful if you want to run rake tasks with text output in production, as with resque
+the output will be made a resque worker (and so not visible in the console the rake task is made from).
+E.g. `ENV['QUEUE_ADAPTER']=inline rake daily_reports:all[latest,true,true,true]`
+
+Admins can view the status of resque by visiting the path `/resque`
+
+**Note**: the version of the dokku-redis plugin on our hosting instances is outdated, and so to prevent
+issues `config/initilizers/resque.rb` includes logic to ensure Control can successfully communicate
+with the (old) version of redis. If we update dokku-redis and then the version of reddis this will likely no longer be required.
+
 ## Visualiser
 
 ### Users
