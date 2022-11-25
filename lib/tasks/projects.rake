@@ -13,9 +13,9 @@ namespace :projects do
       overwrite = args["overwrite"] == "true"
       Project.active.each do |project|
         begin
-          project.create_config_file(overwrite)
+          project.create_config(overwrite)
         rescue => error
-          puts "Unable to create config file for #{project.name}: #{error}"
+          puts "Unable to create config for #{project.name}: #{error}"
         end
         puts
       end
@@ -29,9 +29,9 @@ namespace :projects do
       else
         overwrite = args["overwrite"] == "true"
         begin
-          project.create_config_file(overwrite)
+          project.create_config(overwrite)
         rescue => error
-          puts "Unable to create config file for #{project.name}: #{error}"
+          puts "Unable to create config for #{project.name}: #{error}"
         end
       end
     end

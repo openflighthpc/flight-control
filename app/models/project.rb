@@ -25,6 +25,7 @@ class Project < ApplicationRecord
   has_many :budget_policies
   has_many :user_roles
   has_many :compute_group_configs
+  has_many :instance_type_configs
 
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
   validates :name, presence: true, uniqueness: true
@@ -263,8 +264,8 @@ class Project < ApplicationRecord
     logs.pluck(Arel.sql("DISTINCT compute_group")).compact.compact
   end
 
-  def create_config_file(overwrite=false)
-    ProjectConfigCreator.new(self).create_config_file(overwrite)
+  def create_config(overwrite=false)
+    ProjectConfigCreator.new(self).create_config(overwrite)
   end
 
   def time_of_latest_change

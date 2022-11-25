@@ -1,5 +1,7 @@
 class InstanceTypeConfig < ApplicationRecord
+  belongs_to :project
   belongs_to :compute_group_config
+  default_scope { order(:priority) }
 
   validates :limit, :priority, :instance_type, presence: true
   validates :priority, numericality: { greater_than_or_equal_to: 1 }

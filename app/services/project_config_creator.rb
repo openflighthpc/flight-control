@@ -26,13 +26,12 @@ class ProjectConfigCreator
         group_name = details[0]
         region = details[1]
         compute_group = @project.compute_group_configs.find_or_initialize_by(name: group_name)
-        compute_group.assign_attributes(
-          priority: priority,
-          region: region,
-          colour: EXAMPLE_COLOURS[colour_index],
-          storage_colour: EXAMPLE_COLOURS[colour_index],
-        )
+        compute_group.priority ||= priority
+        compute_group.region ||= region
+        compute_group.colour ||= EXAMPLE_COLOURS[colour_index]
+        compute_group.storage_colour ||= EXAMPLE_COLOURS[colour_index]
         compute_group.save!
+
         current_group_config_ids << compute_group.id
         priority += 1
         colour_index = (colour_index + 1) % EXAMPLE_COLOURS.length # if more groups than colours, repeat from start of colours list
@@ -44,11 +43,11 @@ class ProjectConfigCreator
         group = @project.compute_group_configs.find_by(name: group_name)
         instance_type = details[1]
         instance_config = InstanceTypeConfig.find_or_initialize_by(compute_group_config: group, instance_type: instance_type)
-        instance_config.assign_attributes(
-          priority: 1,
-          limit: count
-        )
+        instance_config.project = @project
+        instance_config.priority ||= priority
+        instance_config.limit ||= count
         instance_config.save!
+
         current_instance_config_ids << instance_config.id
       end
 
