@@ -6,10 +6,11 @@ class Instance
 
   attr_reader :count, :future_counts, :details, :region, :instance_type, :group, :budget_switch_offs
 
-  def initialize(instance_type, region, group, platform, project)
+  def initialize(instance_type, region, group_config, platform, project)
     @instance_type = instance_type
     @region = region
-    @group = group
+    @group_config = group_config
+    @group = @group_config.name
     @platform = platform
     @project = project
     @count = {on: 0, off: 0}
@@ -281,18 +282,20 @@ class Instance
     @truncated_name
   end
 
+  def config
+    @config ||= @group_config.instance_type_configs.find_by(instance_type: instance_type)
+  end
+
   def node_limit
-    @project.front_end_compute_groups.dig(@group, 'nodes', truncated_name, 'limit') || 0
+    config ? config.limit : 0
   end
 
   def priority
-    @project.front_end_compute_groups.dig(@group, 'nodes', truncated_name, 'priority') ||
-      @project.global_node_details.dig(truncated_name, 'priority') ||
-      0
+    config ? config.priority : 0
   end
 
   def group_priority
-    @project.front_end_compute_groups[@group]["priority"]
+    @group_config.priority
   end
 
   def weighted_priority

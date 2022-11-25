@@ -128,7 +128,7 @@ class ProjectsController < ApplicationController
   end
 
   def get_group_data
-    compute_groups = @project.front_end_compute_groups.keys
+    compute_groups = @project.front_end_compute_groups.pluck(:name)
     @group_costs = cost_plotter.total_costs_this_cycle( ['core'] + compute_groups )
     @nodes_up = @project.nodes_up
   end

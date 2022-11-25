@@ -2,7 +2,7 @@ class ChangeRequestsController < ApplicationController
   def manage
     get_project
     authorize ChangeRequest.new(project: @project)
-    @compute_groups = @project.front_end_compute_groups.keys
+    @compute_groups = @project.front_end_compute_groups.pluck(:name)
     @filtered_groups = params[:groups]
     @current_instances = @project.latest_instances
     @in_progress = @project.pending_action_logs

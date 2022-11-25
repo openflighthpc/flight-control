@@ -18,7 +18,7 @@
             <% base_group = group.to_s.gsub('_storage', '') %>
             label: "<%= group.to_s.gsub('_', ' ') %>",
             data: costs['actual']['compute_groups']['<%= group.to_s %>'],
-            backgroundColor: '#<%= @project.front_end_compute_groups[base_group]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>',
+            backgroundColor: '#<%= @project.group_colour(base_group, group.to_s.end_with?("storage")) %>',
             stack: 'bars',
             show: <%= !@datasets || @datasets.include?(base_group) %>
           },
@@ -73,7 +73,7 @@
             <% base_group = group.to_s.gsub('_storage', '') %>
             label: '<%= "forecast #{group.to_s.gsub("_", " ")}" %>',
             data: costs['forecast']['compute_groups']['<%= group %>'],
-            backgroundColor: '<%= lighten_colour("#{@project.front_end_compute_groups[base_group]["#{'storage_' if group.to_s.end_with?("storage")}colour"]}") %>',
+            backgroundColor: '<%= lighten_colour("#{@project.group_colour(base_group, group.to_s.end_with?("storage"))}") %>',
             stack: 'bars',
             show: <%= !@datasets || @datasets.include?(base_group) %>
           },

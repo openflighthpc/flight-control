@@ -24,6 +24,7 @@ class Project < ApplicationRecord
   has_many :balances
   has_many :budget_policies
   has_many :user_roles
+  has_many :compute_group_configs
 
   before_save :set_type, if: Proc.new { |p| !p.persisted? || p.platform_changed? }
   validates :name, presence: true, uniqueness: true
@@ -235,23 +236,17 @@ class Project < ApplicationRecord
     @current_groups ||= latest_instance_logs.pluck(Arel.sql("DISTINCT compute_group")).compact
   end
 
-  def has_config_file?
-    File.file?((File.join(Rails.root, 'config', 'projects', "#{name}.yaml")))
-  end
-
-  def settings
-    if !@settings
-      if has_config_file?
-        @settings = YAML.load(File.read(File.join(Rails.root, 'config', 'projects', "#{name}.yaml")))
-      else
-        @settings = YAML.load(File.read(File.join(Rails.root, 'config', 'projects', "default.yaml")))
-      end
-    end
-    @settings
-  end
-
   def front_end_compute_groups
-    settings["compute_groups"]
+    compute_group_configs
+  end
+
+  def group_colour(group_name, storage)
+    group = front_end_compute_groups.find_by(name: group_name)
+    if group
+      storage ? group.storage_colour : group.colour
+    else
+      "#ebebeb"
+    end
   end
 
   def compute_groups_on_date(date)

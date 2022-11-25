@@ -21,7 +21,7 @@ class CostsPlotter
     forecast_other = []
     forecast_remaining_budget = []
     compute_group_details = {actual: {}, forecast: {}}
-    @project.front_end_compute_groups.keys.each do |group|
+    @project.front_end_compute_groups.pluck(:name).each do |group|
       compute_group_details[:actual][group.to_sym] = []
       compute_group_details[:actual]["#{group}_storage".to_sym] = []
       compute_group_details[:forecast][group.to_sym] = []
@@ -115,7 +115,7 @@ class CostsPlotter
                     ]
     compute_group_details = {actual: {}, forecast: {}}
     compute_group_totals = {}
-    @project.front_end_compute_groups.keys.each do |group|
+    @project.front_end_compute_groups.pluck(:name).each do |group|
       compute_group_details[:actual][group.to_sym] = []
       compute_group_details[:actual]["#{group}_storage".to_sym] = []
       compute_group_details[:forecast][group.to_sym] = []
@@ -273,13 +273,13 @@ class CostsPlotter
 
   def cost_breakdown(start_date, end_date, change_request=nil, match_budget=false)
     results = {}
-    compute_groups = @project.front_end_compute_groups
+    compute_groups = @project.front_end_compute_groups.pluck(:name)
     (start_date..end_date).to_a.each do |date|
       if latest_cost_log_date && date <= latest_cost_log_date
         results[date.to_s] = { data_out: 0.0, core: 0.0, core_storage: 0.0, 
                               total: 0.0, other: 0.0, budget: 0.0,
                               compute: 0.0 }
-        compute_groups.keys.each do |group|
+        compute_groups.each do |group|
           results[date.to_s][group.to_sym] = 0.0
           results[date.to_s]["#{group}_storage".to_sym] = 0.0
         end
@@ -287,7 +287,7 @@ class CostsPlotter
         results[date.to_s] = {forecast_compute: nil, forecast_core: nil, forecast_data_out: nil,
                               forecast_core_storage: nil, forecast_total: nil,
                               forecast_other: nil, forecast_budget: nil}
-        compute_groups.keys.each do |group|
+        compute_groups.each do |group|
           results[date.to_s]["forecast_#{group}".to_sym] = nil
           results[date.to_s]["forecast_#{group}_storage".to_sym] = nil
         end
@@ -295,7 +295,7 @@ class CostsPlotter
         results[date.to_s] = {forecast_compute: 0.0, forecast_data_out: 0.0, forecast_core: 0.0,
                               forecast_core_storage: 0.0, forecast_total: 0.0,
                               forecast_other: 0.0, forecast_budget: 0.0}
-        compute_groups.keys.each do |group|
+        compute_groups.each do |group|
           results[date.to_s]["forecast_#{group}".to_sym] = 0.0
           results[date.to_s]["forecast_#{group}_storage".to_sym] = 0.0
         end
@@ -330,7 +330,7 @@ class CostsPlotter
         previous_costs = results[k]
       else
         compute = 0.0
-        compute_groups.keys.each do |group|
+        compute_groups.each do |group|
           results[k]["forecast_#{group}".to_sym] = forecast_compute_cost(Date.parse(k), group.to_sym, change_request)
           compute += results[k]["forecast_#{group}".to_sym]
           results[k]["forecast_#{group}_storage".to_sym] = previous_costs["#{group}_storage".to_sym]
@@ -366,7 +366,7 @@ class CostsPlotter
       end
     end
 
-    compute_groups = @project.front_end_compute_groups.keys
+    compute_groups = @project.front_end_compute_groups.pluck(:name)
     remaining_budget = nil
     results.each do |date, costs|
       if costs[:forecast_budget]
@@ -581,7 +581,7 @@ class CostsPlotter
   # For forecasts we use the latest amount (except for compute group instance costs)
   def latest_previous_costs(date)
     costs = {compute: 0.0, data_out: 0.0, core: 0.0, core_storage: 0.0, total: 0.0, other: 0.0}
-    @project.front_end_compute_groups.keys.each do |group|
+    @project.front_end_compute_groups.pluck(:name).each do |group|
       costs[group.to_sym] = 0.0
       costs["#{group}_storage".to_sym] = 0.0
     end
@@ -610,7 +610,7 @@ class CostsPlotter
     # To be consistent with rounding, etc. for overall total we need to calculate groups
     # individually.
     if !group
-      @project.front_end_compute_groups.keys.each do |group|
+      @project.front_end_compute_groups.pluck(:name).each do |group|
         total += forecast_compute_cost(date, group, temp_change_request)
       end
       return total
@@ -986,7 +986,7 @@ class CostsPlotter
   end
 
   def possible_datasets
-    datasets = @project.front_end_compute_groups.keys
+    datasets = @project.front_end_compute_groups.pluck(:name)
     datasets ||= []
     datasets += [ "budget", "core", "cycle total", "data out", "other"]
     datasets

@@ -28,10 +28,10 @@ class InstanceTracker
     groups = @project.front_end_compute_groups
 
     all_instances = {}
-    groups.each do |node_group, values|
+    groups.each do |node_group|
       instances = []
-      region = values["region"]
-      group_logs = logs.where(compute_group: node_group)
+      region = node_group.region
+      group_logs = logs.where(compute_group: node_group.name)
       instance_mappings.each do |mapping|
         instance = Instance.new(mapping.instance_type, region, node_group, @project.platform, @project)
         if instance.node_limit > 0
@@ -58,7 +58,7 @@ class InstanceTracker
       end
       instances << last if last
 
-      all_instances[node_group] = instances
+      all_instances[node_group.name] = instances
     end
     all_instances
   end

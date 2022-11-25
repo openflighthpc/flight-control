@@ -94,7 +94,7 @@
                   cost_this_cycle: @group_costs[:core] + @group_costs[:core_storage] } %>
     <%= render '/partials/dashboard_group_card', locals: locals %>
 
-    <% @project.front_end_compute_groups.keys.each do |group| %>
+    <% @project.front_end_compute_groups.pluck(:name).each do |group| %>
       <% locals = { compute_group: group,
                     project_name: @project.name,
                     end_date: @project.end_date,

@@ -16,7 +16,7 @@
       <%  @cumulative_costs[:actual][:compute_groups].keys.each do |group| %>
         {
           <% base_group = group.to_s.gsub('_storage', '') %>
-          <% colour = @project.front_end_compute_groups[base_group]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>
+          <% colour = @project.group_colour(base_group, group.to_s.end_with?("storage")) %>
           label: "<%= group.to_s.gsub("_", " ") %>",
           data: cumulative['actual']['compute_groups']['<%= group %>'],
           backgroundColor: '#<%= colour %>',
@@ -83,7 +83,7 @@
       <%  @cumulative_costs['forecast'][:compute_groups].keys.each do |group| %>
         {
           <% base_group = group.to_s.gsub('_storage', '') %>
-          <% colour = @project.front_end_compute_groups[base_group]["#{'storage_' if group.to_s.end_with?("storage")}colour"] %>
+          <% colour = @project.group_colour(base_group, group.to_s.end_with?("storage")) %>
           <% colour = lighten_colour(colour) %>
           label: '<%= "forecast #{group.to_s.gsub("_", " ")}" %>',
           data: cumulative['forecast']['compute_groups']['<%= group %>'],
