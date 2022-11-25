@@ -7,32 +7,33 @@ class ProjectConfigCreator
     @project = project
   end
 
-  def create_config_file(overwrite=false)
-    if !overwrite && File.exists?(File.join(File.dirname(__FILE__), "../../config/projects/#{@project.name}.yaml"))
-      puts "Config file already exists for project #{@project.name}."
-      puts "Please run again with 'overwrite' set to 'true' if you wish to update this file."
+  def create_config(overwrite=false)
+    if !overwrite && @project.compute_group_configs.exists?
+      puts "Config records already exists for project #{@project.name}."
+      puts "Please run again with 'overwrite' set to 'true' if you wish to update these."
       return
-    else
-      config = YAML.load_file(File.join(File.dirname(__FILE__), "../../config/projects/default.yaml"))
     end
-    config["compute_groups"] = {}
     groups = groups = @project.latest_instance_logs.pluck(:compute_group, :region).uniq { |group| group[0] }.sort
     if groups.empty?
       puts "No instance logs with a compute tag recorded for project #{@project.name}."
-      puts "Please retry after creating at least one instance with a compute group tag and running the cloud-cost-reporter.\n\n"
+      puts "Please retry after creating at least one instance with a compute group tag and running the instance logs rake task.\n\n"
     else
+      current_group_config_ids = []
+      current_instance_config_ids = []
       priority = 1
       colour_index = 0
       groups.each do |details|
         group_name = details[0]
         region = details[1]
-        config["compute_groups"][group_name] = {
-          "priority" => priority,
-          "region" => region,
-          "colour" => EXAMPLE_COLOURS[colour_index],
-          "storage_colour" => EXAMPLE_COLOURS[colour_index],
-          "nodes" => {}
-        }
+        compute_group = @project.compute_group_configs.find_or_initialize_by(name: group_name)
+        compute_group.assign_attributes(
+          priority: priority,
+          region: region,
+          colour: EXAMPLE_COLOURS[colour_index],
+          storage_colour: EXAMPLE_COLOURS[colour_index],
+        )
+        compute_group.save!
+        current_group_config_ids << compute_group.id
         priority += 1
         colour_index = (colour_index + 1) % EXAMPLE_COLOURS.length # if more groups than colours, repeat from start of colours list
       end
@@ -40,18 +41,22 @@ class ProjectConfigCreator
       counts = @project.latest_instance_logs.group(:compute_group, :instance_type).count
       counts.each do |details, count|
         group_name = details[0]
+        group = @project.compute_group_configs.find_by(name: group_name)
         instance_type = details[1]
-        customer_facing = InstanceMapping.instance_mappings[@project.platform][instance_type]
-        customer_facing ||= "Compute (Other)"
-        customer_facing = customer_facing.downcase.gsub(' ', '_').gsub(/[()]/, '')
-        config["compute_groups"][group_name]["nodes"][customer_facing] = {
-          "priority" => 1,
-          "limit" => count
-        }
+        instance_config = InstanceTypeConfig.find_or_initialize_by(compute_group_config: group, instance_type: instance_type)
+        instance_config.assign_attributes(
+          priority: 1,
+          limit: count
+        )
+        instance_config.save!
+        current_instance_config_ids << instance_config.id
       end
-      File.open(File.join(File.dirname(__FILE__), "../../config/projects/#{@project.name}.yaml"), "w") { |file| file.write(config.to_yaml) }
-      puts "Config file created for project #{@project.name} in folder /config/projects."
-      print "Please review and update the file as required, "
+
+      @project.compute_group_configs.where.not(id: current_group_config_ids).destroy_all
+      @project.instance_type_configs.where.not(id: current_instance_config_ids).destroy_all
+
+      puts "Config created for project #{@project.name}."
+      print "Please review and update the records as required, "
       print "including setting priorities and compute group colours.\n"
     end
   end

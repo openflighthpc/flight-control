@@ -157,12 +157,14 @@ ActiveRecord::Schema.define(version: 2022_11_25_110645) do
 
   create_table "instance_type_configs", force: :cascade do |t|
     t.bigint "compute_group_config_id"
+    t.bigint "project_id"
     t.string "instance_type"
     t.integer "priority"
     t.integer "limit"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["compute_group_config_id"], name: "index_instance_type_configs_on_compute_group_config_id"
+    t.index ["project_id"], name: "index_instance_type_configs_on_project_id"
   end
 
   create_table "instance_type_details", force: :cascade do |t|
