@@ -227,10 +227,27 @@ input[type=date] {
   background-color: white !important;
 }
 
-#power-down-policies-title {
+.policies-title {
   margin-left: 0.9rem;
   margin-bottom: 1rem;
   margin-top: 1rem;
+}
+
+#compute-groups-config {
+  margin-top: 5rem;
+  margin-bottom: 2rem;
+}
+
+.priority-input {
+  width: 5rem;
+}
+
+.color-picker {
+  border: none;
+  background-color: white;
+  width: 4rem;
+  height: 2rem;
+  cursor: pointer;
 }
 
 .utilisation-input {

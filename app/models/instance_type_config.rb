@@ -11,7 +11,7 @@ class InstanceTypeConfig < ApplicationRecord
     compute_group_config.project
   end
 
-  def customer_facing_name
-    @customer_facing_name ||= InstanceMapping.instance_mappings[project.platform][instance_type]
+  def customer_facing_type
+    @customer_facing_name ||= InstanceMapping.instance_mappings[project.platform][instance_type] || "Compute (Other)"
   end
 end

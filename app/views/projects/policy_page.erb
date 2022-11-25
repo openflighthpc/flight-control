@@ -9,7 +9,7 @@
     <h2><%= @project.name %> - Policies</h2>
   </div>
   <div class="col-sm-10 <%= 'pl-4' if current_user.multi_project_user? %>">
-    <h4 id="power-down-policies-title"> Power-Down Policies</h4>
+    <h4 class="policies-title"> Power-Down Policies</h4>
     <form action='/config-update?project=<%= @project.name %>' method='post' id='config-change-form'>
       <table class="table" id="policies-table">
         <thead>
@@ -150,4 +150,5 @@
                  class="btn btn-warning ml-2 disabled"
                  value="Update" disabled>
     </form>
+    <%= render '/compute_group_configs/config_form' %>
   </div>

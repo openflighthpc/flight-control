@@ -1,0 +1,75 @@
+<div id="compute-groups-config">
+  <h4 class="policies-title" id=""> Compute Group Policies</h4>
+  <form action='/compute-group-config-update?project=<%= @project.name %>' method='post' id=''>
+    <table class="table" id="compute-group-config-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Priority</th>
+          <th class="text-center">Dataset Colour</th>
+          <th class="text-center">Storage Dataset Colour</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @project.compute_group_configs.each do |compute_group| %>
+          <tr>
+            <td><strong><%= compute_group.name %></strong></td>
+            <td>
+              <input
+                name="groups[<%=compute_group.id %>][priority]"
+                class='form-control priority-input'
+                type="number"
+                min="1"
+                max="20"
+                value="<%= compute_group.priority %>"
+                autocomplete="off"
+              >
+            </td>
+            <td class="text-center">
+              <input class="color-picker"
+                     type="color"
+                     name="groups[<%=compute_group.id %>][colour]"
+                     value="<%= compute_group.colour %>">
+            </td>
+            <td class="text-center">
+              <input class="color-picker"
+                     type="color"
+                     name="groups[<%=compute_group.id %>][storage_colour]"
+                     value="<%= compute_group.storage_colour %>">
+            </td>
+            <input class="d-none"
+                   name="groups[<%=compute_group.id %>][id]"
+                   value="<%= compute_group.id %>"
+            >
+          </tr>
+          <% compute_group.instance_type_configs.each do |instance_config| %>
+            <tr>
+              <td class="text-center"><em><%= instance_config.customer_facing_type %></em></td>
+              <td>
+                <input
+                  name="groups[<%=compute_group.id %>][instance_type_configs_attributes][<%=instance_config.id %>][priority]"
+                  class='form-control priority-input'
+                  type="number"
+                  min="1"
+                  max="20"
+                  value="<%= instance_config.priority %>"
+                  autocomplete="off"
+                >
+              </td>
+              <td class="text-center"> - </td>
+              <td class="text-center"> - </td>
+              <input class="d-none"
+                name="groups[<%=compute_group.id %>][instance_type_configs_attributes][<%=instance_config.id %>][id]"
+                value="<%= instance_config.id %>"
+              >
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+    <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
+    <input type="submit" id="config-change-submit"
+           class="btn btn-warning ml-2"
+           value="Update">
+  </form>
+</div>

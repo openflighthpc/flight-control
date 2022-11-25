@@ -1,7 +1,7 @@
 require_relative '../models/project'
 
 class ProjectConfigCreator
-  EXAMPLE_COLOURS = %w[0722ef ef0235 ef07bd 098765]
+  EXAMPLE_COLOURS = %w[#0722ef #ef0235 #ef07bd #098765]
 
   def initialize(project)
     @project = project
@@ -32,23 +32,22 @@ class ProjectConfigCreator
         compute_group.storage_colour ||= EXAMPLE_COLOURS[colour_index]
         compute_group.save!
 
+        counts = @project.latest_instance_logs.where(compute_group: group_name).group(:instance_type).count
+        instance_priority = 1
+        counts.each do |instance_type, count|
+          instance_config = InstanceTypeConfig.find_or_initialize_by(compute_group_config: compute_group, instance_type: instance_type)
+          instance_config.project = @project
+          instance_config.priority ||= instance_priority
+          instance_config.limit = count
+          instance_config.save!
+
+          current_instance_config_ids << instance_config.id
+          instance_priority += 1
+        end
+
         current_group_config_ids << compute_group.id
         priority += 1
         colour_index = (colour_index + 1) % EXAMPLE_COLOURS.length # if more groups than colours, repeat from start of colours list
-      end
-
-      counts = @project.latest_instance_logs.group(:compute_group, :instance_type).count
-      counts.each do |details, count|
-        group_name = details[0]
-        group = @project.compute_group_configs.find_by(name: group_name)
-        instance_type = details[1]
-        instance_config = InstanceTypeConfig.find_or_initialize_by(compute_group_config: group, instance_type: instance_type)
-        instance_config.project = @project
-        instance_config.priority ||= priority
-        instance_config.limit ||= count
-        instance_config.save!
-
-        current_instance_config_ids << instance_config.id
       end
 
       @project.compute_group_configs.where.not(id: current_group_config_ids).destroy_all

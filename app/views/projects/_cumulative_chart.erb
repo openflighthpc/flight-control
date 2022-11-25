@@ -19,8 +19,8 @@
           <% colour = @project.group_colour(base_group, group.to_s.end_with?("storage")) %>
           label: "<%= group.to_s.gsub("_", " ") %>",
           data: cumulative['actual']['compute_groups']['<%= group %>'],
-          backgroundColor: '#<%= colour %>',
-          borderColor: '#<%= colour %>',
+          backgroundColor: '<%= colour %>',
+          borderColor: '<%= colour %>',
           fill: false,
           cubicInterpolationMode: 'monotone',
           type: 'line',
