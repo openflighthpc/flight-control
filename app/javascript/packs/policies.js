@@ -23,6 +23,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
   });
   $('.group-priority-input').change(updateGroupWeightedPriorities);
   $('.type-priority-input').change(updateTypeWeightedPriority);
+  $('#compute-groups-config').find('input').change(validateComputeGroupChange);
   validateConfigChange();
 });
 
@@ -186,10 +187,8 @@ function updateSwitchOffOrder() {
   });
   let target = $('#switch-off-cards');
   let html = "";
-  console.log(instanceDetails.sort(sortSwitchOff));
   instanceDetails.sort(sortSwitchOff).each(function(index, typeData) {
-    console.log(typeData);
-    html += '<div class="card switch-off-order-card"><div class="card-header">';
+    html += '<div class="card switch-off-order-card"><div class="card-header font-weight-bold">';
     html += typeData.groupName;
     html += '</div> <div class="card-body">';
     html += typeData.customerFacingType;
@@ -209,4 +208,24 @@ function sortSwitchOff(a, b) {
     }
   }
   return a.value > b.value ? 1 : -1;
+}
+
+function validateComputeGroupChange() {
+  let changed = false;
+  let submitButton = $('#group-config-change-submit');
+  $('#compute-groups-config').find('input').each(function() {
+    if($(this).data('original-value') === undefined) return "next";
+
+    changed = $(this).val() != $(this).data('original-value');
+    if(changed) return false;
+  });
+  if(changed) {
+    submitButton.removeClass("disabled");
+    submitButton.prop("disabled", false);
+    submitButton.prop("title", "");
+  } else {
+    submitButton.addClass("disabled");
+    submitButton.prop("disabled", true);
+    submitButton.prop("title", "No changes");
+  }
 }
