@@ -13,7 +13,7 @@ class ProjectConfigCreator
       puts "Please run again with 'overwrite' set to 'true' if you wish to update these."
       return
     end
-    groups = groups = @project.latest_instance_logs.pluck(:compute_group, :region).uniq { |group| group[0] }.sort
+    groups = @project.latest_instance_logs.pluck(:compute_group, :region).uniq { |group| group[0] }.sort
     if groups.empty?
       puts "No instance logs with a compute tag recorded for project #{@project.name}."
       puts "Please retry after creating at least one instance with a compute group tag and running the instance logs rake task.\n\n"

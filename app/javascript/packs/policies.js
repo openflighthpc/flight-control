@@ -21,6 +21,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
       updateOverrideDateTime();
     }
   });
+  $('.group-priority-input').change(updateGroupWeightedPriorities);
+  $('.type-priority-input').change(updateTypeWeightedPriority);
   validateConfigChange();
 });
 
@@ -147,4 +149,24 @@ function disableMonitor() {
     $('#threshold-input').prop('disabled', true)
   }
   toggleOverrideInputs();
+}
+
+function updateGroupWeightedPriorities() {
+  const groupId = $(this).data('group-id');
+  const groupPriority = $(this).val();
+  $(`.group-${groupId}-instance`).each(function() {
+    const typeId = $(this).data('type-id');
+    const typePriority = $(this).val();
+    $(`#type-${typeId}-weighted-priority`).html(groupPriority * typePriority);
+  });
+}
+
+function updateTypeWeightedPriority() {
+  const groupId = $(this).data('group-id');
+  const groupPriority = $(`#group-${groupId}-priority`).val();
+  const typeId = $(this).data('type-id');
+  const typePriority = $(this).val();
+  console.log(groupPriority);
+  console.log(typePriority);
+  $(`#type-${typeId}-weighted-priority`).html(groupPriority * typePriority);
 }

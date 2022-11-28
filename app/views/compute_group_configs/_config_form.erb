@@ -5,26 +5,42 @@
       <thead>
         <tr>
           <th></th>
-          <th>Priority</th>
+          <th>
+            Priority<a href="#" class="config-tooltip"
+                       data-placement="top"
+                       title="Priorities are used to calculated the wieghted prority, which determines order instances are switched off to match budget."
+                       onClick="return false;"><sup>?</sup>
+            </a>
+          </th>
+          <th class="text-center">
+            Weighted priority<a href="#" class="config-tooltip"
+                                data-placement="top"
+                                title="Group priority multiplied by node type priority."
+                                onClick="return false;"><sup>?</sup>
+            </a>
+          </th>
           <th class="text-center">Dataset Colour</th>
           <th class="text-center">Storage Dataset Colour</th>
         </tr>
       </thead>
       <tbody>
         <% @project.compute_group_configs.each do |compute_group| %>
-          <tr>
+          <tr class="border-top">
             <td><strong><%= compute_group.name %></strong></td>
             <td>
               <input
                 name="groups[<%=compute_group.id %>][priority]"
-                class='form-control priority-input'
+                class='form-control priority-input group-priority-input'
                 type="number"
                 min="1"
                 max="20"
                 value="<%= compute_group.priority %>"
                 autocomplete="off"
+                data-group-id="<%= compute_group.id %>"
+                id="<%= "group-#{compute_group.id}-priority" %>"
               >
             </td>
+            <td class="text-center"> - </td>
             <td class="text-center">
               <input class="color-picker"
                      type="color"
@@ -44,17 +60,30 @@
           </tr>
           <% compute_group.instance_type_configs.each do |instance_config| %>
             <tr>
-              <td class="text-center"><em><%= instance_config.customer_facing_type %></em></td>
+              <td class="text-center">
+                <em>
+                  <%= "#{instance_config.limit} x #{instance_config.customer_facing_type}" %>
+                </em>
+              </td>
               <td>
                 <input
                   name="groups[<%=compute_group.id %>][instance_type_configs_attributes][<%=instance_config.id %>][priority]"
-                  class='form-control priority-input'
+                  class='form-control priority-input type-priority-input <%= "group-#{compute_group.id}-instance" %>'
                   type="number"
                   min="1"
                   max="20"
                   value="<%= instance_config.priority %>"
                   autocomplete="off"
+                  id="<%= "type-#{instance_config.id}-priority" %>"
+                  data-type-id="<%= instance_config.id %>"
+                  data-group-id="<%= compute_group.id %>"
                 >
+              </td>
+              <td  class="text-center"
+                   id="<%= "type-#{instance_config.id}-weighted-priority" %>"
+                   data-type-id="<%= instance_config.id %>"
+              >
+                <%= instance_config.weighted_priority %>
               </td>
               <td class="text-center"> - </td>
               <td class="text-center"> - </td>

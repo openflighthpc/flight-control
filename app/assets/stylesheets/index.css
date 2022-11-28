@@ -262,6 +262,10 @@ input[type=date] {
   vertical-align:  middle;
 }
 
+#compute-group-config-table td {
+  vertical-align: middle;
+}
+
 .audit-logs {
   margin-top: 0.5rem;
   margin-bottom: 5rem;

@@ -14,4 +14,8 @@ class InstanceTypeConfig < ApplicationRecord
   def customer_facing_type
     @customer_facing_name ||= InstanceMapping.instance_mappings[project.platform][instance_type] || "Compute (Other)"
   end
+
+  def weighted_priority
+    priority * compute_group_config.priority
+  end
 end
