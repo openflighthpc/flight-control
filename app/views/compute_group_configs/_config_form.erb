@@ -8,7 +8,7 @@
           <th>
             Priority<a href="#" class="config-tooltip"
                        data-placement="top"
-                       title="Priorities are used to calculated the wieghted prority, which determines order instances are switched off to match budget."
+                       title="Priorities are used to calculate the weighted priority, which determines order instances are switched off to match budget (lowest first)."
                        onClick="return false;"><sup>?</sup>
             </a>
           </th>
@@ -79,9 +79,14 @@
                   data-group-id="<%= compute_group.id %>"
                 >
               </td>
-              <td  class="text-center"
+              <td  class="text-center type-weighted-priority"
                    id="<%= "type-#{instance_config.id}-weighted-priority" %>"
+                   data-group-id="<%= compute_group.id %>"
+                   data-value="<%= instance_config.weighted_priority %>"
                    data-type-id="<%= instance_config.id %>"
+                   data-group-name="<%= compute_group.name %>"
+                   data-customer-facing-type="<%= instance_config.customer_facing_type %>"
+                   data-mem="<%= instance_config.mem %>"
               >
                 <%= instance_config.weighted_priority %>
               </td>
@@ -97,6 +102,21 @@
       </tbody>
     </table>
     <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
+    <div class="switch-off-order">
+      <h5>Estimated budget switch off order:</h5>
+      <div class="row" id="switch-off-cards">
+        <% @project.instance_type_configs.sort.each do |type| %>
+          <div class="card switch-off-order-card">
+            <div class="card-header">
+              <%= type.compute_group_config.name %>
+            </div>
+            <div class="card-body">
+              <%= type.customer_facing_type %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
     <input type="submit" id="config-change-submit"
            class="btn btn-warning ml-2"
            value="Update">

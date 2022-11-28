@@ -15,7 +15,19 @@ class InstanceTypeConfig < ApplicationRecord
     @customer_facing_name ||= InstanceMapping.instance_mappings[project.platform][instance_type] || "Compute (Other)"
   end
 
+  def group_priority
+    @group_priority ||= compute_group_config.priority
+  end
+
   def weighted_priority
     priority * compute_group_config.priority
+  end
+
+  def mem
+    InstanceTypeDetail.find_by(instance_type: instance_type, region: compute_group_config.region)&.mem || 0
+  end
+
+  def <=>(other)
+    [self.weighted_priority, self.group_priority, self.mem.to_f] <=> [other.weighted_priority, other.group_priority, other.mem.to_f]
   end
 end

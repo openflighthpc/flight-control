@@ -157,8 +157,12 @@ function updateGroupWeightedPriorities() {
   $(`.group-${groupId}-instance`).each(function() {
     const typeId = $(this).data('type-id');
     const typePriority = $(this).val();
-    $(`#type-${typeId}-weighted-priority`).html(groupPriority * typePriority);
+    const weightedPriority = groupPriority * typePriority;
+    let typeEl = $(`#type-${typeId}-weighted-priority`);
+    typeEl.html(weightedPriority);
+    typeEl.data('value', weightedPriority);
   });
+  updateSwitchOffOrder();
 }
 
 function updateTypeWeightedPriority() {
@@ -166,7 +170,43 @@ function updateTypeWeightedPriority() {
   const groupPriority = $(`#group-${groupId}-priority`).val();
   const typeId = $(this).data('type-id');
   const typePriority = $(this).val();
-  console.log(groupPriority);
-  console.log(typePriority);
-  $(`#type-${typeId}-weighted-priority`).html(groupPriority * typePriority);
+  const weightedPriority = groupPriority * typePriority;
+  let typeEl = $(`#type-${typeId}-weighted-priority`);
+  typeEl.html(weightedPriority);
+  typeEl.data('value', weightedPriority);
+  updateSwitchOffOrder();
+}
+
+function updateSwitchOffOrder() {
+  let instanceDetails = $(".type-weighted-priority").map(function () {
+    let data = $(this).data();
+    data.groupPriority = parseInt($(`#group-${data.groupId}-priority`).val());
+    data.mem = parseInt(data.mem);
+    return data;
+  });
+  let target = $('#switch-off-cards');
+  let html = "";
+  console.log(instanceDetails.sort(sortSwitchOff));
+  instanceDetails.sort(sortSwitchOff).each(function(index, typeData) {
+    console.log(typeData);
+    html += '<div class="card switch-off-order-card"><div class="card-header">';
+    html += typeData.groupName;
+    html += '</div> <div class="card-body">';
+    html += typeData.customerFacingType;
+    html+= '</div></div>';
+  });
+  target.html(html);
+}
+
+function sortSwitchOff(a, b) {
+  if (a.value === b.value) {
+    if(a.groupPriority === b.groupPriority) {
+      if(a.mem === b.mem) return 0;
+      return a.mem > b.mem ? 1 : -1;
+    } else {
+      if (a.mem === b.mem) return 0;
+      return a.groupPriority > b.groupPriority ? 1 : -1;
+    }
+  }
+  return a.value > b.value ? 1 : -1;
 }

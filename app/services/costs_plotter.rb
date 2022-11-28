@@ -452,8 +452,6 @@ class CostsPlotter
 
       # if enough budget remaining, don't turn off so many instances,
       # or turn one off later
-      original_switch_offs = Project.deep_copy_hash(switch_offs)
-      original_switch_off_date = Date.current + last_switch_off_day.days
       if instances_off[group][type][:off] && !instances_off[group][type][:off].empty? && budget_diff > 0 && on > 1
         off_dates = Project.deep_copy_hash(instances_off[group][type][:off])
         new_off, new_budget_diff = minimise_switch_offs(instance, off_dates, budget_diff, future_days, future_cycle_days)
@@ -481,7 +479,7 @@ class CostsPlotter
           instances_off[group][type][:off] = new_off
         end
       end
-      i -= 1;
+      i -= 1
     end
     instances_off.select! {|group, instance_types| instance_types.any? {|type, off| off.any? }}
     instances_off
