@@ -2,6 +2,7 @@ class ComputeGroupConfigsController < ApplicationController
   def update
     get_project
     success = nil
+    authorize @project, :config_update?, policy_class: ProjectPolicy
     permitted_params["groups"].each do |group_id, details|
       group = @project.compute_group_configs.find(group_id)
       group.update_attributes(details)
@@ -12,6 +13,21 @@ class ComputeGroupConfigsController < ApplicationController
       end
     end
     flash[:success] = "Compute group config updated" if success
+    redirect_to policies_path(project: @project.name)
+  end
+
+  def regenerate
+    get_project
+    authorize @project, :config_update?, policy_class: ProjectPolicy
+    result = @project.create_config(true)
+    if result["error"]
+      flash[:error] = result["error"]
+    elsif result["changed"]
+      flash[:success] = "Config updated: "
+      flash[:success] << result.select {|k, v| v && k != "changed" }.keys.join(", ")
+    else
+      flash[:alert] = "No changes to config"
+    end
     redirect_to policies_path(project: @project.name)
   end
 

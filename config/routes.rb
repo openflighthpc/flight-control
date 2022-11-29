@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   get '/json/audit-logs', to: 'projects#audit_logs'
   post '/config-update', to: 'projects#config_update'
   post '/compute-group-config-update', to: 'compute_group_configs#update'
+  post '/compute-group-config-regen', to: 'compute_group_configs#regenerate'
 
   # Events (change requests and their resulting actions)
   get '/events', to: 'change_requests#manage'

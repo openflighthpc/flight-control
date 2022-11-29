@@ -24,6 +24,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
   $('.group-priority-input').change(updateGroupWeightedPriorities);
   $('.type-priority-input').change(updateTypeWeightedPriority);
   $('#compute-groups-config').find('input').change(validateComputeGroupChange);
+  $('#regen-config-button').click(submitRegenForm);
   validateConfigChange();
 });
 
@@ -228,4 +229,9 @@ function validateComputeGroupChange() {
     submitButton.prop("disabled", true);
     submitButton.prop("title", "No changes");
   }
+}
+
+function submitRegenForm(event) {
+  event.preventDefault();
+  $('#regen-config-form').submit();
 }

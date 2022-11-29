@@ -1,6 +1,6 @@
 <div id="compute-groups-config">
   <h4 class="policies-title" id=""> Compute Group Policies</h4>
-  <form action='/compute-group-config-update?project=<%= @project.name %>' method='post' id=''>
+  <form action='/compute-group-config-update?project=<%= @project.name %>' method='post'>
     <table class="table" id="compute-group-config-table">
       <thead>
         <tr>
@@ -127,5 +127,9 @@
            disabled
            title="No changes"
     >
+    <a class="btn btn-danger" id="regen-config-button" href=''>Check for new instances</a>
+  </form>
+  <form action='/compute-group-config-regen?project=<%= @project.name %>' method='post' id='regen-config-form'>
+    <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
   </form>
 </div>
