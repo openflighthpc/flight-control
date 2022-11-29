@@ -9,29 +9,51 @@ namespace :projects do
 
   namespace :create_config do
     desc "Create config for all active projects"
-    task :all, [:overwrite] => :environment do |task, args|
-      overwrite = args["overwrite"] == "true"
+    task :all, [:update] => :environment do |task, args|
+      update = args["update"] == "true"
       Project.active.each do |project|
         begin
-          project.create_config(overwrite)
+          result = project.create_config(update)
         rescue => error
           puts "Unable to create config for #{project.name}: #{error}"
+        end
+        if result
+          if result["error"]
+            puts "Unable to create config for #{project.name}: #{result["error"]}"
+          elsif result["changed"]
+            msg = "Config updated for #{project.name}: "
+            msg << result.select {|k, v| v && k != "changed" }.keys.join(", ")
+            puts msg
+          else
+            puts "No changes to config for #{project.name}"
+          end
         end
         puts
       end
     end
 
     desc "Create config for one project"
-    task :by_project, [:project, :overwrite] => :environment do |task, args|
+    task :by_project, [:project, :update] => :environment do |task, args|
       project = Project.find_by(name: args["project"])
       if !project
         puts "No project found with that name"
       else
-        overwrite = args["overwrite"] == "true"
+        update = args["update"] == "true"
         begin
-          project.create_config(overwrite)
+          result = project.create_config(update)
         rescue => error
           puts "Unable to create config for #{project.name}: #{error}"
+        end
+        if result
+          if result["error"]
+            puts "Unable to create config for #{project.name}: #{result[error]}"
+          elsif result["changed"]
+            msg = "Config updated for #{project.name}: "
+            msg << result.select {|k, v| v && k != "changed" }.keys.join(", ")
+            puts msg
+          else
+            puts "No changes to config for #{project.name}"
+          end
         end
       end
     end

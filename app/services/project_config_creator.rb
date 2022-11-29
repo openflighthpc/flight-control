@@ -10,8 +10,8 @@ class ProjectConfigCreator
   def create_config(update=false)
     result = {}
     if !update && @project.compute_group_configs.exists?
-      msg = "Config records already exists for project #{@project.name}.\n"
-      msg << "Please run again with 'overwrite' set to 'true' if you wish to update these."
+      msg = "Config records already exists for project #{@project.name}."
+      msg << "Please run again with 'update' set to 'true' if you wish to update these."
       result["error"] = msg
       return result
     end
