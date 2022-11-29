@@ -142,13 +142,16 @@ Instance mappings can be managed using the rake tasks:
 
 A default set of instance mappings are created during project setup.
 
-#### Generate project config file
+#### Generate project config
 
-If using the visualiser part of the application, once instance logs have been created for a project (see below), a config file must be created using `rake projects:create_config:by_project[project,overwrite]` or `rake projects:create_config:all[overwrite]`.
+If using the visualiser part of the application, once instance logs have been created for a project (see below), config
+must be generated using `rake projects:create_config:by_project[project,update]` or `rake projects:create_config:all[update]`.
 
-If overwrite is set to true, any existing file will be replaced using the latest instance logs.
+If update is set to true, new compute groups and instance types will be added, instance limits updated, and any old
+groups or types removed.
 
-The resulting config file will be generated in `/config/projects`. Compute group colours (as used in charts) should be updated, as should compute group and instance type priorities.
+Compute group colours and priorities and instance type priorities should be updated once this has been generated.
+On the `/policies` page, these attributes can be updated, and config updated (as if running the above rake task).
 
 ### Recording instance logs
 
@@ -319,7 +322,7 @@ Datasets's visibility can be toggled on the charts by selected them in the chart
 
 The system will aim to match a project's budget, estimating when best to switch off nodes to make the most of the remaining budget for this cycle.
 
-Switch offs are determined based on a weighted priority, calculated by multiplying a given instance type's priority by its compute group's priority, as defined in the project's config file. Instance types with a lower weighted priority are switched off first. However, if switch offs of more expensive, higher priority instances leave enough remaining budget, lower priority instances may then be switched off later (or not at all) to make the most of this surplus.
+Switch offs are determined based on a weighted priority, calculated by multiplying a given instance type's priority by its compute group's priority, as defined in the project's config. Instance types with a lower weighted priority are switched off first. However, if switch offs of more expensive, higher priority instances leave enough remaining budget, lower priority instances may then be switched off later (or not at all) to make the most of this surplus.
 
 Calculations are made based on the assumption that the suggested switch offs are made at 11:30pm on the given date.
 
@@ -345,7 +348,7 @@ A cron task is included in `config/schedule` to run the `:all` task at 12:30pm e
 
 At the bottom of the page the project's current compute groups and instance counts are displayed, with a summary of the resulting estimated daily costs. If any filtering for compute groups is in place, only those compute groups will be included.
 
-These groups and types shown in this table are determined by the project's config file. If this is not up to date this may not show the full/ correct details.
+These groups and types shown in this table are determined by the project's config records (`ComputeGroupConfig` and `InstanceTypeConfig`). If this is not up to date this may not show the full/ correct details.
 
 #### New Data Alert and Refresh
 
