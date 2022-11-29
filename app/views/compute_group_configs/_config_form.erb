@@ -1,134 +1,143 @@
 <div id="compute-groups-config">
   <h4 class="policies-title" id=""> Compute Group Policies</h4>
-  <form action='/compute-group-config-update?project=<%= @project.name %>' method='post'>
-    <table class="table" id="compute-group-config-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>
-            Priority<a href="#" class="config-tooltip"
-                       data-placement="top"
-                       title="Priorities are used to calculate the weighted priority, which determines order instances are switched off to match budget (lowest first)."
-                       onClick="return false;"><sup>?</sup>
-            </a>
-          </th>
-          <th class="text-center">
-            Weighted priority<a href="#" class="config-tooltip"
-                                data-placement="top"
-                                title="Group priority multiplied by node type priority."
-                                onClick="return false;"><sup>?</sup>
-            </a>
-          </th>
-          <th class="text-center">Dataset Colour</th>
-          <th class="text-center">Storage Dataset Colour</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @project.compute_group_configs.each do |compute_group| %>
-          <tr class="border-top">
-            <td><strong><%= compute_group.name %></strong></td>
-            <td>
-              <input
-                name="groups[<%=compute_group.id %>][priority]"
-                class='form-control priority-input group-priority-input'
-                type="number"
-                min="1"
-                max="20"
-                value="<%= compute_group.priority %>"
-                data-original-value="<%= compute_group.priority %>"
-                autocomplete="off"
-                data-group-id="<%= compute_group.id %>"
-                id="<%= "group-#{compute_group.id}-priority" %>"
-              >
-            </td>
-            <td class="text-center"> - </td>
-            <td class="text-center">
-              <input class="color-picker"
-                     type="color"
-                     name="groups[<%=compute_group.id %>][colour]"
-                     value="<%= compute_group.colour %>"
-                     data-original-value="<%= compute_group.colour %>">
-            </td>
-            <td class="text-center">
-              <input class="color-picker"
-                     type="color"
-                     name="groups[<%=compute_group.id %>][storage_colour]"
-                     value="<%= compute_group.storage_colour %>"
-                     data-original-value="<%= compute_group.storage_colour %>">
-            </td>
-            <input class="d-none"
-                   name="groups[<%=compute_group.id %>][id]"
-                   value="<%= compute_group.id %>"
-            >
+  <% if locals[:groups].any? %>
+    <form action='/compute-group-config-update?project=<%= @project.name %>' method='post'>
+      <table class="table" id="compute-group-config-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>
+              Priority<a href="#" class="config-tooltip"
+                         data-placement="top"
+                         title="Priorities are used to calculate the weighted priority, which determines order instances are switched off to match budget (lowest first)."
+                         onClick="return false;"><sup>?</sup>
+              </a>
+            </th>
+            <th class="text-center">
+              Weighted priority<a href="#" class="config-tooltip"
+                                  data-placement="top"
+                                  title="Group priority multiplied by node type priority."
+                                  onClick="return false;"><sup>?</sup>
+              </a>
+            </th>
+            <th class="text-center">Dataset Colour</th>
+            <th class="text-center">Storage Dataset Colour</th>
           </tr>
-          <% compute_group.instance_type_configs.each do |instance_config| %>
-            <tr>
-              <td class="text-center">
-                <em>
-                  <%= "#{instance_config.limit} x #{instance_config.customer_facing_type}" %>
-                </em>
-              </td>
+        </thead>
+        <tbody>
+          <% locals[:groups].each do |compute_group| %>
+            <tr class="border-top">
+              <td><strong><%= compute_group.name %></strong></td>
               <td>
                 <input
-                  name="groups[<%=compute_group.id %>][instance_type_configs_attributes][<%=instance_config.id %>][priority]"
-                  class='form-control priority-input type-priority-input <%= "group-#{compute_group.id}-instance" %>'
+                  name="groups[<%=compute_group.id %>][priority]"
+                  class='form-control priority-input group-priority-input'
                   type="number"
                   min="1"
                   max="20"
-                  value="<%= instance_config.priority %>"
-                  data-original-value="<%= instance_config.priority %>"
+                  value="<%= compute_group.priority %>"
+                  data-original-value="<%= compute_group.priority %>"
                   autocomplete="off"
-                  id="<%= "type-#{instance_config.id}-priority" %>"
-                  data-type-id="<%= instance_config.id %>"
                   data-group-id="<%= compute_group.id %>"
+                  id="<%= "group-#{compute_group.id}-priority" %>"
                 >
               </td>
-              <td  class="text-center type-weighted-priority"
-                   id="<%= "type-#{instance_config.id}-weighted-priority" %>"
-                   data-group-id="<%= compute_group.id %>"
-                   data-value="<%= instance_config.weighted_priority %>"
-                   data-type-id="<%= instance_config.id %>"
-                   data-group-name="<%= compute_group.name %>"
-                   data-customer-facing-type="<%= instance_config.customer_facing_type %>"
-                   data-mem="<%= instance_config.mem %>"
-              >
-                <%= instance_config.weighted_priority %>
+              <td class="text-center"> - </td>
+              <td class="text-center">
+                <input class="color-picker"
+                       type="color"
+                       name="groups[<%=compute_group.id %>][colour]"
+                       value="<%= compute_group.colour %>"
+                       data-original-value="<%= compute_group.colour %>">
               </td>
-              <td class="text-center"> - </td>
-              <td class="text-center"> - </td>
+              <td class="text-center">
+                <input class="color-picker"
+                       type="color"
+                       name="groups[<%=compute_group.id %>][storage_colour]"
+                       value="<%= compute_group.storage_colour %>"
+                       data-original-value="<%= compute_group.storage_colour %>">
+              </td>
               <input class="d-none"
-                name="groups[<%=compute_group.id %>][instance_type_configs_attributes][<%=instance_config.id %>][id]"
-                value="<%= instance_config.id %>"
+                      name="groups[<%=compute_group.id %>][id]"
+                     value="<%= compute_group.id %>"
               >
             </tr>
+            <% compute_group.instance_type_configs.each do |instance_config| %>
+              <tr>
+                <td class="text-center">
+                  <em>
+                    <%= "#{instance_config.limit} x #{instance_config.customer_facing_type}" %>
+                  </em>
+                </td>
+                <td>
+                  <input
+                    name="groups[<%=compute_group.id %>][instance_type_configs_attributes][<%=instance_config.id %>][priority]"
+                    class='form-control priority-input type-priority-input <%= "group-#{compute_group.id}-instance" %>'
+                    type="number"
+                    min="1"
+                    max="20"
+                    value="<%= instance_config.priority %>"
+                    data-original-value="<%= instance_config.priority %>"
+                    autocomplete="off"
+                    id="<%= "type-#{instance_config.id}-priority" %>"
+                    data-type-id="<%= instance_config.id %>"
+                    data-group-id="<%= compute_group.id %>"
+                  >
+                </td>
+                <td  class="text-center type-weighted-priority"
+                     id="<%= "type-#{instance_config.id}-weighted-priority" %>"
+                     data-group-id="<%= compute_group.id %>"
+                     data-value="<%= instance_config.weighted_priority %>"
+                     data-type-id="<%= instance_config.id %>"
+                     data-group-name="<%= compute_group.name %>"
+                     data-customer-facing-type="<%= instance_config.customer_facing_type %>"
+                     data-mem="<%= instance_config.mem %>"
+                >
+                  <%= instance_config.weighted_priority %>
+                </td>
+                <td class="text-center"> - </td>
+                <td class="text-center"> - </td>
+                <input class="d-none"
+                  name="groups[<%=compute_group.id %>][instance_type_configs_attributes][<%=instance_config.id %>][id]"
+                  value="<%= instance_config.id %>"
+                >
+              </tr>
+            <% end %>
           <% end %>
-        <% end %>
-      </tbody>
-    </table>
-    <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
-    <div class="switch-off-order">
-      <h5>Estimated budget switch off order:</h5>
-      <div class="row" id="switch-off-cards">
-        <% @project.instance_type_configs.sort.each do |type| %>
-          <div class="card switch-off-order-card">
-            <div class="card-header font-weight-bold">
-              <%= type.compute_group_config.name %>
+        </tbody>
+      </table>
+      <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
+      <div class="switch-off-order">
+        <h5>Estimated budget switch off order:</h5>
+        <div class="row" id="switch-off-cards">
+          <% @project.instance_type_configs.sort.each do |type| %>
+            <div class="card switch-off-order-card">
+              <div class="card-header font-weight-bold">
+                <%= type.compute_group_config.name %>
+              </div>
+              <div class="card-body">
+                <%= type.customer_facing_type %>
+              </div>
             </div>
-            <div class="card-body">
-              <%= type.customer_facing_type %>
-            </div>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
       </div>
+      <input type="submit" id="group-config-change-submit"
+             class="btn btn-warning ml-2 disabled"
+             value="Update"
+             disabled
+             title="No changes"
+      >
+      <a class="btn btn-danger" id="regen-config-button" href=''>Check for new instances</a>
+    </form>
+  <% else %>
+    <div class="text-center">
+      <h5> No config found</h5>
+      <p class="mt-3">
+        <a class="btn btn-danger" id="regen-config-button" href=''>Check for new instances</a>
+      </p>
     </div>
-    <input type="submit" id="group-config-change-submit"
-           class="btn btn-warning ml-2 disabled"
-           value="Update"
-           disabled
-           title="No changes"
-    >
-    <a class="btn btn-danger" id="regen-config-button" href=''>Check for new instances</a>
-  </form>
+  <% end %>
   <form action='/compute-group-config-regen?project=<%= @project.name %>' method='post' id='regen-config-form'>
     <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
   </form>

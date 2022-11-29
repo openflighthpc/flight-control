@@ -1,34 +1,42 @@
 class ComputeGroupConfigsController < ApplicationController
   def update
     get_project
-    success = nil
-    authorize @project, :config_update?, policy_class: ProjectPolicy
-    permitted_params["groups"].each do |group_id, details|
-      group = @project.compute_group_configs.find(group_id)
-      group.update_attributes(details)
-      success = group.save
-      if !success
-        flash[:error] = "Cannot update config: #{group.errors.full_messages.join("; ")}"
-        break
+    if !@project
+      no_project_redirect
+    else
+      success = nil
+      authorize @project, :config_update?, policy_class: ProjectPolicy
+      permitted_params["groups"].each do |group_id, details|
+        group = @project.compute_group_configs.find(group_id)
+        group.update_attributes(details)
+        success = group.save
+        if !success
+          flash[:error] = "Cannot update config: #{group.errors.full_messages.join("; ")}"
+          break
+        end
       end
+      flash[:success] = "Compute group config updated" if success
+      redirect_to policies_path(project: @project.name)
     end
-    flash[:success] = "Compute group config updated" if success
-    redirect_to policies_path(project: @project.name)
   end
 
   def regenerate
     get_project
-    authorize @project, :config_update?, policy_class: ProjectPolicy
-    result = @project.create_config(true)
-    if result["error"]
-      flash[:error] = result["error"]
-    elsif result["changed"]
-      flash[:success] = "Config updated: "
-      flash[:success] << result.select {|k, v| v && k != "changed" }.keys.join(", ")
+    if !@project
+      no_project_redirect
     else
-      flash[:alert] = "No changes to config"
+      authorize @project, :config_update?, policy_class: ProjectPolicy
+      result = @project.create_config(true)
+      if result["error"]
+        flash[:error] = result["error"]
+      elsif result["changed"]
+        flash[:success] = "Config updated: "
+        flash[:success] << result.select {|k, v| v && k != "changed" }.keys.join(", ")
+      else
+        flash[:alert] = "No changes to config"
+      end
+      redirect_to policies_path(project: @project.name)
     end
-    redirect_to policies_path(project: @project.name)
   end
 
   private

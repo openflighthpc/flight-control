@@ -150,5 +150,5 @@
                  class="btn btn-warning ml-2 disabled"
                  value="Update" disabled>
     </form>
-    <%= render '/compute_group_configs/config_form' %>
+    <%= render '/compute_group_configs/config_form', locals: {groups: @project.compute_group_configs} %>
   </div>
