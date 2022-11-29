@@ -363,6 +363,36 @@ class ProjectManager
       end
     end
 
+    valid = false
+    while !valid
+      print "Generate instance logs and project config (y/n) ? "
+      response = STDIN.gets.chomp.downcase.strip
+      if response == "n"
+        valid = true
+      elsif response == "y"
+        valid = true
+        begin
+          puts project.record_instance_logs
+        rescue Exception => error
+          puts "Unable to record instance logs: #{error}"
+        end
+        if project.instance_logs.exists?
+          begin
+            result = project.create_config
+            if result["error"]
+              puts "Unable to generate config: #{result["error"]}"
+            else
+              puts "Config generated"
+            end
+          rescue Exception => error
+            puts "Unable to generate config file: #{error}"
+          end
+        end
+      else
+        puts "Invalid response. Please try again"
+      end
+    end
+
     if credentials == true && project.start_date < Project::DEFAULT_COSTS_DATE
       valid = false
       while !valid
