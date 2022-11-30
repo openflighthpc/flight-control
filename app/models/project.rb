@@ -525,7 +525,7 @@ class Project < ApplicationRecord
   def action_change_request(request, slack=false, text=false)
     if request.monitor_override_hours
       details = {"override_monitor_until" => request.monitor_end_time.to_s}
-      submit_config_change(details, request.user, true, request.actual_or_parent_id, slack, text)
+      submit_monitor_config_change(details, request.user, true, request.actual_or_parent_id, slack, text)
     end
     msg = request.formatted_actions
     send_slack_message(msg) if slack
@@ -538,8 +538,8 @@ class Project < ApplicationRecord
     update_instance_statuses(grouped_changes)
   end
 
-  def submit_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
-    change = ConfigLog.new(user_id: user.id, project_id: id, automated: automated,
+  def submit_monitor_config_change(details, user, automated=false, request_id=nil, slack=true, text=false)
+    change = MonitorConfigLog.new(user_id: user.id, project_id: id, automated: automated,
                            change_request_id: request_id, details: details)
     success = change.save
     if success

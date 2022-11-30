@@ -6,15 +6,24 @@ class ComputeGroupConfigsController < ApplicationController
     else
       success = nil
       authorize @project, :config_update?, policy_class: ProjectPolicy
-      permitted_params["groups"].each do |group_id, details|
+      groups = permitted_params["groups"]
+      changes = {}
+      groups.each do |group_id, details|
         group = @project.compute_group_configs.find(group_id)
-        group.update_attributes(details)
+        group.assign_attributes(details)
         success = group.save
         if !success
           flash[:error] = "Cannot update config: #{group.errors.full_messages.join("; ")}"
           break
         end
+
+        changes[group.name] = group.previous_changes
+        changes[group.name]["types"] = {}
+
+        group.instance_type_configs.each {|i| changes[group.name]["types"][i.instance_type] = i.previous_changes }
       end
+      log = ComputeGroupConfigLog.new(user_id: current_user.id, project_id: @project.id, automated: false, details: changes)
+      log.save!
       flash[:success] = "Compute group config updated" if success
       redirect_to policies_path(project: @project.name)
     end

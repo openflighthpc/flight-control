@@ -73,7 +73,7 @@ class ProjectsController < ApplicationController
     else
       authorize @project, policy_class: ProjectPolicy
       details = params.permit(config: {})["config"]
-      result = @project.submit_config_change(details, current_user)
+      result = @project.submit_monitor_config_change(details, current_user)
       if result.valid? && result.persisted?
         flash[:success] = "Config change submitted"
       else

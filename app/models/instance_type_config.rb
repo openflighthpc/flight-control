@@ -3,9 +3,10 @@ class InstanceTypeConfig < ApplicationRecord
   belongs_to :compute_group_config
   default_scope { order(:priority) }
 
-  validates :limit, :priority, :instance_type, presence: true
+  validates :limit, :priority, presence: true
   validates :priority, numericality: { greater_than_or_equal_to: 1 }
   validates :priority, numericality: { greater_than_or_equal_to: 0 }
+  validates :instance_type, presence: true, uniqueness: { scope: :compute_group_config }
 
   def project
     compute_group_config.project
