@@ -255,7 +255,7 @@ Admins can view the status of resque by visiting the path `/resque`
 
 **Note**: the version of the dokku-redis plugin on our hosting instances is outdated, and so to prevent
 issues `config/initilizers/resque.rb` includes logic to ensure Control can successfully communicate
-with the (old) version of redis. If we update dokku-redis and then the version of reddis this will likely no longer be required.
+with the (old) version of redis. If we update dokku-redis and then the version of redis this will likely no longer be required.
 
 ## Visualiser
 
@@ -418,3 +418,19 @@ Settings for a project's `utilisation_threshold`, `override_monitor_until` and `
 On the `audit` page, users can view a history of actions taken for a given project. This includes the creation of change requests, editing or cancelling of a change request, action logs and config logs.
 
 These records can be filtered by any combination of compute group, user, log type, log status and by date.
+
+# Deploying changes to staging
+
+The staging server is currently a [dokku](https://dokku.com/) instance running
+on secondary.apps.alces-flight.com and is available at
+https://testing.staging.alces-flight.com/
+
+To deploy a release to the staging server:
+
+1. Ensure you have SSH access to secondary.apps.alces-flight.com
+2. Add a git remote for secondary.apps.alces-flight.com: `git remote add
+   dokku-staging dokku@secondary.apps.alces-flight.com:flight-control-staging`
+3. Checkout the branch you want to deploy `git checkout <BRANCH YOU WANT TO
+   DEPLOY>`
+4. Push to the staging remote: `git push -f dokku-staging HEAD:master`
+5. 5 minutes after deployment, SSH into secondary.apps, run `dokku enter flight-control-staging resque`, then `rake deployment:prune_resque_workers`
