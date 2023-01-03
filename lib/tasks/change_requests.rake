@@ -1,7 +1,3 @@
-require_relative "../../app/models/application_record"
-require_relative "../../app/models/project"
-require_relative "../../app/models/change_request"
-
 namespace :change_requests do
   desc "Check & update if pending change request completed for one project"
   task :by_project, [:project, :slack, :text] => :environment do |task, args|
@@ -9,21 +5,14 @@ namespace :change_requests do
     if !project
       puts "No project found with that name"
     else
-      begin
-        project.action_scheduled(args[:slack] == "true", args[:text] == "true")
-      rescue Errno::ENOENT
-        puts "No config file found for project #{project.name}"
-      end
+      ChangeRequestsJob.perform_later(project.id, args[:slack] == "true", args[:text] == "true")
     end
   end
 
   task :all,[:slack, :text] => :environment do |task, args|
+    args = TaskArgsHelper.truthify_args(args)
     Project.active.each do |project|
-      begin
-        project.action_scheduled(args[:slack] == "true", args[:text] == "true")
-      rescue Errno::ENOENT
-        puts "No config file found for project #{project.name}"
-      end
+      ChangeRequestsJob.perform_later(project.id, args[:slack], args[:text])
     end
   end
 end

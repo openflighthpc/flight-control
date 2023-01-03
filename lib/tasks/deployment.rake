@@ -7,6 +7,11 @@ namespace :deployment do
       end
     end
   end
+
+  desc 'clean up dead resque workers'
+  task :prune_resque_workers  => :environment do
+    Resque.workers.first.prune_dead_workers if Resque.workers.any?
+  end
 end
 
 def app_name(deploy_type)

@@ -1,3 +1,5 @@
+require 'resque/server'
+
 Rails.application.routes.draw do
   devise_for :users, only: :sessions, controllers: { sessions: "sessions" }
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
@@ -34,4 +36,8 @@ Rails.application.routes.draw do
   post '/events/:id/cancel', to: 'change_requests#cancel'
   post '/events/:id/update', to: 'change_requests#update'
   post '/dashboard/:id/cancel', to: 'change_requests#cancel'
+
+  authenticate :user, lambda {|u| u.admin? } do
+    mount Resque::Server.new, :at => "/resque"
+  end
 end

@@ -109,7 +109,10 @@ Rails.application.configure do
   # config.active_record.database_selector = { delay: 2.seconds }
   # config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
   # config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
-  
+
+  # Background jobs
+  config.active_job.queue_adapter = ENV.fetch('QUEUE_ADAPTER', :resque)
+
   # Flight SSO integration details
   config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME')
   config.sso_uri = ENV.fetch('SSO_BASE_URL')
