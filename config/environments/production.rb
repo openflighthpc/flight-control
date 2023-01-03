@@ -112,12 +112,12 @@ Rails.application.configure do
   
   # Flight SSO integration details
   config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME')
-  config.sso_uri = ""
-  config.sso_domain = ""
+  config.sso_uri = ENV.fetch('SSO_BASE_URL')
+  config.sso_domain = ENV.fetch('SSO_DOMAIN')
   config.use_ssl = true
 
-  config.slack_token = Rails.application.credentials.config[:slack_token]
-  config.usd_gbp_conversion = 0.77
-  config.gbp_compute_conversion = 12.5
-  config.at_risk_conversion = 1.25
+  config.slack_token = ENV["SLACK_TOKEN"]
+  config.usd_gbp_conversion = ENV["USD_GBP_CONVERSION"].to_f
+  config.gbp_compute_conversion = ENV["GBP_COMPUTE_CONVERSION"].to_f
+  config.at_risk_conversion = ENV["AT_RISK_CONVERSION"].to_f
 end
