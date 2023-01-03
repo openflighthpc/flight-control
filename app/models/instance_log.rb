@@ -5,13 +5,16 @@ class InstanceLog < ApplicationRecord
                  "aws" => "stopped"}
   belongs_to :project
   validates :instance_type, :instance_name, :instance_id,
-            :region, :status, :date, presence: true
+            :region, :status, :date, :last_checked,
+            :last_status_change, presence: true
   validates :platform,
     presence: true,
     inclusion: {
       in: %w(aws azure),
       message: "%{value} is not a valid platform"
     }
+
+  before_save :set_if_status_changed
 
   def on?
     status == ON_STATUSES[platform]
@@ -77,5 +80,13 @@ class InstanceLog < ApplicationRecord
     return if platform == "aws"
     
     instance_id.split("/")[4]
+  end
+
+  private
+
+  def set_if_status_changed
+    if status_changed?
+      self.last_status_change = Time.current
+    end
   end
 end

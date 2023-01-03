@@ -20,9 +20,9 @@ class AwsInstanceRecorder
           instances_checker = Aws::EC2::Client.new(access_key_id: @project.access_key_ident, secret_access_key: @project.key, region: region)
           results = instances_checker.describe_instances(project_instances_query)
         rescue Aws::EC2::Errors::ServiceError, Seahorse::Client::NetworkingError => error
-          raise AwsSdkError.new("Unable to determine AWS instances for project #{@project.name} in region #{region}. #{error if @verbose}")
+          raise AwsSdkError.new("Unable to determine AWS instances for project #{@project.name} in region #{region}. #{error if verbose}")
         rescue Aws::Errors::MissingRegionError => error
-          raise AwsSdkError.new("Unable to determine AWS instances for project #{@project.name} due to missing region. #{error if @verbose}")  
+          raise AwsSdkError.new("Unable to determine AWS instances for project #{@project.name} due to missing region. #{error if verbose}")
         end
         results.reservations.each do |reservation|
           any_nodes = true if reservation.instances.any?
@@ -54,11 +54,14 @@ class AwsInstanceRecorder
                 status: status,
                 platform: "aws",
                 region: region,
-                date: Date.current
+                date: Date.current,
+                last_checked: Time.now,
+                last_status_change: Time.now
               )
             else
               log.status = status
               log.compute_group = compute_group # rare, but could have changed
+              log.last_checked = Time.now
               log.save
             end
             log_recorded = true if log.valid? && log.persisted?

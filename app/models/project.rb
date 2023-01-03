@@ -274,7 +274,7 @@ class Project < ApplicationRecord
 
   def time_of_latest_change
     latest_cost_data = cost_logs.maximum("updated_at") if cost_logs.exists?
-    latest_instance_data = instance_logs.maximum("updated_at") if instance_logs.exists?
+    latest_instance_data = instance_logs.maximum("last_status_change") if instance_logs.exists?
     latest_action_log = action_logs.maximum("updated_at") if action_logs.exists?
     latest_change_request = change_requests.maximum("updated_at") if change_requests.exists?
     if latest_cost_data || latest_instance_data || latest_action_log || latest_change_request

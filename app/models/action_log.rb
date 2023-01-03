@@ -117,7 +117,7 @@ class ActionLog < ApplicationRecord
       return status if status != "pending"
 
       goal = action == "on" ? "status = 'VM running' OR status = 'running'"  : "NOT status = 'VM running' AND NOT status = 'running'"
-      reached = project.latest_instance_logs.where(instance_id: instance_id).where(goal).where('updated_at > ?', actioned_at).any?
+      reached = project.latest_instance_logs.where(instance_id: instance_id).where(goal).where('last_checked > ?', actioned_at).exists?
       complete if reached
       status
     else
