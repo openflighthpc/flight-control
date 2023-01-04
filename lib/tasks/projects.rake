@@ -9,50 +9,60 @@ namespace :projects do
 
   namespace :create_config do
     desc "Create config for all active projects"
-    task :all, [:update] => :environment do |task, args|
-      update = args["update"] == "true"
-      Project.active.each do |project|
-        begin
-          result = project.create_config(update)
-        rescue => error
-          puts "Unable to create config for #{project.name}: #{error}"
-        end
-        if result
-          if result["error"]
-            puts "Unable to create config for #{project.name}: #{result["error"]}"
-          elsif result["changed"]
-            msg = "Config updated for #{project.name}: "
-            msg << result.select {|k, v| v && k != "changed" }.keys.join(", ")
-            puts msg
-          else
-            puts "No changes to config for #{project.name}"
+    task :all, [:update, :username] => :environment do |task, args|
+      user = User.find_by(username: args["username"])
+      if !user
+        puts "No user found with that name"
+      else
+        update = args["update"] == "true"
+        Project.active.each do |project|
+          begin
+            result = project.create_config(update, user)
+          rescue => error
+            puts "Unable to create config for #{project.name}: #{error}"
           end
+          if result
+            if result["error"]
+              puts "Unable to create config for #{project.name}: #{result["error"]}"
+            elsif result["changed"]
+              msg = "Config updated for #{project.name}: "
+              msg << result.select {|k, v| v && k != "changed" }.keys.join(", ")
+              puts msg
+            else
+              puts "No changes to config for #{project.name}"
+            end
+          end
+          puts
         end
-        puts
       end
     end
 
     desc "Create config for one project"
-    task :by_project, [:project, :update] => :environment do |task, args|
-      project = Project.find_by(name: args["project"])
-      if !project
-        puts "No project found with that name"
+    task :by_project, [:project, :update, :username] => :environment do |task, args|
+      user = User.find_by(username: args["username"])
+      if !user
+        puts "No user found with that name"
       else
-        update = args["update"] == "true"
-        begin
-          result = project.create_config(update)
-        rescue => error
-          puts "Unable to create config for #{project.name}: #{error}"
-        end
-        if result
-          if result["error"]
-            puts "Unable to create config for #{project.name}: #{result[error]}"
-          elsif result["changed"]
-            msg = "Config updated for #{project.name}: "
-            msg << result.select {|k, v| v && k != "changed" }.keys.join(", ")
-            puts msg
-          else
-            puts "No changes to config for #{project.name}"
+        project = Project.find_by(name: args["project"])
+        if !project
+          puts "No project found with that name"
+        else
+          update = args["update"] == "true"
+          begin
+            result = project.create_config(update, user)
+          rescue => error
+            puts "Unable to create config for #{project.name}: #{error}"
+          end
+          if result
+            if result["error"]
+              puts "Unable to create config for #{project.name}: #{result[error]}"
+            elsif result["changed"]
+              msg = "Config updated for #{project.name}: "
+              msg << result.select {|k, v| v && k != "changed" }.keys.join(", ")
+              puts msg
+            else
+              puts "No changes to config for #{project.name}"
+            end
           end
         end
       end

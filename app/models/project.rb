@@ -264,8 +264,8 @@ class Project < ApplicationRecord
     logs.pluck(Arel.sql("DISTINCT compute_group")).compact.compact
   end
 
-  def create_config(overwrite=false)
-    ProjectConfigCreator.new(self).create_config(overwrite)
+  def create_config(overwrite, user)
+    ProjectConfigCreator.new(self).create_config(overwrite, user)
   end
 
   def time_of_latest_change

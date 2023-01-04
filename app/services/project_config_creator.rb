@@ -7,7 +7,7 @@ class ProjectConfigCreator
     @project = project
   end
 
-  def create_config(update=false)
+  def create_config(update=false, user=nil)
     result = {}
     if !update && @project.compute_group_configs.exists?
       msg = "Config records already exists for project #{@project.name}."
@@ -24,6 +24,7 @@ class ProjectConfigCreator
     else
       current_group_config_ids = []
       current_instance_config_ids = []
+      changes = {}
       priority = 1
       colour_index = 0
       groups.each do |details|
@@ -37,6 +38,9 @@ class ProjectConfigCreator
         result["added group(s)"] = true if compute_group.id.nil?
         compute_group.save!
 
+        changes[group_name] = compute_group.previous_changes
+        changes[group_name]["types"] = {}
+
         counts = @project.latest_instance_logs.where(compute_group: group_name).group(:instance_type).count
         instance_priority = 1
         counts.each do |instance_type, count|
@@ -48,10 +52,14 @@ class ProjectConfigCreator
           result["added instance type(s)"] = true if instance_config.id.nil?
           instance_config.save!
 
+          changes[group_name]["types"][instance_type] = instance_config.previous_changes
+
           current_instance_config_ids << instance_config.id
           instance_priority += 1
         end
 
+        log = ComputeGroupConfigLog.new(user_id: user&.id, project_id: @project.id, automated: !user.present?, details: changes)
+        log.save! if log.config_changes.any?
         current_group_config_ids << compute_group.id
         priority += 1
         colour_index = (colour_index + 1) % EXAMPLE_COLOURS.length # if more groups than colours, repeat from start of colours list

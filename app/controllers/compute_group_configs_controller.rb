@@ -35,7 +35,7 @@ class ComputeGroupConfigsController < ApplicationController
       no_project_redirect
     else
       authorize @project, :config_update?, policy_class: ProjectPolicy
-      result = @project.create_config(true)
+      result = @project.create_config(true, current_user)
       if result["error"]
         flash[:error] = result["error"]
       elsif result["changed"]

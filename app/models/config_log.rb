@@ -1,6 +1,6 @@
 class ConfigLog < ApplicationRecord
   belongs_to :project
-  belongs_to :user
+  belongs_to :user, optional: true
   belongs_to :change_request, optional: true
   default_scope { order(:created_at) }
   validates :project_id, :type, presence: true
