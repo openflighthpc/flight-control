@@ -46,6 +46,7 @@ class ComputeGroupConfigLog < ConfigLog
           html << "#{attribute}: <strike>#{values["from"]}</strike> #{values["to"]}<br>"
         end
       end
+      html << "<br>"
     end
     html
   end

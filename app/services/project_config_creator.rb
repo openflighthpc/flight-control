@@ -58,12 +58,12 @@ class ProjectConfigCreator
           instance_priority += 1
         end
 
-        log = ComputeGroupConfigLog.new(user_id: user&.id, project_id: @project.id, automated: !user.present?, details: changes)
-        log.save! if log.config_changes.any?
         current_group_config_ids << compute_group.id
         priority += 1
         colour_index = (colour_index + 1) % EXAMPLE_COLOURS.length # if more groups than colours, repeat from start of colours list
       end
+      log = ComputeGroupConfigLog.new(user_id: user&.id, project_id: @project.id, automated: !user.present?, details: changes)
+      log.save! if log.config_changes.any?
 
       result["removed group(s)"] = @project.compute_group_configs.where.not(id: current_group_config_ids).destroy_all.count > 0
       result["removed instance type(s)"] = @project.instance_type_configs.where.not(id: current_instance_config_ids).destroy_all.count > 0
