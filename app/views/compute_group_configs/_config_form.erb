@@ -62,7 +62,7 @@
                      value="<%= compute_group.id %>"
               >
             </tr>
-            <% compute_group.instance_type_configs.each do |instance_config| %>
+            <% compute_group.current_instance_type_configs.each do |instance_config| %>
               <tr>
                 <td class="text-center">
                   <em>
@@ -110,7 +110,7 @@
       <div class="switch-off-order">
         <h5>Estimated budget switch off order:</h5>
         <div class="row" id="switch-off-cards">
-          <% @project.instance_type_configs.sort.each do |type| %>
+          <% @project.instance_type_configs.active.sort.each do |type| %>
             <div class="card switch-off-order-card">
               <div class="card-header font-weight-bold">
                 <%= type.compute_group_config.name %>

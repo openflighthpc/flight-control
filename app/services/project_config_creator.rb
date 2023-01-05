@@ -30,7 +30,7 @@ class ProjectConfigCreator
       groups.each do |details|
         group_name = details[0]
         region = details[1]
-        compute_group = @project.compute_group_configs.find_or_initialize_by(name: group_name)
+        compute_group = @project.compute_group_configs.active.find_or_initialize_by(name: group_name)
         compute_group.priority ||= priority
         compute_group.region ||= region
         compute_group.colour ||= EXAMPLE_COLOURS[colour_index]
@@ -44,7 +44,7 @@ class ProjectConfigCreator
         counts = @project.latest_instance_logs.where(compute_group: group_name).group(:instance_type).count
         instance_priority = 1
         counts.each do |instance_type, count|
-          instance_config = InstanceTypeConfig.find_or_initialize_by(compute_group_config: compute_group, instance_type: instance_type)
+          instance_config = InstanceTypeConfig.active.find_or_initialize_by(compute_group_config: compute_group, instance_type: instance_type)
           instance_config.project = @project
           instance_config.priority ||= instance_priority
           instance_config.limit = count
@@ -62,11 +62,25 @@ class ProjectConfigCreator
         priority += 1
         colour_index = (colour_index + 1) % EXAMPLE_COLOURS.length # if more groups than colours, repeat from start of colours list
       end
+
+      @project.compute_group_configs.active.where.not(id: current_group_config_ids).each do |group|
+        result["archived group(s)"] = true
+        group.archived_date = Date.current
+        group.save!
+        changes[group.name] = group.previous_changes
+        changes[group.name]["types"] = {}
+      end
+
+      @project.instance_type_configs.active.where.not(id: current_instance_config_ids).each do |type|
+        result["archived instance type(s)"] = true
+        type.archived_date = Date.current
+        type.save!
+        changes[type.compute_group_config.name]["types"][type.instance_type] = type.previous_changes
+      end
+
       log = ComputeGroupConfigLog.new(user_id: user&.id, project_id: @project.id, automated: !user.present?, details: changes)
       log.save! if log.config_changes.any?
 
-      result["removed group(s)"] = @project.compute_group_configs.where.not(id: current_group_config_ids).destroy_all.count > 0
-      result["removed instance type(s)"] = @project.instance_type_configs.where.not(id: current_instance_config_ids).destroy_all.count > 0
       result["changed"] = result.any? {| k, v| v }
       return result
     end

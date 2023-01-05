@@ -238,7 +238,7 @@ class Project < ApplicationRecord
   end
 
   def front_end_compute_groups
-    compute_group_configs
+    compute_group_configs.active
   end
 
   def group_colour(group_name, storage)

@@ -38,12 +38,12 @@ class ComputeGroupConfigLog < ConfigLog
           values.each do |type, attributes|
             customer_facing_type = InstanceMapping.customer_facing_type(project.platform, type)
             html << "<em>#{customer_facing_type}</em>: "
-            html << attributes.map {|k, v| "#{k} <strike>#{v["from"]}</strike> #{v["to"]}" if k != "id" }.compact.join(", ")
+            html << attributes.map {|k, v| "#{k.gsub("_", " ")} <strike>#{v["from"]}</strike> #{v["to"]}" if k != "id" }.compact.join(", ")
             html << " (new)" if attributes["id"]
             html << "<br>"
           end
         elsif attribute != "id"
-          html << "#{attribute}: <strike>#{values["from"]}</strike> #{values["to"]}<br>"
+          html << "#{attribute.gsub("_", " ")}: <strike>#{values["from"]}</strike> #{values["to"]}<br>"
         end
       end
       html << "<br>"
@@ -54,11 +54,11 @@ class ComputeGroupConfigLog < ConfigLog
   private
 
   def group_tracked_attributes
-    %w(colour storage_colour priority types id)
+    %w(colour storage_colour priority types archived_date id)
   end
 
   def instance_type_tracked_attributes
-    %w(priority limit id)
+    %w(priority limit archived_date id)
   end
 
 end
