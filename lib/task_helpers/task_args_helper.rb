@@ -8,6 +8,7 @@ module TaskArgsHelper
   end
 
   def self.truthify_args(args)
+    args = args.to_h
     args.tap do |h|
       args.each do |k, v|
         unless [:project, :date, :start, :end].include?(k)
