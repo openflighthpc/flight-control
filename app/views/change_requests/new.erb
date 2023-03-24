@@ -39,7 +39,7 @@
           <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
           <%= hidden_field_tag :project, @project.name %>
           <%= hidden_field_tag(:id, @change_request.id, {id: "request-id"}) if @change_request %>
-           <%= hidden_field_tag(:type, @change_request ? @change_request.type : "OneOffChangeRequest", {id: "request-type"}) %>
+          <%= hidden_field_tag(:type, @change_request ? @change_request.type : "OneOffChangeRequest", {id: "request-type"}) %>
         </form>
       </div>
     </div>
