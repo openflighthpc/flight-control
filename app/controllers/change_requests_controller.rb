@@ -94,7 +94,7 @@ class ChangeRequestsController < ApplicationController
         if !request.editable?
           flash[:danger] = "Cannot edit that request"
         else
-          if parameters["timeframe"] == "now" && request.is_a?(RepeatedChangeRequest)
+          if parameters["timeframe"] == "now"
             parameters["date"] = Date.current
             # use 6 minutes as equivalent to rounding up current time
             # to nearest minute
