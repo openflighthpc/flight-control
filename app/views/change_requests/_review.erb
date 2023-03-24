@@ -15,7 +15,7 @@
       <input type="text"
              id="over-budget-switch-offs-checkbox"
              name="over_budget_switch_offs"
-             <%= "value='#{@request.over_budget_switch_offs}'" if @request %>>
+             <%= "value='#{@change_request.over_budget_switch_offs}'" if @change_request %>>
       <div id="over-balance-warning" class="text-danger" style="display:none;">
         Request is forecast to exceed balance.
       </div>

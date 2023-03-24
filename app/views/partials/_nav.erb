@@ -11,7 +11,7 @@
     </li>
     <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create? %>
       <li class="top nav-item">
-        <% title = @request ? "Edit Event" : "Create Event" %>
+        <% title = @change_request ? "Edit Event" : "Create Event" %>
         <%= link_to title, events_new_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "event wizard"}" %>
       </li>
     <% end %>

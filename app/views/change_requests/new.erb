@@ -5,14 +5,14 @@
 <% end %>
 
   <div class="mt-4 text-center mb-4">
-    <h2><%= @project.name %> - <%= "#{@request ? 'Edit' : 'Create'} Event" %></h2>
+    <h2><%= @project.name %> - <%= "#{@change_request ? 'Edit' : 'Create'} Event" %></h2>
   </div>
   <div class="wizard">
     <div class="row">
       <div class="col-2"></div>
       <div class="col-8 wizard-body">
-        <% if @request %>
-          <form action='/events/<%= @request.id %>/update' method='post' id='create-event-form'>
+        <% if @change_request %>
+          <form action='/events/<%= @change_request.id %>/update' method='post' id='create-event-form'>
         <% else %>
           <form action='/events' method='post' id='create-event-form'>
         <% end %>
@@ -38,8 +38,8 @@
           </div>
           <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
           <%= hidden_field_tag :project, @project.name %>
-          <%= hidden_field_tag(:id, @request.id, {id: "request-id"}) if @request %>
-           <%= hidden_field_tag(:type, @request ? @request.type : "OneOffChangeRequest", {id: "request-type"}) %>
+          <%= hidden_field_tag(:id, @change_request.id, {id: "request-id"}) if @change_request %>
+          <%= hidden_field_tag(:type, @change_request ? @change_request.type : "OneOffChangeRequest", {id: "request-type"}) %>
         </form>
       </div>
     </div>

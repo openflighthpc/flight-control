@@ -4,7 +4,7 @@
     <br>
     Weekdays:
   </div>
-  <% repeat = @request && @request&.weekdays %>
+  <% repeat = @change_request && @change_request&.weekdays %>
   <% Weekdays::DAYSOFWEEK.each_with_index do |day, index| %>
     <div class="col day-checkbox">
       <label> <%= day[0] %>
@@ -12,7 +12,7 @@
         <input type="checkbox"
                class="scheduled-input day-input"
                id="day-checkbox-<%= day %>"
-               <%= "checked='checked'" if repeat && @request.weekdays[index] == "1" %>>
+               <%= "checked='checked'" if repeat && @change_request.weekdays[index] == "1" %>>
       </label>
     </div>
   <% end %>
@@ -22,7 +22,7 @@
          id="weekdays" 
          name="weekdays"
          class="scheduled-input"
-         <%= "value=#{@request.weekdays}" if @request %>>
+         <%= "value=#{@change_request.weekdays}" if @change_request %>>
 </div>
 <div class="row form-inline" id="last-date">
   <div class="col"></div>
@@ -35,7 +35,7 @@
            id="end-date"
            name="end_date"
            min="<%= Date.current() %>"
-           <%= "value=#{@request.end_date}" if @request %>
+           <%= "value=#{@change_request.end_date}" if @change_request %>
     >
   </div>
   <div class="col"></div>

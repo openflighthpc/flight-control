@@ -101,6 +101,8 @@ class ConfigLog < ApplicationRecord
       username: automated ? "System" : user.username,
       automated: automated,
       change_request_id: change_request_id,
+      cr_editable: change_request&.editable?,
+      project_name: project.name,
       timestamp: created_at,
       formatted_timestamp: formatted_timestamp,
       details: card_description,
@@ -140,7 +142,7 @@ class ConfigLog < ApplicationRecord
 
   def valid_time?(time_string)
     begin
-      time = Time.parse(time_string)
+      Time.parse(time_string)
     rescue ArgumentError
       return false
     end

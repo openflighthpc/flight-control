@@ -121,8 +121,8 @@ function addConfigLogCard(log) {
   newCard.removeClass('d-none');
   newCard.addClass('audit-row');
   if(log.automated) {
-    let link = `<a href='/scheduled-changes/${log.scheduled_request_id}'>power-on policy.</a>`
-    $('.config-log-source', newCard).html(`Project configuration updated as part of a ${link}`);
+    let text = log.cr_editable ? `<a href='/events/${log.change_request_id}/edit?project=${log.project_name}'>change request.</a>` : 'change request';
+    $('.config-log-source', newCard).html(`Project configuration updated as part of a ${text}`);
   } else {
     $('.config-username', newCard).html(log.username);
   }

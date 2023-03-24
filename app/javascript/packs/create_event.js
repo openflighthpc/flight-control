@@ -23,6 +23,7 @@ function toggleDateSelectors() {
     $('.day-input').prop('checked', false);
     $('.scheduled-input').val("");
     $('.scheduled-description').val("");
+    $('#request-type').val('OneOffChangeRequest');
   }
 }
 
