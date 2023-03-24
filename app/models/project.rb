@@ -428,7 +428,8 @@ class Project < ApplicationRecord
   end
 
   def change_request_cumulative_costs(params)
-    change = make_change_request(params)
+    existing_request = params[:id] ? ChangeRequest.find(params[:id]) : nil
+    change = make_change_request(params, existing_request)
     # This sets the future instance counts based on the
     # if the temp change request were carried out
     latest_instances(change)
@@ -449,7 +450,7 @@ class Project < ApplicationRecord
   end
 
   # create object, but don't persist
-  def make_change_request(params)
+  def make_change_request(params, existing_request=nil)
     params["project"] = self
     if params["timeframe"] == "now"
       params["date"] = Date.current
@@ -458,7 +459,8 @@ class Project < ApplicationRecord
       params["time"] = (Time.current + 6.minutes).strftime("%H:%M")
     end
     params.delete("timeframe")
-    change = params["type"].constantize.new(params)
+    params["actioned_at"] = existing_request.actioned_at if existing_request
+    params["type"].constantize.new(params)
   end
 
   def create_change_request(params)

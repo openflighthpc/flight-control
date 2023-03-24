@@ -11,7 +11,7 @@
                name="counts_criteria"
                id="exact-counts"
                value="exact"
-               <%= 'checked' if !@request || @request.counts_criteria == "exact" %> >
+               <%= 'checked' if !@change_request || @change_request.counts_criteria == "exact" %> >
         <label class="form-check-label" for="exact-counts">
           Set exact instance counts<a href="#" class="tool-tip" data-placement="top" title="Instances will be switched on and/or off as needed to match the exact chosen counts."><sup>?</sup></a>
         </label>
@@ -24,7 +24,7 @@
                name="counts_criteria"
                id="min-counts"
                value="min"
-               <%= 'checked' if @request && @request.counts_criteria == "min" %> >
+               <%= 'checked' if @change_request && @change_request.counts_criteria == "min" %> >
         <label class="form-check-label" for="min-counts">
           Set minimum instance counts<a href="#" class="tool-tip" data-placement="top" title="Instances will be switched on (but not off) as needed to reach the chosen counts."><sup>?</sup></a>
         </label>

@@ -27,8 +27,8 @@
         <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem.to_f] } %>
         <% instances.each do |instance| %>
           <% next if instance.node_limit == 0 %>
-          <% if @request && @request.counts[group] && @request.counts[group][instance.instance_type] %>
-            <%  selected_amount = @request.counts[group][instance.instance_type] %>
+          <% if @change_request && @change_request.counts[group] && @change_request.counts[group][instance.instance_type] %>
+            <%  selected_amount = @change_request.counts[group][instance.instance_type] %>
           <% end %>
           <% selector = "#{group}-#{instance.instance_type}".delete("()").gsub(' ', '-').gsub(".", "_") %>
           <% on = instance.count[:on] %>

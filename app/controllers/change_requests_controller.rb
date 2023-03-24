@@ -54,7 +54,7 @@ class ChangeRequestsController < ApplicationController
     start_date = cost_plotter.start_of_billing_interval(Date.current)
     end_date = cost_plotter.end_of_billing_interval(Date.current)
     @cycle_thresholds = cost_plotter.cycle_thresholds(start_date, end_date)
-    @existing_timings = @project.request_dates_and_times(@request)
+    @existing_timings = @project.request_dates_and_times(@change_request)
     @nav_view = "event wizard"
     check_missing_instance_details
     render :new
@@ -94,6 +94,12 @@ class ChangeRequestsController < ApplicationController
         if !request.editable?
           flash[:danger] = "Cannot edit that request"
         else
+          if parameters["timeframe"] == "now" && request.is_a?(RepeatedChangeRequest)
+            parameters["date"] = Date.current
+            # use 6 minutes as equivalent to rounding up current time
+            # to nearest minute
+            parameters["time"] = (Time.current + 6.minutes).strftime("%H:%M")
+          end
           parameters.delete(:project)
           parameters.delete(:timeframe)
           parameters[:over_budget_switch_offs] = parameters[:over_budget_switch_offs] == "true"
@@ -153,7 +159,7 @@ class ChangeRequestsController < ApplicationController
       :over_budget_switch_offs,
       nodes: {}
     )
-    filtered = permitted.transform_values do |value|
+    permitted.transform_values do |value|
       # filter hash within params
       if value.class == ActionController::Parameters
         value.select { |k, v| v != "" }

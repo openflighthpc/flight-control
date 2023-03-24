@@ -12,7 +12,7 @@ class InstanceTracker
       instances.each do |instance|
         change = changes.dig(group, instance.instance_type)
         if change
-          pending_count = change += instance.pending_on
+          pending_count = change + instance.pending_on
         end
         instance.set_pending_on(pending_count) if pending_count
       end
