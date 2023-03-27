@@ -11,7 +11,7 @@ class BudgetSwitchOffDecorator
   end
 
   def date_time
-    Time.parse("#{@date.to_s} #{@time}")
+    Time.zone.parse("#{@date.to_s} #{@time}")
   end
 
   # we know there can only be one set of switch offs per day

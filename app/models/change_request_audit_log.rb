@@ -41,7 +41,7 @@ class ChangeRequestAuditLog < ApplicationRecord
 
   def original_date_time
     if updates["from"]["date"]
-      Time.parse("#{updates["from"]["date"]} #{updates["from"]["time"]}")
+      Time.zone.parse("#{updates["from"]["date"]} #{updates["from"]["time"]}")
     else
       change_request.date_time
     end

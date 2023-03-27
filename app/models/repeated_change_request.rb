@@ -6,7 +6,7 @@ class RepeatedChangeRequest < ChangeRequest
   validate :end_date_not_before_start
 
   def parsed_end_date_time
-    Time.parse("#{end_date.to_s} #{time}")
+    Time.zone.parse("#{end_date.to_s} #{time}")
   end
 
   def future_dates
@@ -24,7 +24,7 @@ class RepeatedChangeRequest < ChangeRequest
 
   def next_date_time
     dates = future_dates
-    Time.parse("#{dates[0].to_s} #{time}") if dates.any?
+    Time.zone.parse("#{dates[0].to_s} #{time}") if dates.any?
   end
 
   def individual_request_on_date(date)
