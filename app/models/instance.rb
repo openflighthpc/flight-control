@@ -157,7 +157,7 @@ class Instance
     
     changes_on_date.keys.sort.each do |time|
       new_count_and_type = changes_on_date[time]
-      time = Time.parse("#{date} #{time}")
+      time = Time.zone.parse("#{date} #{time}")
       new_count = new_count_and_type[:count]
       min_count = new_count_and_type[:min]
       total_count.times do |x|

@@ -27,7 +27,7 @@ class ChangeRequest < ApplicationRecord
   end
 
   def date_time
-    Time.parse("#{date.to_s} #{time}")
+    Time.zone.parse("#{date.to_s} #{time}")
   end
 
   def uneditable_date_time
