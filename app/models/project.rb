@@ -6,6 +6,7 @@ require_relative 'action_log'
 require_relative '../services/project_config_creator'
 require_relative '../services/costs_plotter'
 require_relative '../services/instance_tracker'
+require_relative '../services/generic_instance_manager'
 require_relative '../decorators/budget_switch_off_decorator'
 require 'httparty'
 
@@ -660,7 +661,7 @@ class Project < ApplicationRecord
       next if details.empty?
       # for aws grouping is region, for azure is resource group
       details.each do |grouping, instances|
-        instance_manager.update_instance_statuses(action, grouping, instances)
+        InstanceManager.update_instance_statuses(action, instances)
       end
     end
   end

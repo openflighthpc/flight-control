@@ -4,7 +4,6 @@ require_relative '../services/azure_instance_recorder'
 require_relative '../services/azure_costs_recorder'
 require_relative '../services/azure_authoriser'
 require_relative '../services/azure_instance_details_recorder'
-require_relative '../services/azure_instance_manager'
 require_relative '../services/azure_monitor'
 
 class AzureProject < Project
@@ -31,10 +30,6 @@ class AzureProject < Project
 
   def instance_recorder
     @instance_recorder ||= AzureInstanceRecorder.new(self)
-  end
-
-  def instance_manager
-    @instance_manager ||= AzureInstanceManager.new(self)
   end
 
   def costs_recorder

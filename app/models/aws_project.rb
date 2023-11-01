@@ -2,7 +2,6 @@ require_relative 'project'
 require_relative '../services/aws_instance_recorder'
 require_relative '../services/aws_costs_recorder'
 require_relative '../services/aws_instance_details_recorder'
-require_relative '../services/aws_instance_manager'
 require_relative '../services/aws_monitor'
 
 class AwsProject < Project
@@ -26,10 +25,6 @@ class AwsProject < Project
 
   def instance_recorder
     @instance_recorder ||= AwsInstanceRecorder.new(self)
-  end
-
-  def instance_manager
-    @instance_manager ||= AwsInstanceManager.new(self)
   end
 
   def costs_recorder
