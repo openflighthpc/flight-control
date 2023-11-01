@@ -10,10 +10,10 @@ class InstanceManager
     @project = project
   end
 
-  #Start or stop the chosen instance(s) by id. Creds hash must contain "provider" field, any others are optional required fields for the provider (e.g. AWS region)
-  def update_instance_statuses(action, creds, instance_ids, verbose=false)
+  #Start or stop the chosen instance(s) by id.
+  def update_instance_statuses(action, instance_ids, verbose=false)
     instance_ids.each do |instance_id|
-      response = http_request(uri: 'http://0.0.0.0:4567/providers/#{creds["provider"]}/get-instance-costs',
+      response = http_request(uri: 'http://0.0.0.0:4567/providers/#{@project.provider}/get-instance-costs',
                               headers: {"Project-Credentials" => creds.inspect},
                               body: { "instance_id" => instance_id }.to_json
                              )
