@@ -10,7 +10,8 @@ class AwsInstanceManager
 
   def update_instance_statuses(action, region, instance_ids, verbose=false)
     instance_ids.each do |instance_id|
-      response = http_request(uri: 'http://0.0.0.0:4567/providers/aws/get-instance-costs',
+      command = action == "on" ? "start-instance" : "stop-instance"
+      response = http_request(uri: 'http://0.0.0.0:4567/providers/aws/#{command}',
                               headers: {"Project-Credentials" => {"region": region}.inspect},
                               body: { "instance_id" => instance_id }.to_json
                              )
