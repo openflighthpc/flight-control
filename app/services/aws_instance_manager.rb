@@ -9,17 +9,21 @@ class AwsInstanceManager
   end
 
   def update_instance_statuses(action, region, instance_ids, verbose=false)
-    begin
-      ec2 = Aws::EC2::Client.new(access_key_id: @project.access_key_ident, secret_access_key: @project.key, region: region)
-      if action.to_s == "on"
-        ec2.start_instances(instance_ids: instance_ids)
-      else
-        ec2.stop_instances(instance_ids: instance_ids)
+    instance_ids.each do |instance_id|
+      response = http_request(uri: 'http://0.0.0.0:4567/providers/aws/get-instance-costs',
+                              headers: {"Project-Credentials" => {"region": region}.inspect},
+                              body: { "instance_id" => instance_id }.to_json
+                             )
+      case response.code
+      when 200
+        #Instance state set successfully
+      when 401
+        raise 'Credentials missing or incorrect'
+      when 404
+        raise 'Provider #{creds["provider"]} and/or instance #{instance_id} not found'
+      when 500
+        raise 'Internal error in Control API'
       end
-    rescue Aws::EC2::Errors::ServiceError, Seahorse::Client::NetworkingError => error
-      raise AwsSdkError.new("Unable to change instance statuses for project #{@project.name} in region #{region}. #{error if @verbose}")
-    rescue Aws::Errors::MissingRegionError => error
-      raise AwsSdkError.new("Unable to change instance statuses for project #{@project.name} due to missing region. #{error if @verbose}")  
     end
   end
 end
