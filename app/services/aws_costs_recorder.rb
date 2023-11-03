@@ -11,11 +11,7 @@ class AwsCostsRecorder
     @explorer = Aws::CostExplorer::Client.new(access_key_id: @project.access_key_ident, secret_access_key: @project.key)
   end
 
-  # AWS allows/requires specific filters in the query, so we make one query for each
-  # cost type.
   def record_logs(start_date, end_date=start_date, rerun=false, verbose=false)
-    # AWS SDK doesn't include the final date given, so push back one day
-    end_date += 1.day
     Project::SCOPES.each { |scope| record_costs(start_date, end_date, rerun, verbose, scope) }
     # if compute groups change and we are often rerunning for past dates, 
     # we will need to change this logic to determine compute groups at 
@@ -31,6 +27,24 @@ class AwsCostsRecorder
   def record_costs(start_date, end_date, rerun, verbose, scope, compute_group=nil)
     log = @project.cost_logs.find_by(date: start_date, scope: scope)
     if !log || rerun
+      response = http_request(uri: 'http://0.0.0.0:4567/providers/aws/get-instance-costs',
+                              headers: {"Project-Credentials" => {"region": region}.inspect},
+                              query: {scope: scope,
+                                      instance_ids:, # Instance IDs should be all instances matching scope/group
+                                      start_date: start_date, # Check date formats line up, may need to convert to timestamp
+                                      end_date: end_date} 
+                             )
+      case response.code
+      when 200
+        #Instance state set successfully
+      when 401
+        raise 'Credentials missing or incorrect'
+      when 404
+        raise 'Provider #{creds["provider"]} and/or instance #{instance_id} not found'
+      when 500
+        raise 'Internal error in Control API'
+      end
+
       if compute_group
         storage = scope.include?("storage")
         cost_query = self.send("compute_group_cost_query", start_date, end_date, compute_group, storage)
@@ -143,100 +157,5 @@ class AwsCostsRecorder
       query[:filter][:and] += instance_run_cost_filter
     end
     query
-  end
-
-  def project_filter
-    {
-      tags: {
-        key: "project",
-        values: [@project.project_tag]
-      }
-    }
-  end
-
-  def core_filter
-    {
-      tags: {
-        key: "type",
-        values: ["core"]
-      }
-    }
-  end
-
-  def compute_group_filter(group)
-    {
-      tags: {
-        key: "compute_group",
-        values: [group]
-      }
-    }
-  end
-
-  def data_out_filter
-    {
-      dimensions: {
-        key: "USAGE_TYPE_GROUP",
-        values: 
-          [
-            "EC2: Data Transfer - Internet (Out)",
-            "EC2: Data Transfer - CloudFront (Out)",
-            "EC2: Data Transfer - Region to Region (Out)"
-          ]
-      }
-    }
-  end
-
-  def storage_filter
-    { 
-      dimensions: {
-        key: "USAGE_TYPE_GROUP",
-        values: 
-          [
-            "S3: Storage - Standard",
-            "EC2: EBS - I/O Requests",
-            "EC2: EBS - Magnetic",
-            "EC2: EBS - Provisioned IOPS",
-            "EC2: EBS - SSD(gp2)",
-            "EC2: EBS - SSD(io1)",
-            "EC2: EBS - Snapshots",
-            "EC2: EBS - Optimized"
-          ]
-      }
-    }
-  end
-
-  def instance_run_cost_filter
-    [
-      {
-        dimensions: {
-          key: "USAGE_TYPE_GROUP",
-          values: ["EC2: Running Hours"]
-        }
-      },
-      {
-        dimensions: {
-          key: "SERVICE",
-          values: ["Amazon Elastic Compute Cloud - Compute"]
-        }
-      }
-    ]
-  end
-
-  def compute_filter
-    {
-      tags: {
-        key: "type",
-        values: ["compute"]
-      }
-    }
-  end
-
-  def compute_group_filter(group)
-    {
-      tags: {
-        key: "compute_group",
-        values: [group]
-      }
-    }
   end
 end
