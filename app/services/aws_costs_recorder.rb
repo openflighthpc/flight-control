@@ -28,11 +28,13 @@ class AwsCostsRecorder
     log = @project.cost_logs.find_by(date: start_date, scope: scope)
     if !log || rerun
       response = http_request(uri: 'http://0.0.0.0:4567/providers/aws/get-instance-costs',
-                              headers: {"Project-Credentials" => {"region": region}.inspect},
+                              headers: {"Project-Credentials" => {"region": region,
+                                                                  "access_key_id": @project.access_key_ident,
+                                                                  "secret_access_key": @project.key}.inspect},
                               query: {scope: scope,
                                       instance_ids:, # Instance IDs should be all instances matching scope/group
                                       start_date: start_date, # Check date formats line up, may need to convert to timestamp
-                                      end_date: end_date} 
+                                      end_date: end_date}
                              )
       case response.code
       when 200
@@ -56,6 +58,7 @@ class AwsCostsRecorder
       rescue Aws::CostExplorer::Errors::ServiceError, Seahorse::Client::NetworkingError => error
         raise AwsSdkError.new("Unable to determine core costs for project #{@project.name}. #{error if verbose}") 
       end
+      
       # for daily report will just be one day, but multiple when run for a range
       response.each do |day|
         date = day[:time_period][:start]
