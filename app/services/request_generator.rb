@@ -3,7 +3,7 @@ require 'net/http'
 require 'json'
 
 # headers and query should both be hashes. body should be a string.
-def http_request(uri:, headers: {}, query: {}, body: )
+def http_request(uri:, headers: {}, query: {}, body: nil )
   uri = URI(uri)
   http = Net::HTTP.new(uri.host, uri.port)
 
