@@ -80,14 +80,12 @@ class AwsCostsRecorder
   end
 
   def validate_credentials
-    valid = true
-    begin
-      @explorer.get_cost_and_usage(total_cost_query(Project::DEFAULT_COSTS_DATE)).results_by_time
-    rescue => error
-      puts "Unable to obtain costs data: #{error}"
-      valid = false
-    end
-    valid
+    response = http_request(uri: 'http://0.0.0.0:4567/providers/aws/validate-credentials',
+                            headers: {"Project-Credentials" => {"region": region,
+                                                                "access_key_id": @project.access_key_ident,
+                                                                "secret_access_key": @project.key}.inspect}
+                           )
+    response.code==200
   end
 
   private
