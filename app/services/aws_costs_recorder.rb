@@ -11,6 +11,15 @@ class AwsCostsRecorder
     @explorer = Aws::CostExplorer::Client.new(access_key_id: @project.access_key_ident, secret_access_key: @project.key)
   end
 
+  def instances_by_tag(tag:)
+    response = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/aws/list-instances',
+                                       headers: {"Project-Credentials" => {"region": region,
+                                                                           "access_key_id": @project.access_key_ident,
+                                                                           "secret_access_key": @project.key}.inspect},
+                                      )
+    
+  end
+
   def record_logs(start_date, end_date=start_date, rerun=false, verbose=false)
     Project::SCOPES.each { |scope| record_costs(start_date, end_date, rerun, verbose, scope) }
     # if compute groups change and we are often rerunning for past dates, 
