@@ -72,34 +72,22 @@ class ExampleMonitor
 
   # Average and most recent value. For both we check the maximum values, for the past
   # 20 minutes.
+  # Room here to reduce number of API calls
   def get_node_usage(node_id, region, logger=nil)
-    #logger ||= setup_logger(region)
-    #logger.info("Getting utilisation data for #{node_id}")
+    logger ||= setup_logger(region)
+    logger.info("Getting utilisation data for #{node_id}")
     now = Time.now.to_i
-    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance_usages',
-                            headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
-                            query: {'instance_id': node_id,
-                                    'scope': scope,
-                                    'start_time': now
-                                    'end_date': now + 1200
-                           )
-    vals = response.datapoints.sort_by(&:timestamp).last(4).map(&:maximum)
-    logger.info("Maximum percentage CPU usage per 5 minutes for the last 20 minutes:")
-    logger.info(vals)
-    last = vals.last
-    last ||= 0
-
-    # When there aren't enough average readings for last 20 mins, instead treat the node as 
-    # if it were fully loaded. Should the note have less than 4 metrics this indicates that
-    # it was likely turned on recently. This gives the node a grace period.
-    #
-    # NB: AWS has a minimum of 5 minutes per data point for the CPUUtilization metric,
-    # which should explain the difference between the grace periods of the AWS and Azure
-    # methods.
-    if vals.length < 4
-      return {average: 100, last: last}
-    else
-      return {average: (vals.inject(0.0) { |sum, el| sum + el } / vals.size), last: last}
-    end
+    response = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance_usages',
+                                       headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect},
+                                       query: {'instance_ids': node_id,
+                                               'scope': scope,
+                                               'start_time': now,
+                                               'end_date': now + 1200
+                                              }
+                          ))
+    logger.info("Response received from Control API:")
+    logger.info(response)
+    usages = response['usages'].first
+    return {average: usages['average'], last: usages['last']}
   end
 end
