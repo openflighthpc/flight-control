@@ -15,15 +15,22 @@ class AwsInstanceDetailsRecorder
 
   def record
     database_entries = {}
+    # Get all instances
+    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
+                            headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
+                            body: { "models" =>  }.to_json
+                           )
+    # Group by region
     regions.each do |region|
       first_query = true
       failed_query = false
       results = nil
       while first_query || results&.next_token
-        response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance',
+        response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
                                 headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
-                                body: { "instance_id" => instance_id }.to_json
+                                body: { "models" =>  }.to_json
                                )
+
         if results
           database_entries[region] ||= [] unless failed_query
           results.price_list.each do |result|
@@ -86,7 +93,7 @@ class AwsInstanceDetailsRecorder
   end
 
   def instance_types
-    @instance_types ||= InstanceLog.where(platform: "aws").pluck(Arel.sql("DISTINCT instance_type"))
+    @instance_types ||= InstanceLog.where(platform: "example").pluck(Arel.sql("DISTINCT instance_type"))
   end
 
   def determine_region_mappings
