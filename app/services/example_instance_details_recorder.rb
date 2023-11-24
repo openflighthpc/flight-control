@@ -15,42 +15,32 @@ class AwsInstanceDetailsRecorder
 
   def record
     database_entries = {}
-    # Get all instances
-    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
-                            headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
-                            body: { "models" =>  }.to_json
-                           )
-    # Group by region
     regions.each do |region|
       first_query = true
       failed_query = false
       results = nil
       while first_query || results&.next_token
+        models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details').body)
         response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
                                 headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
-                                body: { "models" =>  }.to_json
+                                body: { "models" => models.join(',') }.to_json
                                )
 
-        if results
+        if response.code == 200
           database_entries[region] ||= [] unless failed_query
-          results.price_list.each do |result|
-            details = JSON.parse(result)
+          JSON.parse(response.body).each do |model|
             attributes = details["product"]["attributes"]
-            next unless instance_types.include?(attributes["instanceType"])
+            next unless instance_types.include?(model["model"])
 
-            price = details["terms"]["OnDemand"]
-            price = price[price.keys[0]]["priceDimensions"]
-            price = price[price.keys[0]]["pricePerUnit"]["USD"].to_f
-            mem = attributes["memory"].gsub(" GiB", "")
             info = {
-              instance_type: attributes["instanceType"],
+              instance_type: model["model"],
               region: region,
-              platform: "aws",
-              currency: "USD",
-              price_per_hour: price,
-              cpu: attributes["vcpu"].to_i,
-              gpu: attributes["gpu"] ? attributes["gpu"].to_i : 0,
-              mem: mem.to_f,
+              platform: "example",
+              currency: model["currency"],
+              price_per_hour: model["price_per_hour"],
+              cpu: model["cpu"].to_i,
+              gpu: model["gpu"].to_i,
+              mem: model["mem"].to_i,
             }
             if info[:instance_type] && info[:region]
               existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
