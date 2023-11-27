@@ -16,50 +16,47 @@ class AwsInstanceDetailsRecorder
   def record
     database_entries = {}
     regions.each do |region|
-      first_query = true
       failed_query = false
       results = nil
-      while first_query || results&.next_token
-        models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details').body)
-        response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
-                                headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
-                                body: { "models" => models.join(',') }.to_json
-                               )
 
-        if response.code == 200
-          database_entries[region] ||= [] unless failed_query
-          JSON.parse(response.body).each do |model|
-            attributes = details["product"]["attributes"]
-            next unless instance_types.include?(model["model"])
+      models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details').body)
+      response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
+                              headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
+                              body: { "models" => models.join(',') }.to_json
+                             )
 
-            info = {
-              instance_type: model["model"],
-              region: region,
-              platform: "example",
-              currency: model["currency"],
-              price_per_hour: model["price_per_hour"],
-              cpu: model["cpu"].to_i,
-              gpu: model["gpu"].to_i,
-              mem: model["mem"].to_i,
-            }
-            if info[:instance_type] && info[:region]
-              existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
-              if existing_details
-                existing_details.update!(info)
-              else
-                InstanceTypeDetail.create!(info)
-              end
+      if response.code == 200
+        database_entries[region] ||= [] unless failed_query
+        JSON.parse(response.body).each do |model|
+          attributes = details["product"]["attributes"]
+          next unless instance_types.include?(model["model"])
+
+          info = {
+            instance_type: model["model"],
+            region: region,
+            platform: "example",
+            currency: model["currency"],
+            price_per_hour: model["price_per_hour"],
+            cpu: model["cpu"].to_i,
+            gpu: model["gpu"].to_i,
+            mem: model["mem"].to_i,
+          }
+          if info[:instance_type] && info[:region]
+            existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
+            if existing_details
+              existing_details.update!(info)
             else
-              Rails.logger.error("Instance details not saved due to missing region and/or instance type.")
-              failed_query = true
+              InstanceTypeDetail.create!(info)
             end
-            database_entries[region].append(attributes["instanceType"]) unless failed_query
+          else
+            Rails.logger.error("Instance details not saved due to missing region and/or instance type.")
+            failed_query = true
           end
-          first_query = false
-        else
-          failed_query = true
-          database_entries = nil
+          database_entries[region].append(attributes["instanceType"]) unless failed_query
         end
+      else
+        failed_query = true
+        database_entries = nil
       end
     end
     keep_only_updated_entries(database_entries) if database_entries
