@@ -1,4 +1,3 @@
-require 'aws-sdk-cloudwatch'
 require_relative 'monitor_logging'
 
 class ExampleMonitor

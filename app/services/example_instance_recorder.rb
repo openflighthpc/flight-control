@@ -1,7 +1,5 @@
-require_relative '../models/aws_project'
+require_relative '../models/example_project'
 require_relative '../models/instance_log'
-require_relative 'aws_sdk_error'
-require 'aws-sdk-ec2'
 
 class ExampleInstanceRecorder
 
