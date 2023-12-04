@@ -13,5 +13,11 @@ namespace :instance_details do
     else
       puts "No active azure project to record instance details with"
     end
+    example = ExampleProject.active.first
+    if example
+      RecordInstanceDetailsJob.perform_later(example.id)
+    else
+      puts "No active example project to record instance details with"
+    enda
   end
 end
