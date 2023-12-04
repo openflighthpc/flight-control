@@ -10,18 +10,18 @@ class ExampleInstanceManager
     instance_ids.each do |instance_id|
       command = action == "on" ? "start-instance" : "stop-instance"
       response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/#{command}',
-                              headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
+                              headers: {'Project-Credentials' => {'PROJECT_NAME': @project.project_name}.inspect,
                               body: { "instance_id" => instance_id }.to_json
                              )
       case response.code
       when 200
         #Instance state set successfully
       when 401
-        raise 'Credentials missing or incorrect'
+        raise ExampleApiError 'Credentials missing or incorrect'
       when 404
-        raise 'Instance #{instance_id} not found'
+        raise ExampleApiError 'Instance #{instance_id} not found'
       when 500
-        raise 'Internal error in Control API'
+        raise ExampleApiError 'Internal error in Control API'
       end
     end
   end
