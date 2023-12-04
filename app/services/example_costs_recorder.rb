@@ -56,13 +56,9 @@ class ExampleCostsRecorder
   end
 
   def validate_credentials
-    valid = true
-    begin
-      @explorer.get_cost_and_usage(total_cost_query(Project::DEFAULT_COSTS_DATE)).results_by_time
-    rescue => error
-      puts "Unable to obtain costs data: #{error}"
-      valid = false
-    end
-    valid
+    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/validate-credentials',
+                            headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect
+                           )
+    response.code==200
   end
 end
