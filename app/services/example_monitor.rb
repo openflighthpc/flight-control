@@ -46,7 +46,7 @@ class ExampleMonitor
     if @project.latest_instance_logs.maximum(:updated_at) < (Time.current - 1.minute)
       @project.record_instance_logs(true)
     end
-    on = @project.latest_instance_logs.where(status: InstanceLog::ON_STATUSES["aws"])
+    on = @project.latest_instance_logs.where(status: InstanceLog::ON_STATUSES["example"])
     grouped = on.group_by { |instance| instance.region }
     @loggers ||= {}
     results = {}
@@ -76,17 +76,22 @@ class ExampleMonitor
     logger ||= setup_logger(region)
     logger.info("Getting utilisation data for #{node_id}")
     now = Time.now.to_i
-    response = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance_usages',
-                                       headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect},
-                                       query: {'instance_ids': node_id,
-                                               'scope': scope,
-                                               'start_time': now,
-                                               'end_date': now + 1200
-                                              }
-                          ))
+
+    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance_usages',
+                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.project_name}.inspect},
+                            query: {'instance_ids': node_id,
+                                    'scope': scope,
+                                    'start_time': now,
+                                    'end_date': now + 1200
+                                   }
+                           )
+
+    raise ExampleApiError unless response.code == 200
+
+    body = JSON.parse(response.body)
     logger.info("Response received from Control API:")
-    logger.info(response)
-    usages = response['usages'].first
+    logger.info(body)
+    usages = body['usages'].first
     return {average: usages['average'], last: usages['last']}
   end
 end
