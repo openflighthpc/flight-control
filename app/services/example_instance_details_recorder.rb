@@ -23,39 +23,34 @@ class AwsInstanceDetailsRecorder
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.project_name}.inspect,
                               body: { "models" => models.join(',') }.to_json
                              )
+      raise ExampleApiError "Couldn't obtain instance details" unless response.code == 200
 
+      database_entries[region] ||= []
+      JSON.parse(response.body).each do |model|
+        attributes = details["product"]["attributes"]
+        next unless instance_types.include?(model["model"])
 
-      if response.code == 200
-        database_entries[region] ||= []
-        JSON.parse(response.body).each do |model|
-          attributes = details["product"]["attributes"]
-          next unless instance_types.include?(model["model"])
-
-          info = {
-            instance_type: model["model"],
-            region: region,
-            platform: "example",
-            currency: model["currency"],
-            price_per_hour: model["price_per_hour"],
-            cpu: model["cpu"].to_i,
-            gpu: model["gpu"].to_i,
-            mem: model["mem"].to_i,
-          }
-          if info[:instance_type] && info[:region]
-            existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
-            if existing_details
-              existing_details.update!(info)
-            else
-              InstanceTypeDetail.create!(info)
-            end
+        info = {
+          instance_type: model["model"],
+          region: region,
+          platform: "example",
+          currency: model["currency"],
+          price_per_hour: model["price_per_hour"],
+          cpu: model["cpu"].to_i,
+          gpu: model["gpu"].to_i,
+          mem: model["mem"].to_i,
+        }
+        if info[:instance_type] && info[:region]
+          existing_details = InstanceTypeDetail.find_by(instance_type: info[:instance_type], region: info[:region])
+          if existing_details
+            existing_details.update!(info)
           else
-            Rails.logger.error("Instance details not saved due to missing region and/or instance type.")
+            InstanceTypeDetail.create!(info)
           end
-          database_entries[region].append(attributes["instanceType"])
+        else
+          Rails.logger.error("Instance details not saved due to missing region and/or instance type.")
         end
-      else
-        database_entries = nil
-        raise ExampleApiError "Couldn't obtain instance details"
+        database_entries[region].append(attributes["instanceType"])
       end
     end
     keep_only_updated_entries(database_entries) if database_entries
