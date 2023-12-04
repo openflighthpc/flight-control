@@ -16,17 +16,17 @@ class AwsInstanceDetailsRecorder
   def record
     database_entries = {}
     regions.each do |region|
-      failed_query = false
       results = nil
 
       models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details').body)
       response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
-                              headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
+                              headers: {'Project-Credentials' => {'PROJECT_NAME': @project.project_name}.inspect,
                               body: { "models" => models.join(',') }.to_json
                              )
 
+
       if response.code == 200
-        database_entries[region] ||= [] unless failed_query
+        database_entries[region] ||= []
         JSON.parse(response.body).each do |model|
           attributes = details["product"]["attributes"]
           next unless instance_types.include?(model["model"])
@@ -50,13 +50,12 @@ class AwsInstanceDetailsRecorder
             end
           else
             Rails.logger.error("Instance details not saved due to missing region and/or instance type.")
-            failed_query = true
           end
-          database_entries[region].append(attributes["instanceType"]) unless failed_query
+          database_entries[region].append(attributes["instanceType"])
         end
       else
-        failed_query = true
         database_entries = nil
+        raise ExampleApiError "Couldn't obtain instance details"
       end
     end
     keep_only_updated_entries(database_entries) if database_entries
@@ -94,7 +93,7 @@ class AwsInstanceDetailsRecorder
   end
 
   def keep_only_updated_entries(updated_entries)
-    InstanceTypeDetail.where(platform: 'aws').each do |details|
+    InstanceTypeDetail.where(platform: 'example').each do |details|
       region = details.region.to_s
       instance_type = details.instance_type.to_s
       unless updated_entries[region] && updated_entries[region].include?(instance_type)
