@@ -1,5 +1,6 @@
 require_relative '../models/example_project'
 require_relative '../models/cost_log'
+require_relative 'example_errors'
 
 class ExampleCostsRecorder
 
@@ -14,22 +15,25 @@ class ExampleCostsRecorder
       days << cur
       cur = cur + 1 #Adding 1 to a Date object is 1 day
     end
-    
-    instance_ids = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instances',
-                                           headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
-                                          )
-                             ).map { |instance| instance['instance_id'] }
+
+    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instances',
+                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.project_name}.inspect,
+                           )
+    raise ExampleApiError unless response.code == 200
+    instance_ids = JSON.parse(response.body).map { |instance| instance['instance_id'] }
 
     existing_logs = @project.cost_logs.where(date: date).any?
     if !existing_logs || rerun
       days.each do |day|
         response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance-costs',
-                          headers: {'Project-Credentials' => {'PROJECT_NAME': 'dummy-project'}.inspect,
+                          headers: {'Project-Credentials' => {'PROJECT_NAME': @project.project_name}.inspect,
                           query: {'instance_ids' => instance_ids,
                                   'start_time' => day.to_time.to_i,
                                   'end_time' => (day + 1).to_time.to_i}
                          )
-        instance_data = JSON.parse(response)['usages']
+        raise ExampleApiError unless response.code == 200
+
+        instance_data = JSON.parse(response.body)['usages']
         instance_data.each do |instance|
           log = @project.cost_logs.find_by(date: day, scope: scope)
           if rerun && log
