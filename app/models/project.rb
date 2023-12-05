@@ -35,7 +35,7 @@ class Project < ApplicationRecord
   validates :platform,
     presence: true,
     inclusion: {
-      in: %w(aws azure),
+      in: %w(aws azure example),
       message: "%{value} is not a valid platform"
     }
   after_save :update_end_balance

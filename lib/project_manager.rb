@@ -559,7 +559,6 @@ class ProjectManager
         attributes[:regions] << get_non_blank("Additional region (e.g. Mars)", "Region")
       end
     end
-    attributes[:project_name] = get_non_blank("project_name")
     attributes[:filter_level] = get_non_blank("Filter level", "Filter level", %w[tag account])
     if attributes[:filter_level] == "tag"
       attributes[:project_tag] = get_non_blank("Project tag", "Project tag")
@@ -720,7 +719,6 @@ class ProjectManager
     elsif project.type == "ExampleProject"
       puts "regions: #{project.regions.join(", ")}"
       puts "project_tag: #{project.project_tag}" if project.filter_level == "tag"
-      puts "project_name: project.project_name"
     end
   end
 
