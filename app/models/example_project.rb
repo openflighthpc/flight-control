@@ -10,7 +10,7 @@ class ExampleProject < Project
   validates :filter_level,
     presence: true,
     inclusion: {
-      in: ["tag", "account"),
+      in: ["tag", "account"],
       message: "%{value} is not a valid filter level. Must be tag or account."
     }
   validate :project_tag_if_tag_filter
