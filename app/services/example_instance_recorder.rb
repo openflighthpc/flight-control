@@ -1,6 +1,7 @@
 require_relative '../models/example_project'
 require_relative '../models/instance_log'
 require_relative 'example_errors'
+require_relative 'request_generator'
 
 class ExampleInstanceRecorder
 

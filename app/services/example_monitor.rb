@@ -1,5 +1,6 @@
 require_relative 'monitor_logging'
 require_relative 'example_errors'
+require_relative 'request_generator'
 
 class ExampleMonitor
   include MonitorLogging
