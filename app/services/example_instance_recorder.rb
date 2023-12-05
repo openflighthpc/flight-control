@@ -64,6 +64,6 @@ class ExampleInstanceRecorder
                             request_type: "post",
                             headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}
                            )
-    response.code==200
+    response.code=="200"
   end
 end

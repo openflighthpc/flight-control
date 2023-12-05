@@ -88,7 +88,7 @@ class ExampleMonitor
                                    }
                            )
 
-    raise ExampleApiError "Couldn't retrieve usage data" unless response.code == 200
+    raise ExampleApiError "Couldn't retrieve usage data" unless response.code == "200"
 
     body = JSON.parse(response.body)
     logger.info("Response received from Control API:")

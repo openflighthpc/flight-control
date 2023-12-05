@@ -17,13 +17,13 @@ class ExampleInstanceManager
                               body: { "instance_id" => instance_id }.to_json
                              )
       case response.code
-      when 200
+      when "200"
         #Instance state set successfully
-      when 401
+      when "401"
         raise ExampleApiError 'Credentials missing or incorrect'
-      when 404
+      when "404"
         raise ExampleApiError 'Instance #{instance_id} not found'
-      when 500
+      when "500"
         raise ExampleApiError 'Internal error in Control API'
       end
     end
