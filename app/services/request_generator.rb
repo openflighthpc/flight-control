@@ -14,5 +14,5 @@ def http_request(uri:, headers: {}, query: {}, body: nil )
   request.set_form_data(query)
   request.body = body
 
-  http.request(request).body
+  http.request(request)
 end
