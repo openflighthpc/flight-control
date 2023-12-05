@@ -11,7 +11,7 @@ class ExampleInstanceManager
     instance_ids.each do |instance_id|
       command = action == "on" ? "start-instance" : "stop-instance"
       response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/#{command}',
-                              headers: {'Project-Credentials' => {'PROJECT_NAME': @project.project_name}.inspect,
+                              headers: {'Project-Credentials' => {'PROJECT_NAME': @project.project_name}.inspect},
                               body: { "instance_id" => instance_id }.to_json
                              )
       case response.code
