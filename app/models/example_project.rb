@@ -6,7 +6,6 @@ require_relative '../services/example_instance_manager'
 require_relative '../services/example_monitor'
 
 class ExampleProject < Project
-  alias_attribute :project_name
   validates :filter_level,
     presence: true,
     inclusion: {
