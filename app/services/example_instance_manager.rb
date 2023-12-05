@@ -26,5 +26,4 @@ class ExampleInstanceManager
       end
     end
   end
-  end
 end
