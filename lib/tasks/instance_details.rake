@@ -18,6 +18,6 @@ namespace :instance_details do
       RecordInstanceDetailsJob.perform_later(example.id)
     else
       puts "No active example project to record instance details with"
-    enda
+    end
   end
 end
