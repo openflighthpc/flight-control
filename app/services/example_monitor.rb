@@ -80,7 +80,7 @@ class ExampleMonitor
     now = Time.now.to_i
 
     response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance_usages',
-                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.inspect},
+                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                             query: {'instance_ids': node_id,
                                     'scope': scope,
                                     'start_time': now,

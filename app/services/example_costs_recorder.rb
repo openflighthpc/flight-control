@@ -18,7 +18,7 @@ class ExampleCostsRecorder
     end
 
     response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instances',
-                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.inspect},
+                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                            )
     raise ExampleApiError "Couldn't retrieve instance data" unless response.code == 200
     instance_ids = JSON.parse(response.body).map { |instance| instance['instance_id'] }
@@ -27,11 +27,12 @@ class ExampleCostsRecorder
     if !existing_logs || rerun
       days.each do |day|
         response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance-costs',
-                          headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.inspect},
-                          query: {'instance_ids' => instance_ids,
-                                  'start_time' => day.to_time.to_i,
-                                  'end_time' => (day + 1).to_time.to_i}
-                         )
+                                headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
+                                query: {'instance_ids' => instance_ids,
+                                        'start_time' => day.to_time.to_i,
+                                        'end_time' => (day + 1).to_time.to_i
+                                       }
+                               )
         raise ExampleApiError "Couldn't retrieve cost data" unless response.code == 200
 
         instance_data = JSON.parse(response.body)['usages']
@@ -58,7 +59,8 @@ class ExampleCostsRecorder
 
   def validate_credentials
     response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/validate-credentials',
-                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.inspect}
+                            request_type: "post",
+                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}
                            )
     response.code==200
   end

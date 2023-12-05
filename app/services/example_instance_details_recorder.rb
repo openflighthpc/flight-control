@@ -22,7 +22,7 @@ class ExampleInstanceDetailsRecorder
 
       models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details').body)
       response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
-                              headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.inspect},
+                              headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                               body: { "models" => models.join(',') }.to_json
                              )
       raise ExampleApiError "Couldn't obtain instance details" unless response.code == 200
@@ -60,7 +60,8 @@ class ExampleInstanceDetailsRecorder
 
   def validate_credentials
     response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/validate-credentials',
-                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.inspect}
+                            request_type: "post",
+                            headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}
                            )
     response.code==200
   end
