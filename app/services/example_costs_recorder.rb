@@ -23,9 +23,9 @@ class ExampleCostsRecorder
     raise ExampleApiError "Couldn't retrieve instance data" unless response.code == "200"
     instance_ids = JSON.parse(response.body).map { |instance| instance['instance_id'] }
 
-    existing_logs = @project.cost_logs.where(date: date).any?
-    if !existing_logs || rerun
-      days.each do |day|
+    days.each do |day|
+      existing_logs = @project.cost_logs.where(date: day).any?
+      if !existing_logs || rerun
         response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance-costs',
                                 headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                                 query: {'instance_ids' => instance_ids,
