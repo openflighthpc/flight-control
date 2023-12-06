@@ -20,7 +20,7 @@ class ExampleCostsRecorder
     response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instances',
                             headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                            )
-    raise ExampleApiError, "Couldn't retrieve instance data" unless response.code == "200"
+    raise ExampleApiError, response.body unless response.code == "200"
     instance_ids = JSON.parse(response.body).map { |instance| instance['instance_id'] }
 
     days.each do |day|
@@ -33,7 +33,7 @@ class ExampleCostsRecorder
                                         'end_time' => (day + 1).to_time.to_i
                                        }
                                )
-        raise ExampleApiError, "Couldn't retrieve cost data" unless response.code == "200"
+        raise ExampleApiError, response.body unless response.code == "200"
 
         instance_data = JSON.parse(response.body)['usages']
         instance_data.each do |instance|

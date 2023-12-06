@@ -16,16 +16,7 @@ class ExampleInstanceManager
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                               body: { "instance_id" => instance_id }.to_json
                              )
-      case response.code
-      when "200"
-        #Instance state set successfully
-      when "401"
-        raise ExampleApiError, 'Credentials missing or incorrect'
-      when "404"
-        raise ExampleApiError, 'Instance #{instance_id} not found'
-      when "500"
-        raise ExampleApiError, 'Internal error in Control API'
-      end
+      raise ExampleApiError, response.body unless response.code == "200"
     end
   end
 end
