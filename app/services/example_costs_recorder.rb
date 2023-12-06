@@ -9,9 +9,9 @@ class ExampleCostsRecorder
     @project = project
   end
 
-  def record_logs(start_date, end_date=start_date, rerun=false, verbose=false, scope)
+  def record_logs(start_date, end_date=start_date, rerun=false, verbose=false)
     scopes = ["total"] # Include more scopes later, Example does not currently have a concept of other scopes
-    scopes.each { |scope| (start_date, end_date, rerun, verbose, scope) }
+    scopes.each { |scope| record_scope_logs(start_date, end_date, rerun, verbose, scope) }
   end
 
   def record_scope_logs(start_date, end_date=start_date, rerun=false, verbose=false, scope)
