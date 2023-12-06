@@ -9,7 +9,12 @@ class ExampleCostsRecorder
     @project = project
   end
 
-  def record_logs(start_date, end_date=start_date, rerun=false, verbose=false)
+  def record_logs(start_date, end_date=start_date, rerun=false, verbose=false, scope)
+    scopes = ["total"] # Include more scopes later, Example does not currently have a concept of other scopes
+    scopes.each { |scope| (start_date, end_date, rerun, verbose, scope) }
+  end
+
+  def record_scope_logs(start_date, end_date=start_date, rerun=false, verbose=false, scope)
     days = []
     cur = start_date
     while cur <= end_date
@@ -28,31 +33,33 @@ class ExampleCostsRecorder
       if !existing_logs || rerun
         response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance-costs',
                                 headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
-                                query: {'instance_ids' => instance_ids,
+                                query: {'instance_ids' => instance_ids, # Make this depend on scope in future
                                         'start_time' => day.to_time.to_i,
                                         'end_time' => (day + 1).to_time.to_i
                                        }
                                )
         raise ExampleApiError, response.body unless response.code == "200"
 
-        instance_data = JSON.parse(response.body)['usages']
+        instance_data = JSON.parse(response.body)['costs']
+        total = 0.0
         instance_data.each do |instance|
-          log = @project.cost_logs.find_by(date: day, scope: scope)
-          if rerun && log
-            log.assign_attributes(cost: instance['price'].to_f)
-            log.save!
-          else
-            log = CostLog.create(
-              project_id: @project.id,
-              cost: instance['price'].to_f,
-              currency: instance['currency'],
-              compute: nil,
-              date: day,
-              scope: scope
-            )
-          end
-          log
+          total += instance['price'].to_f
         end
+        log = @project.cost_logs.find_by(date: day, scope: scope)
+        if rerun && log
+          log.assign_attributes(cost: instance['price'].to_f)
+          log.save!
+        else
+          log = CostLog.create(
+            project_id: @project.id,
+            cost: total,
+            currency: instance_data.first['currency'],
+            compute: nil,
+            date: day,
+            scope: scope
+          )
+        end
+        log
       end
     end
   end
