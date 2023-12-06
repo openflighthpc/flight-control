@@ -18,7 +18,7 @@ class ExampleInstanceRecorder
       response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instances',
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}
                              )
-      raise ExampleApiError unless response.code == "200"
+      raise ExampleApiError, unless response.code == "200"
 
       instances = JSON.parse(response.body)
       any_nodes = true if instances.any?

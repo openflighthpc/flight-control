@@ -20,11 +20,11 @@ class ExampleInstanceManager
       when "200"
         #Instance state set successfully
       when "401"
-        raise ExampleApiError 'Credentials missing or incorrect'
+        raise ExampleApiError, 'Credentials missing or incorrect'
       when "404"
-        raise ExampleApiError 'Instance #{instance_id} not found'
+        raise ExampleApiError, 'Instance #{instance_id} not found'
       when "500"
-        raise ExampleApiError 'Internal error in Control API'
+        raise ExampleApiError, 'Internal error in Control API'
       end
     end
   end

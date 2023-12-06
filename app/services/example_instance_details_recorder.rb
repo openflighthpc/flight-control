@@ -25,7 +25,7 @@ class ExampleInstanceDetailsRecorder
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                               body: { "models" => models.join(',') }.to_json
                              )
-      raise ExampleApiError "Couldn't obtain instance details" unless response.code == "200"
+      raise ExampleApiError, "Couldn't obtain instance details" unless response.code == "200"
 
       database_entries[region] ||= []
       JSON.parse(response.body).each do |model|
