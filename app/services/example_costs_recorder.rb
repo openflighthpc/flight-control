@@ -47,7 +47,7 @@ class ExampleCostsRecorder
         end
         log = @project.cost_logs.find_by(date: day, scope: scope)
         if rerun && log
-          log.assign_attributes(cost: instance['price'].to_f)
+          log.assign_attributes(cost: total)
           log.save!
         else
           log = CostLog.create(
