@@ -17,7 +17,7 @@ class ExampleCostsRecorder
     end
   end
 
-  def record_scope_logs(start_date, end_date=start_date, rerun=false, verbose=false, scope, compute_group=nil)
+  def record_scope_logs(start_date, end_date=start_date, rerun, verbose, scope, compute_group=nil)
     days = []
     cur = start_date
     while cur <= end_date
