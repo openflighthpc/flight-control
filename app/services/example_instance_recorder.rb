@@ -33,7 +33,7 @@ class ExampleInstanceRecorder
             instance_type: instance['model'],
             compute_group: instance['tags']['compute_group'] || nil,
             status: instance['state'],
-            platform: 'Example',
+            platform: 'example',
             region: instance['region'],
             date: Date.current,
             last_checked: Time.now,
