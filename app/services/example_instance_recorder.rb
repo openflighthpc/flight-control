@@ -25,14 +25,13 @@ class ExampleInstanceRecorder
 
       instances.each do |instance|
         log = today_logs.find_by(instance_id: instance['instance_id'])
-        compute_group = nil # TODO: Determine compute group
         if !log
           log = InstanceLog.create(
             instance_id: instance['instance_id'],
             project_id: @project.id,
             instance_name: instance['instance_id'],
             instance_type: instance['model'],
-            compute_group: compute_group,
+            compute_group: instance['tags']['compute_group'] || nil,
             status: instance['status'],
             platform: 'Example',
             region: instance['region'],
