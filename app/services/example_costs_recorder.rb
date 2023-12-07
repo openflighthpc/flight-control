@@ -11,13 +11,24 @@ class ExampleCostsRecorder
 
   def record_logs(start_date, end_date=start_date, rerun=false, verbose=false)
     scopes = ["total"] # Include more scopes later, Example does not currently have a concept of other scopes
-    scopes.each { |scope| record_scope_logs(start_date, end_date, rerun, verbose, scope) }
+    scopes.each { |scope| record_scope_logs(start_date: start_date,
+                                            end_date: end_date,
+                                            rerun: rerun,
+                                            verbose: verbose,
+                                            scope: scope
+                                           )
+                }
     @project.current_compute_groups.each do |group|
-      record_scope_logs(start_date, end_date, rerun, verbose, group, group)
+      record_scope_logs(start_date: start_date,
+                        end_date: end_date,
+                        rerun: rerun,
+                        verbose: verbose,
+                        scope: group,
+                        compute_group: group)
     end
   end
 
-  def record_scope_logs(start_date, end_date=start_date, rerun, verbose, scope, compute_group=nil)
+  def record_scope_logs(start_date:, end_date: start_date, rerun:, verbose:, scope:, compute_group: nil)
     days = []
     cur = start_date
     while cur <= end_date
