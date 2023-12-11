@@ -23,7 +23,7 @@ class ExampleInstanceDetailsRecorder
       models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/models').body)
       response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
-                              query: { "models" => models.join(',') }.to_json
+                              query: { "models" => models.join(',') }
                              )
       raise ExampleApiError, response.body unless response.code == "200"
 
