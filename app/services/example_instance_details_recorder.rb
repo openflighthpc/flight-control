@@ -29,7 +29,6 @@ class ExampleInstanceDetailsRecorder
 
       database_entries[region] ||= []
       JSON.parse(response.body).each do |model|
-        attributes = details["product"]["attributes"]
         next unless instance_types.include?(model["model"])
 
         info = {
@@ -52,7 +51,7 @@ class ExampleInstanceDetailsRecorder
         else
           Rails.logger.error("Instance details not saved due to missing region and/or instance type.")
         end
-        database_entries[region].append(attributes["instanceType"])
+        database_entries[region].append(model["model"])
       end
     end
     keep_only_updated_entries(database_entries) if database_entries
