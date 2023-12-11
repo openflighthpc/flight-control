@@ -1,2 +1,1 @@
 ExampleApiError = Class.new(RuntimeError)
-
