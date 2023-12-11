@@ -74,7 +74,7 @@ Rails.application.configure do
   config.hosts << "control.alces-flight.lvh.me"
 
   config.slack_token = ENV["SLACK_TOKEN"]
-  config.usd_gbp_conversion = ENV["USD_GBP_CONVERSION"].to_f
-  config.gbp_compute_conversion = ENV["GBP_COMPUTE_CONVERSION"].to_f
-  config.at_risk_conversion = ENV["AT_RISK_CONVERSION"].to_f
+  config.usd_gbp_conversion = ENV["USD_GBP_CONVERSION"]&.to_f
+  config.gbp_compute_conversion = ENV["GBP_COMPUTE_CONVERSION"]&.to_f
+  config.at_risk_conversion = ENV["AT_RISK_CONVERSION"]&.to_f
 end
