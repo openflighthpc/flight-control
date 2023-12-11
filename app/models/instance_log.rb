@@ -1,10 +1,10 @@
 class InstanceLog < ApplicationRecord
   ON_STATUSES = {"azure" => "VM running",
                  "aws" => "running",
-                 "example" => "running"}
+                 "example" => "on"}
   OFF_STATUSES = {"azure" => "VM deallocated",
                  "aws" => "stopped",
-                 "example" => "stopped"}
+                 "example" => "off"}
   belongs_to :project
   validates :instance_type, :instance_name, :instance_id,
             :region, :status, :date, :last_checked,
