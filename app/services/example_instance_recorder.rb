@@ -41,7 +41,7 @@ class ExampleInstanceRecorder
             last_status_change: Time.now
           )
         else
-          log.status = instance['status']
+          log.status = instance['state']
           log.compute_group = compute_group # rare, but could have changed
           log.last_checked = Time.now
           log.save
