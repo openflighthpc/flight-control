@@ -51,6 +51,11 @@ class AddInitialInstanceMappings < ActiveRecord::Migration[6.0]
         "Standard_ND96asr_v4" => "GPU (A100)",
         "Standard_HB120rs_v3" => "Infiniband (Large)",
         "Standard_E32ads_v5" => "Memory (Large)"
+      },
+      "example" => {
+        "mining_rig" => "Mining Rig",
+        "compute_small" => "Compute (Small)",
+        "compute_large" => "Compute (Large)"
       }
     }
   end
