@@ -1,6 +1,6 @@
 require_relative '../models/example_project'
-require_relative 'example_errors'
-require_relative 'request_generator'
+require_relative 'example_api_error'
+require_relative 'http_request'
 
 class ExampleInstanceDetailsRecorder
   @@region_mappings = {}
