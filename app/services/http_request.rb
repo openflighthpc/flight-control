@@ -2,6 +2,8 @@ require 'uri'
 require 'net/http'
 require 'json'
 
+HttpRequest = Class.new # Workaround for Rails naming, rework into real class later
+
 # headers and query should both be hashes. body should be a string.
 def http_request(uri:, request_type: "get", headers: {}, query: {}, body: nil )
   uri = URI(uri)
