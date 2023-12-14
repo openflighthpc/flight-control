@@ -301,7 +301,6 @@ class ChangeRequest < ApplicationRecord
       if count != ""
         group = id.split("-")[0]
         type = id.split("-")[1]
-        type.gsub!("_", ".") if !type.start_with?("Standard")
         if instances.has_key?(group)
           instances[group][type] = count.to_i
         else
