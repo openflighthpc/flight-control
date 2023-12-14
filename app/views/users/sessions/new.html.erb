@@ -3,23 +3,34 @@
     <%= image_tag("control_landing.svg", width: '100%') %>
   </div>
   <div id="login-form">
+    <h2>
+      Take control of your cloud resources.
+    </h2>
+    <h4 class="mb-5">
+      Log in
+    </h4>
     <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-      <div class="field session-field mb-2">
-        <%= f.label :username %><br />
-        <%= f.text_field :username, autofocus: true, autocomplete: "username", class: "form-control login-input" %>
-      </div>
-
-      <div class="field session-field">
-        <%= f.label :password %><br />
-        <%= f.password_field :password, autocomplete: "current-password", class: "form-control login-input" %>
+      <div class="login-fields">
+        <div class="field session-field">
+          <%= f.label :username %>
+          <%= f.text_field :username, autofocus: true, autocomplete: "username", class: "form-control login-input" %>
+        </div>
+        <div class="field session-field">
+          <%= f.label :password %>
+          <%= f.password_field :password, autocomplete: "current-password", class: "form-control login-input" %>
+        </div>
       </div>
 
       <% if devise_mapping.rememberable? %>
-        <div class="field">
+        <div class="field mb-4">
           <%= f.check_box :remember_me %>
           <%= f.label :remember_me %>
         </div>
       <% end %>
+
+      <p class="text-muted mb-5">
+        Contact your HPC administrator if you don't have these details or need a reminder.
+      </p>
 
       <div class="actions">
         <%= f.submit "Log in", class: "submit btn btn-primary" %>

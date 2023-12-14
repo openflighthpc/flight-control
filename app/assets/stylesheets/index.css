@@ -8,14 +8,45 @@ body {
   align-items: center;
 }
 
-.two-columns div:first-child {
+.two-columns > div {
+  padding: 2rem;
+}
+
+.two-columns > div:first-child {
   background-color: var(--light-bg-blue);
-  padding: 2rem 2rem 2rem 0;
+  padding-left: 0;
 }
 
 #login-form {
   display: flex;
+  flex-direction: column;
   margin-inline: auto;
+  text-align: center;
+}
+
+#login-form h2 {
+  margin-bottom: 3rem;
+}
+
+#login-form p {
+  max-width: 78%;
+  margin-inline: auto;
+}
+
+.login-fields .field {
+  display: grid;
+  grid-template-columns: 1fr 5fr;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.login-fields label {
+  margin: 0;
+}
+
+.login-fields input {
+  width: 100%;
 }
 
 .chart {
@@ -202,10 +233,6 @@ input[type=date] {
 .timezone-tooltip {
   color:  white;
   text-decoration: none
-}
-
-.login-input {
-  width: 12rem !important;
 }
 
 .edit-button {
