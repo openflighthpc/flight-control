@@ -1,5 +1,7 @@
 body {
   font-family: 'Roboto', sans-serif !important;
+  font-size: 1.1rem;
+  color: var(--text-grey);
 }
 
 .button {
@@ -516,4 +518,5 @@ a:hover {
 :root {
   --alces-blue: #2693D7;
   --light-bg-blue: #D4F0FD;
+  --text-grey: #3D3D3D;
 }
