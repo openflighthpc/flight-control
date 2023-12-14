@@ -29,6 +29,22 @@ body {
   color: var(--alces-blue);
 }
 
+.session-alerts.overlaid {
+  width: 100%;
+  position: absolute;
+  z-index: 2;
+}
+
+.alert-info {
+  color: var(--alces-grey);
+  border-color: #C1E8F9;
+  background-color: white;
+}
+
+.alert-info span {
+  color: var(--alces-blue);
+}
+
 .two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -517,6 +533,7 @@ a:hover {
 
 :root {
   --alces-blue: #2693D7;
+  --alces-grey: #4e5a66;
   --light-bg-blue: #D4F0FD;
   --text-grey: #3D3D3D;
 }

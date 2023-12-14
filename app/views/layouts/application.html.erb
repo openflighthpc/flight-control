@@ -46,17 +46,11 @@
           <main class="col-md-12 ml-sm-auto col-lg-12 px-0" role="main">
         <% end %>
           <%= render '/partials/nav.erb' %>
-          <div class="row session-alerts">
-            <% if current_user %>
+          <div class="row session-alerts <%= "overlaid" unless current_user %>">
               <div class="col-sm-3"></div>
               <div class="col-sm-6">
                 <%= render 'partials/flashes' %>
               </div>
-            <% else %>
-              <div class="col-sm-3">
-                <%= render 'partials/flashes' %>
-              </div>
-            <% end %>
           </div>
           <% if current_user && !current_user.multi_project_user? %>
             <div class="row">
