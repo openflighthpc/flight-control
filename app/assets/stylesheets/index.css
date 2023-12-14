@@ -2,6 +2,31 @@ body {
   font-family: 'Work Sans', sans-serif !important;
 }
 
+.button {
+  background-color: var(--alces-blue);
+  border-radius: 2px;
+  border: none;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  color: white !important;
+  width: fit-content;
+  transition: none !important;
+  cursor: pointer;
+}
+
+.button:hover {
+  color: white !important;
+  background-color: var(--alces-blue);
+}
+
+.button:visited {
+  color: white !important;
+}
+
+.blue-text {
+  color: var(--alces-blue);
+}
+
 .two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
