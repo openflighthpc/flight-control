@@ -2,9 +2,20 @@ body {
   font-family: 'Work Sans', sans-serif !important;
 }
 
-.login-page {
+.two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+.two-columns div:first-child {
+  background-color: var(--light-bg-blue);
+  padding: 2rem 2rem 2rem 0;
+}
+
+#login-form {
+  display: flex;
+  margin-inline: auto;
 }
 
 .chart {
@@ -448,4 +459,9 @@ td.budget-switch-off {
 
 a:hover {
   text-decoration: none;
+}
+
+:root {
+  --alces-blue: #2693D7;
+  --light-bg-blue: #D4F0FD;
 }
