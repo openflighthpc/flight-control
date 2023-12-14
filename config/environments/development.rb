@@ -62,10 +62,10 @@ Rails.application.configure do
 
   config.active_job.queue_adapter = ENV.fetch('QUEUE_ADAPTER', :inline)
 
-  config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME', 'flight_sso_dev')
-  config.sso_domain = "alces-flight.lvh.me"
-  config.sso_uri = "http://accounts.alces-flight.lvh.me:4000"
-  config.use_ssl = false
+  config.sso_cookie_name = "flight_sso_staging"
+  config.sso_uri = "https://accounts.staging.alces-flight.com"
+  config.sso_domain = ".staging.alces-flight.com"
+  config.use_ssl = true
 
   config.default_url_options = {
     host: "control.alces-flight.lvh.me",
