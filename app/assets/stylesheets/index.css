@@ -152,7 +152,7 @@ td {
 }
 
 .tool-tip {
-  color: rgba(50,136,188,1);
+  color: var(--alces-blue);
 }
 
 .tool-tip.core {
@@ -420,16 +420,16 @@ input[type=date] {
 
 /* Page Nav Tweaks */
 .top.nav {
-  background-color: rgba(50,136,188,1) !important;
+  background-color: var(--alces-blue) !important;
 }
 
 .top.nav-tabs {
-  border-bottom: 1px solid rgba(50,136,188,1) !important;
+  border-bottom: 1px solid var(--alces-blue) !important;
 }
 
 .top.nav-link {
   color: white !important;
-  background-color: rgba(50,136,188,1) !important;
+  background-color: var(--alces-blue) !important;
   border: 0 !important;
   border-radius: 0;
 }
@@ -445,7 +445,7 @@ input[type=date] {
 }
 
 .top.nav-item {
-  background-color: rgba(50,136,188,1) !important;
+  background-color: var(--alces-blue) !important;
 }
 
 /* Fix Width Issues */
@@ -490,7 +490,7 @@ input[type=date] {
 }
 
 .fa-pencil, .fa-cog {
-  color: rgba(50,136,188,1);
+  color: var(--alces-blue);
   margin-right: 0.8rem;
 }
 
@@ -503,7 +503,7 @@ td.budget-switch-off {
 }
 
 .dashboard-btn.btn-info {
-  background-color: rgba(50,136,188,1) !important;
+  background-color: var(--alces-blue) !important;
   white-space: nowrap;
 }
 
