@@ -1,14 +1,14 @@
 <div class="two-columns full-height">
   <div class="full-height justify-content-center">
-    <%= image_tag("control_landing.svg", width: '100%') %>
+    <%= image_tag("control_landing.svg", class: 'landing-image') %>
   </div>
   <div id="login-form" class="full-height justify-content-center">
     <h2>
       Take <strong class="blue-text">control</strong> of your cloud resources.
     </h2>
-    <h4 class="mb-5">
+    <h3 class="mb-5">
       Log in
-    </h4>
+    </h3>
     <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
       <div class="login-fields">
         <div class="field session-field">
@@ -32,7 +32,7 @@
         Contact your HPC administrator if you don't have these details or need a reminder.
       </p>
 
-      <%= f.submit "LOG IN", class: "submit button" %>
+      <%= f.submit "LOG IN", class: "submit button px-4" %>
     <% end %>
   </div>
 </div>
