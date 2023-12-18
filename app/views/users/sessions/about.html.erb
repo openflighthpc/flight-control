@@ -58,10 +58,10 @@
     <% end %>
   </div>
 </div>
-<div class="about-section d-flex align-items-center">
-  <div class="px-5 mr-5">
-    <h1 class="mb-5">Advice for maximising your resources</h1>
-    <p class="<%= "mb-5" if current_user %>">
+<div class="about-section about-advice">
+  <div class="advice-text">
+    <h1>Advice for maximising your resources</h1>
+    <p>
       We’ll analyse your usage to provide you with tips on getting the most out
       of your cloud resources. Get advice on how you could improve the efficiency
       of your spending, and how you can make your workflow more eco friendly.
@@ -70,7 +70,7 @@
       <%= link_to "GET CUSTOMISED ADVICE", authenticated_root_path, class: 'button' %>
     <% end %>
   </div>
-  <%= image_tag("advice.png", class: "px-5") %>
+  <%= image_tag("advice.png") %>
 </div>
 <div class="d-flex justify-content-between text-center">
   <%= image_tag("parting_cloud_l.svg", class: 'cloud') %>

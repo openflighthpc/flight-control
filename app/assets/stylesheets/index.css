@@ -112,6 +112,20 @@ body {
   margin-top: auto;
 }
 
+.about-advice {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   gap: 10vw;
+   padding-inline: 15rem;
+ }
+
+.advice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
 .cloud {
   width: 38vw;
 }
