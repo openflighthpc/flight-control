@@ -11,7 +11,7 @@ body {
   background-color: var(--alces-blue);
   border-radius: 2px;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 2rem;
   text-align: center;
   color: white !important;
   width: fit-content;
@@ -21,7 +21,7 @@ body {
 
 .button:hover {
   color: white !important;
-  background-color: var(--alces-blue);
+  filter: brightness(0.9);
 }
 
 .button:visited {
@@ -30,6 +30,10 @@ body {
 
 .blue-text {
   color: var(--alces-blue);
+}
+
+.bg-blue {
+  background-color: var(--light-bg-blue);
 }
 
 .session-alerts.overlaid {
@@ -52,6 +56,7 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  flex-basis: calc(100vh - 50px - 2.675rem);
 }
 
 .two-columns {
@@ -64,8 +69,12 @@ body {
 }
 
 .two-columns > div:first-child {
-  background-color: var(--light-bg-blue);
   padding-left: 0;
+}
+
+.three-columns {
+  background-color: #E7F7FF;
+  height: 20rem;
 }
 
 .landing-image {
@@ -107,6 +116,39 @@ body {
 .login-fields input {
   width: 100%;
   font-size: 1.2rem;
+}
+
+.circle {
+  position: absolute;
+  background-color: white;
+  border-radius: 50%;
+  height: 105vw;
+  width: 105vw;
+  left: 50vw;
+  top: -42vw;
+}
+
+.circle-content {
+  z-index: 2;
+  text-align: right;
+  padding: 4rem;
+  padding-top: 10rem;
+  color: var(--alces-grey);
+}
+
+.circle-content strong {
+  font-size: 4.6rem;
+  line-height: 5rem;
+}
+
+.circle-content .tagline {
+  margin: 4rem 0 5rem 7.5rem;
+  line-height: 2.3rem;
+}
+
+.circle-content .button {
+  font-size: 1.3rem;
+  padding: 0.7rem 3rem;
 }
 
 .chart {
@@ -438,6 +480,10 @@ input[type=date] {
 
 /* Page Nav Tweaks */
 
+nav {
+  z-index: 2;
+}
+
 .top.nav-link {
   color: white !important;
   border: 0 !important;
@@ -541,7 +587,7 @@ a:hover {
 
 :root {
   --alces-blue: #2693D7;
-  --alces-grey: #4e5a66;
+  --alces-grey: #586674;
   --light-bg-blue: #D4F0FD;
   --text-grey: #3D3D3D;
   --navbar-grey: #191919;
