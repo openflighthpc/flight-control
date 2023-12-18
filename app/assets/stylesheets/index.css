@@ -99,6 +99,10 @@ body {
   line-height: 1.8rem;
 }
 
+.cloud {
+  width: 38vw;
+}
+
 .landing-image {
   width: 100%;
   margin-bottom: 3rem;
