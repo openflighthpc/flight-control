@@ -72,9 +72,28 @@ body {
   padding-left: 0;
 }
 
-.three-columns {
+.about-trio {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   background-color: #E7F7FF;
-  height: 20rem;
+  padding: 10rem 10vw;
+}
+
+.about-trio div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.about-trio img {
+  height: 14rem;
+  margin-bottom: 1rem;
+}
+
+.about-trio p {
+  max-width: 17rem;
+  line-height: 1.8rem;
 }
 
 .landing-image {
