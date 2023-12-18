@@ -12,20 +12,26 @@
         <%= link_to "COSTS BREAKDOWN", costs_breakdown_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "costs"}" %>
       </div>
     </li>
-    <li class="top nav-item">
-    </li>
-    <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create? %>
-      <li class="top nav-item">
-        <% title = @change_request ? "EDIT EVENT" : "CREATE EVENT" %>
-        <%= link_to title, events_new_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "event wizard"}" %>
+
+    <% can_create_event = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create? %>
+    <% can_manage_events = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).manage? %>
+    <% if can_create_event || can_manage_events %>
+      <li class="top nav-item dropdown">
+        <a class="dropdown-toggle top nav-link" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          EVENTS
+        </a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <% if can_create_event %>
+            <% title = @change_request ? "EDIT EVENT" : "CREATE EVENT" %>
+            <%= link_to title, events_new_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "event wizard"}" %>
+          <% end %>
+          <% if can_manage_events %>
+            <%= link_to "MANAGE EVENTS", events_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "manage events"}" %>
+          <% end %>
+        </div>
       </li>
     <% end %>
-    </li>
-    <% if ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).manage? %>
-      <li class="top nav-item">
-        <%= link_to "MANAGE EVENTS", events_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "manage events"}" %>
-      </li>
-    <% end %>
+
     <% if ProjectPolicy.new(current_user, @project).policy_page? %>
       <li class="top nav-item">
         <%= link_to "POLICIES", policies_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "policies"}" %>
