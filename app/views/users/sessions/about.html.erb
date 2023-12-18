@@ -13,7 +13,7 @@
         get tips for improving your workflow efficiency, all using a
         clear and easy to use interface.
       </h4>
-      <%= link_to "LOG IN", unauthenticated_root_path, class: "button" %>
+      <%= link_to "LOG IN", unauthenticated_root_path, class: "button big-button" %>
     </div>
   </div>
 </div>
@@ -56,8 +56,11 @@
   </div>
   <%= image_tag("advice.png", class: "px-5") %>
 </div>
-<div class="d-flex justify-content-between">
+<div class="d-flex justify-content-between text-center">
   <%= image_tag("parting_cloud_l.svg", class: 'cloud') %>
+  <div>
+    <h1 class="mb-5">Ready to get started?</h1>
+    <%= link_to "LOG IN", unauthenticated_root_path, class: "button big-button" %>
+  </div>
   <%= image_tag("parting_cloud_r.svg", class: 'cloud') %>
 </div>
-

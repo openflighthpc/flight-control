@@ -32,6 +32,11 @@ body {
   color: white !important;
 }
 
+.big-button {
+  font-size: 1.3rem;
+  padding: 0.7rem 3rem;
+}
+
 .blue-text {
   color: var(--alces-blue);
 }
@@ -174,11 +179,6 @@ body {
 .circle-content .tagline {
   margin: 4rem 0 5rem 7.5rem;
   line-height: 2.3rem;
-}
-
-.circle-content .button {
-  font-size: 1.3rem;
-  padding: 0.7rem 3rem;
 }
 
 .chart {
