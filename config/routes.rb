@@ -13,12 +13,12 @@ Rails.application.routes.draw do
     # When no authenticated user, root page is the sign in page
     unauthenticated do
       root 'devise/sessions#new', as: :unauthenticated_root
-      get '/about', to: 'devise/sessions#about'
+      get '/about', to: 'sessions#about'
     end
   end
 
   # About page
-  get '/about', to: 'devise/sessions#about'
+  get '/about', to: 'sessions#about'
 
   # Projects
   get '/dashboard', to: 'projects#dashboard'

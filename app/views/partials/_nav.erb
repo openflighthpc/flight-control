@@ -1,5 +1,5 @@
 <ul class="top nav view-selection">
-  <% if @nav_view != nil %>
+  <% if @project != nil %>
     <li class="top nav-item">
       <%= link_to "DASHBOARD", dashboard_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "dashboard"}" %>
     </li>
