@@ -108,6 +108,10 @@ body {
   line-height: 1.8rem;
 }
 
+.about-trio .button {
+  margin-top: auto;
+}
+
 .cloud {
   width: 38vw;
 }

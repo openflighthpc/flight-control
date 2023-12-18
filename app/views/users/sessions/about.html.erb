@@ -13,7 +13,11 @@
         get tips for improving your workflow efficiency, all using a
         clear and easy to use interface.
       </h4>
-      <%= link_to "LOG IN", unauthenticated_root_path, class: "button big-button" %>
+      <%=
+        link_to current_user ? "GO TO DASHBOARD" : "LOG IN",
+                unauthenticated_root_path,
+                class: "button big-button"
+      %>
     </div>
   </div>
 </div>
@@ -26,6 +30,9 @@
       Schedule times for node switch ons to maximise efficiency of up time,
       and set automatic shutdowns to avoid going over budget.
     </p>
+    <% if current_user %>
+      <%= link_to "MANAGE NODES", events_path(project: @project.name), class: 'button' %>
+    <% end %>
   </div>
   <div>
     <%= image_tag("money.svg") %>
@@ -35,6 +42,9 @@
       Set budgets for your maximum spending, and view forecasts based on your
       usage to make sure you’re not on track to spend too much.
     </p>
+    <% if current_user %>
+      <%= link_to "SEE COSTS BREAKDOWN", costs_breakdown_path(project: @project.name), class: 'button' %>
+    <% end %>
   </div>
   <div>
     <%= image_tag("carbon.svg") %>
@@ -43,16 +53,22 @@
       Monitor the power usage of your cloud resources, set carbon budgets,
       and get advice on how you could make your workflow more eco friendly.
     </p>
+    <% if current_user %>
+      <%= link_to "INSPECT CO2 EMISSIONS", authenticated_root_path, class: 'button' %>
+    <% end %>
   </div>
 </div>
 <div class="about-section d-flex align-items-center">
   <div class="px-5 mr-5">
     <h1 class="mb-5">Advice for maximising your resources</h1>
-    <p>
+    <p class="<%= "mb-5" if current_user %>">
       We’ll analyse your usage to provide you with tips on getting the most out
       of your cloud resources. Get advice on how you could improve the efficiency
       of your spending, and how you can make your workflow more eco friendly.
     </p>
+    <% if current_user %>
+      <%= link_to "GET CUSTOMISED ADVICE", authenticated_root_path, class: 'button' %>
+    <% end %>
   </div>
   <%= image_tag("advice.png", class: "px-5") %>
 </div>
@@ -60,7 +76,11 @@
   <%= image_tag("parting_cloud_l.svg", class: 'cloud') %>
   <div>
     <h1 class="mb-5">Ready to get started?</h1>
-    <%= link_to "LOG IN", unauthenticated_root_path, class: "button big-button" %>
+    <%=
+      link_to current_user ? "GO TO DASHBOARD" : "LOG IN",
+              unauthenticated_root_path,
+              class: "button big-button"
+    %>
   </div>
   <%= image_tag("parting_cloud_r.svg", class: 'cloud') %>
 </div>
