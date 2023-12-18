@@ -544,6 +544,12 @@ nav {
 .top.nav-item:hover,
 .top.nav-link:hover {
   color: var(--alces-blue) !important;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  background-color: var(--navbar-grey);
+  white-space: nowrap;
 }
 
 .account-menu {
