@@ -72,11 +72,14 @@ body {
   padding-left: 0;
 }
 
+.about-section {
+  padding: 10rem 10vw;
+}
+
 .about-trio {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   background-color: #E7F7FF;
-  padding: 10rem 10vw;
 }
 
 .about-trio div {
