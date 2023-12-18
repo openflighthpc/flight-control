@@ -489,12 +489,12 @@ nav {
   border: 0 !important;
 }
 
-.top.nav-item:hover,
-.top.nav-link:hover {
-  color: var(--alces-blue) !important;
+.top.nav-link.active {
+  color: #6bb0db !important;
 }
 
-.top.nav-link.active {
+.top.nav-item:hover,
+.top.nav-link:hover {
   color: var(--alces-blue) !important;
 }
 
