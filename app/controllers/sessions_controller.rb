@@ -4,6 +4,7 @@ class SessionsController < Devise::SessionsController
   end
 
   def about
+    get_project if current_user
     @nav_view = "about"
   end
 
