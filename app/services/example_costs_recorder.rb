@@ -54,10 +54,10 @@ class ExampleCostsRecorder
                                )
         raise ExampleApiError, response.body unless response.code == "200"
 
-        instance_data = JSON.parse(response.body)['costs']
+        instance_data = JSON.parse(response.body)['usages']
         total = 0.0
         instance_data.each do |instance|
-          total += instance['price'].to_f
+          total += instance['financial_data']['price'].to_f
         end
         log = @project.cost_logs.find_by(date: day, scope: scope)
         if rerun && log
@@ -67,7 +67,7 @@ class ExampleCostsRecorder
           log = CostLog.create(
             project_id: @project.id,
             cost: total,
-            currency: instance_data.first['currency'],
+            currency: instance_data.first['financial_data']['currency'],
             compute: compute_group.present?,
             date: day,
             scope: scope
