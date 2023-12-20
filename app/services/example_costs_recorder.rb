@@ -10,14 +10,13 @@ class ExampleCostsRecorder
   end
 
   def record_logs(start_date, end_date=start_date, rerun=false, verbose=false)
-    scopes = ["total"] # Include more scopes later, Example does not currently have a concept of other scopes
-    scopes.each { |scope| record_scope_logs(start_date: start_date,
-                                            end_date: end_date,
-                                            rerun: rerun,
-                                            verbose: verbose,
-                                            scope: scope
-                                           )
-                }
+    Project::SCOPES.each { |scope| record_scope_logs(start_date: start_date,
+                                                     end_date: end_date,
+                                                     rerun: rerun,
+                                                     verbose: verbose,
+                                                     scope: scope
+                                                    )
+                         }
     @project.current_compute_groups.each do |group|
       record_scope_logs(start_date: start_date,
                         end_date: end_date,
@@ -40,7 +39,11 @@ class ExampleCostsRecorder
                             headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                            )
     raise ExampleApiError, response.body unless response.code == "200"
-    instance_ids = JSON.parse(response.body).map { |instance| instance['instance_id'] }
+    instances = JSON.parse(response.body)
+    if compute_group
+      instances = instances.filter { |instance| instance['tags'].key?('compute_group') && instance['tags']['compute_group'] == compute_group }
+    end
+    instance_ids = instances.map { |instance| instance['instance_id'] }
 
     days.each do |day|
       existing_logs = @project.cost_logs.where(date: day).any?
