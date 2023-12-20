@@ -41,7 +41,7 @@ class ExampleCostsRecorder
     raise ExampleApiError, response.body unless response.code == "200"
     instances = JSON.parse(response.body)
     if compute_group
-      instances = instances.filter { |instance| instance['tags'].key?('compute_group') && instance['tags']['compute_group'] == compute_group }
+      instances = instances.select { |instance| instance['tags'].key?('compute_group') && instance['tags']['compute_group'] == compute_group }
     end
     instance_ids = instances.map { |instance| instance['instance_id'] }
 
