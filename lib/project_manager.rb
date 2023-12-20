@@ -387,6 +387,8 @@ class ProjectManager
       attributes = add_azure_attributes(attributes)
     elsif attributes[:platform.downcase] == "example"
       attributes = add_example_attributes(attributes)
+      attributes[:security_id] = "id"
+      attributes[:security_key] = "key"
     end
   
     project = Project.new(attributes)

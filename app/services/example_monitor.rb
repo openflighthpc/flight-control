@@ -41,10 +41,7 @@ class ExampleMonitor
     @project.update_instance_statuses({off: under_threshold})
   end
 
-  # Results grouped by region, as this required for efficient switch offs
-  # (if required)
   def get_nodes_usage
-    # Ensure we have up to date logs
     if @project.latest_instance_logs.maximum(:updated_at) < (Time.current - 1.minute)
       @project.record_instance_logs(true)
     end

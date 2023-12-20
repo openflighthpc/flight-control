@@ -41,12 +41,11 @@ class ExampleProject < Project
     @instance_details_recorder ||= ExampleInstanceDetailsRecorder.new(self)
   end
 
-  # How instances must be grouped for SDK queries, e.g. switch ons/offs
   def instance_grouping
     "region"
   end
 
-  # What identifier SDK (usually) expects
+  # Field used by API to identify instances
   def instance_identifier
     "instance_id"
   end

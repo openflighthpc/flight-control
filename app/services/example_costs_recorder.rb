@@ -50,7 +50,7 @@ class ExampleCostsRecorder
       if !existing_logs || rerun
         response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance-costs',
                                 headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
-                                query: {'instance_ids' => instance_ids, # Make this depend on scope in future
+                                query: {'instance_ids' => instance_ids,
                                         'start_time' => day.to_time.to_i,
                                         'end_time' => (day + 1).to_time.to_i
                                        }
