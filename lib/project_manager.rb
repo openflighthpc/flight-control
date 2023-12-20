@@ -55,7 +55,11 @@ class ProjectManager
     end
 
     if attribute == "regions"
-      update_regions(project)
+      if project.platform == "example"
+        update_example_regions(project)
+      else
+        update_regions(project)
+      end
     elsif attribute == "resource_groups" || attribute == "resource groups"
       update_resource_groups(project)
     elsif attribute == "balance"
