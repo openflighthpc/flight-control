@@ -54,7 +54,7 @@ class ExampleCostsRecorder
                                )
         raise ExampleApiError, response.body unless response.code == "200"
 
-        instance_data = JSON.parse(response.body)['usages']
+        instance_data = JSON.parse(response.body)['costs']
         total = 0.0
         instance_data.each do |instance|
           total += instance['financial_data']['price'].to_f
