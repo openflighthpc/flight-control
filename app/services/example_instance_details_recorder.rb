@@ -20,7 +20,8 @@ class ExampleInstanceDetailsRecorder
     regions.each do |region|
       results = nil
 
-      models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/models').body)
+      models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/models',
+                                       headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}).body)
       response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                               query: { "models" => models.join(',') }
