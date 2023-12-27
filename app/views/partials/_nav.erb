@@ -3,43 +3,23 @@
     <li class="top nav-item">
       <%= link_to "DASHBOARD", dashboard_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "dashboard"}" %>
     </li>
-    <li class="top nav-item dropdown">
-      <a
-        class="dropdown-toggle top nav-link <%= 'active' if %w(billing costs).include?(@nav_view) %>"
-        id="costsDropdownButton"
-        data-toggle="dropdown"
-        aria-haspopup="true"
-        aria-expanded="false">
-        COSTS
-      </a>
-      <div class="dropdown-menu" aria-labelledby="costsDropdownButton">
-        <%= link_to "BILLING OVERVIEW", billing_management_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
-        <%= link_to "COSTS BREAKDOWN", costs_breakdown_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "costs"}" %>
-      </div>
-    </li>
+    <%= render '/partials/nav_dropdown', locals: {dropdown_id: 'costsDropdownButton', dropdown_text: 'COSTS', active_nav_options: %w(billing costs)} do %>
+      <%= link_to "BILLING OVERVIEW", billing_management_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
+      <%= link_to "COSTS BREAKDOWN", costs_breakdown_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "costs"}" %>
+    <% end %>
 
     <% can_create_event = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create? %>
     <% can_manage_events = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).manage? %>
     <% if can_create_event || can_manage_events %>
-      <li class="top nav-item dropdown">
-        <a
-          class="dropdown-toggle top nav-link <%= 'active' if ["event wizard", "manage events"].include?(@nav_view) %>"
-          id="eventsDropdownMenuButton"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="false">
-          EVENTS
-        </a>
-        <div class="dropdown-menu" aria-labelledby="eventsDropdownButton">
-          <% if can_create_event %>
-            <% title = @change_request ? "EDIT EVENT" : "CREATE EVENT" %>
-            <%= link_to title, events_new_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "event wizard"}" %>
-          <% end %>
-          <% if can_manage_events %>
-            <%= link_to "MANAGE EVENTS", events_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "manage events"}" %>
-          <% end %>
-        </div>
-      </li>
+      <%= render '/partials/nav_dropdown', locals: {dropdown_id: 'eventsDropdownButton', dropdown_text: 'EVENTS', active_nav_options: ["event wizard", "manage events"]} do %>
+        <% if can_create_event %>
+          <% title = @change_request ? "EDIT EVENT" : "CREATE EVENT" %>
+          <%= link_to title, events_new_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "event wizard"}" %>
+        <% end %>
+        <% if can_manage_events %>
+          <%= link_to "MANAGE EVENTS", events_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "manage events"}" %>
+        <% end %>
+      <% end %>
     <% end %>
 
     <% if ProjectPolicy.new(current_user, @project).policy_page? %>

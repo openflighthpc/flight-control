@@ -1,0 +1,13 @@
+<li class="top nav-item dropdown">
+  <a
+    class="dropdown-toggle top nav-link <%= 'active' if locals[:active_nav_options]&.include?(@nav_view) %>"
+    id="<%= locals[:dropdown_id] %>"
+    data-toggle="dropdown"
+    aria-haspopup="true"
+    aria-expanded="false">
+    <%= locals[:dropdown_text] %>
+  </a>
+  <div class="dropdown-menu" aria-labelledby="<%= locals[:dropdown_id] %>">
+    <%= yield %>
+  </div>
+</li>
