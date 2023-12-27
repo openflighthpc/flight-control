@@ -39,7 +39,7 @@
         </ul>
       <% end %>
     </nav>
-    <div class="container-fluid pl-0 pr-0 full-height <%= "" unless current_user %>">
+    <div class="container-fluid pl-0 pr-0 full-height bg-gradient">
       <div class="<%= "full-height" %> <%= "row" if current_user && current_user.multi_project_user? %>">
         <%= render '/partials/project_nav.erb' %>
         <% if current_user && current_user.multi_project_user? %>

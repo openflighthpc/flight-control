@@ -45,6 +45,10 @@ body {
   background-color: var(--light-bg-blue);
 }
 
+.bg-gradient {
+  background-image: linear-gradient(#DEF4FF, #C1E8F9);
+}
+
 .session-alerts.overlaid {
   width: 100%;
   position: absolute;
