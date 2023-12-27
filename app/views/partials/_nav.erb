@@ -6,13 +6,13 @@
     <li class="top nav-item dropdown">
       <a
         class="dropdown-toggle top nav-link <%= 'active' if %w(billing costs).include?(@nav_view) %>"
-        id="dropdownMenuButton"
+        id="costsDropdownButton"
         data-toggle="dropdown"
         aria-haspopup="true"
         aria-expanded="false">
         COSTS
       </a>
-      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+      <div class="dropdown-menu" aria-labelledby="costsDropdownButton">
         <%= link_to "BILLING OVERVIEW", billing_management_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
         <%= link_to "COSTS BREAKDOWN", costs_breakdown_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "costs"}" %>
       </div>
@@ -24,13 +24,13 @@
       <li class="top nav-item dropdown">
         <a
           class="dropdown-toggle top nav-link <%= 'active' if ["event wizard", "manage events"].include?(@nav_view) %>"
-          id="dropdownMenuButton"
+          id="eventsDropdownMenuButton"
           data-toggle="dropdown"
           aria-haspopup="true"
           aria-expanded="false">
           EVENTS
         </a>
-        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <div class="dropdown-menu" aria-labelledby="eventsDropdownButton">
           <% if can_create_event %>
             <% title = @change_request ? "EDIT EVENT" : "CREATE EVENT" %>
             <%= link_to title, events_new_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "event wizard"}" %>
