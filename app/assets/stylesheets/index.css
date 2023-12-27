@@ -508,7 +508,7 @@ input[type=date] {
 
 .navbar-brand-wrapper {
   position: relative;
-  padding-right: 2rem;
+  padding-right: 3rem;
 }
 
 .control-subtitle {
@@ -535,6 +535,8 @@ nav {
 .top.nav-link {
   color: white !important;
   border: 0 !important;
+  font-size: 1rem;
+  margin-right: 1rem;
 }
 
 .top.nav-link.active {
