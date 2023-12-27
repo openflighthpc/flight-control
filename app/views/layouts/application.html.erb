@@ -32,9 +32,19 @@
       </div>
       <%= render '/partials/nav.erb' %>
       <% if current_user %>
-        <div class="d-inline-flex account-menu">
-          <span class="navbar-brand"><%= current_user.username %></span>
-          <%= link_to "Sign out", destroy_user_session_path, :method => :delete, class: "btn btn-secondary"%>
+        <div class="top nav-item dropdown account-menu">
+          <a
+            class="dropdown-toggle top nav-link"
+            id="accountDropdownButton"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <%= current_user.username %>
+          </a>
+          <div class="dropdown-menu" aria-labelledby="accountDropdownButton">
+            <%= link_to "Sign out", destroy_user_session_path, :method => :delete, class: "top nav-link" %>
+          </div>
         </div>
       <% end %>
     </nav>
