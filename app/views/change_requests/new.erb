@@ -4,9 +4,7 @@
   <%= javascript_pack_tag 'new_data_check'%>
 <% end %>
 
-  <div class="mt-4 text-center mb-4">
-    <h2><%= @project.name %> - <%= "#{@change_request ? 'Edit' : 'Create'} Event" %></h2>
-  </div>
+  <%= render 'partials/title', locals: { title_text: "#{@change_request ? 'edit' : 'create'} event", project_name: @project.name } %>
   <div class="wizard">
     <div class="row">
       <div class="col-2"></div>

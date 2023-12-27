@@ -72,6 +72,15 @@ body {
   flex-basis: calc(100vh - 50px - 2.675rem);
 }
 
+.page-title {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+
+.page-title h1 {
+  color: var(--alces-grey);
+}
+
 .two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;

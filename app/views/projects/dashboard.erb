@@ -4,10 +4,8 @@
   <%= javascript_pack_tag 'editable_event_check'%>
 <% end %>
 
-<div class="mt-4 text-center mb-5">
-  <h2><%= @project.name %> - Dashboard</h2>
-</div>
 
+<%= render 'partials/title', locals: { title_text: 'dashboard', project_name: @project.name } %>
 <div class="container-fluid">
   <div class="card-deck mb-4 justify-content-md-center">
 

@@ -3,9 +3,7 @@
   <%= javascript_pack_tag 'toggle_select' %>
 <% end %>
 
-  <div class="mt-4 text-center mb-4">
-    <h2><%= @project.name %> - Manage Events</h2>
-  </div>
+<%= render 'partials/title', locals: { title_text: 'manage events', project_name: @project.name } %>
   <div class="container mt-5">
     <%= render '/change_requests/manage_events_filter' %>
     <%= render '/projects/static_instances_table', locals: { show_pending: false } %>

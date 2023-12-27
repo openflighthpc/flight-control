@@ -3,9 +3,7 @@
   <%= javascript_pack_tag 'new_data_check'%>
   <%= javascript_pack_tag 'toggle_select' %>
 <% end %>
-  <div class="mt-4 text-center mb-4">
-    <h2><%= @project.name %> - Costs Breakdown</h2>
-  </div>
+  <%= render 'partials/title', locals: { title_text: 'costs breakdown', project_name: @project.name } %>
   <%= render '/projects/chart_filter_form' %>
   <ul class="nav nav-tabs" id="cost-chart-nav">
     <li class="nav-item">
