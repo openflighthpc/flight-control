@@ -4,7 +4,12 @@
       <%= link_to "DASHBOARD", dashboard_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "dashboard"}" %>
     </li>
     <li class="top nav-item dropdown">
-      <a class="dropdown-toggle top nav-link" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <a
+        class="dropdown-toggle top nav-link <%= 'active' if %w(billing costs).include?(@nav_view) %>"
+        id="dropdownMenuButton"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false">
         COSTS
       </a>
       <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -17,7 +22,12 @@
     <% can_manage_events = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).manage? %>
     <% if can_create_event || can_manage_events %>
       <li class="top nav-item dropdown">
-        <a class="dropdown-toggle top nav-link" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a
+          class="dropdown-toggle top nav-link <%= 'active' if ["event wizard", "manage events"].include?(@nav_view) %>"
+          id="dropdownMenuButton"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false">
           EVENTS
         </a>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
