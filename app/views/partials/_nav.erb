@@ -4,8 +4,8 @@
       <%= link_to "DASHBOARD", dashboard_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "dashboard"}" %>
     </li>
     <%= render '/partials/nav_dropdown', locals: {dropdown_id: 'costsDropdownButton', dropdown_text: 'COSTS', active_nav_options: %w(billing costs)} do %>
-      <%= link_to "BILLING OVERVIEW", billing_management_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
-      <%= link_to "COSTS BREAKDOWN", costs_breakdown_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "costs"}" %>
+      <%= link_to "Billing overview", billing_management_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
+      <%= link_to "Costs breakdown", costs_breakdown_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "costs"}" %>
     <% end %>
 
     <% can_create_event = ChangeRequestPolicy.new(current_user, ChangeRequest.new(project: @project)).create? %>
@@ -13,11 +13,11 @@
     <% if can_create_event || can_manage_events %>
       <%= render '/partials/nav_dropdown', locals: {dropdown_id: 'eventsDropdownButton', dropdown_text: 'EVENTS', active_nav_options: ["event wizard", "manage events"]} do %>
         <% if can_create_event %>
-          <% title = @change_request ? "EDIT EVENT" : "CREATE EVENT" %>
+          <% title = @change_request ? "Edit event" : "Create event" %>
           <%= link_to title, events_new_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "event wizard"}" %>
         <% end %>
         <% if can_manage_events %>
-          <%= link_to "MANAGE EVENTS", events_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "manage events"}" %>
+          <%= link_to "Manage events", events_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "manage events"}" %>
         <% end %>
       <% end %>
     <% end %>
