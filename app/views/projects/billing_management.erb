@@ -1,52 +1,56 @@
 <% content_for :page_specific_js do %>
-  <%= javascript_pack_tag 'billing'%>
-  <%= javascript_pack_tag 'new_data_check'%>
+  <%= javascript_pack_tag 'billing' %>
+  <%= javascript_pack_tag 'new_data_check' %>
 <% end %>
 
-  <%= render 'partials/title', locals: { title_text: 'billing overview', project_name: @project.name } %>
-  <div class="billing-overview">
-    <div class="row">
-      <div class="col-sm-3"></div>
-      <div class="col-sm-3">
-        <strong>Balance</strong><a href="#" class="tool-tip" data-placement="top" title="Remaining at the start of the latest billing cycle" onClick="return false;"><sup>?</sup></a>:
-        <span  <%= 'class=text-danger' if @latest_cycle_details[:starting_balance] <= 0 %>>
+<%= render 'partials/title', locals: { title_text: 'billing overview', project_name: @project.name } %>
+<div class="billing-overview">
+  <div class="row">
+    <div class="col-sm-3"></div>
+    <div class="col-sm-3">
+      <strong>Balance</strong><a href="#" class="tool-tip" data-placement="top" title="Remaining at the start of the latest billing cycle" onClick="return false;"><sup>?</sup></a>:
+      <span  <%= 'class=text-danger' if @latest_cycle_details[:starting_balance] <= 0 %>>
           <%= @latest_cycle_details[:starting_balance].to_i %>c.u.
         </span>
-      </div>
-      <div class="col-sm-3">
-        <strong>Spend Profile</strong>: <%= @policy.spend_profile.capitalize %>
-      </div>
     </div>
-    <div class="row">
-      <div class="col-sm-3"></div>
-      <div class="col-sm-3">
-        <strong>Cost This Billing Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="As of the start of today. Includes some estimation." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:costs_so_far].to_i %>c.u.
-      </div>
-      <% unless @policy.spend_profile.downcase == 'continuous' %>
-        <div class="col-sm-3">
-          <strong>Cycle Budget</strong>:
-          <%= @latest_cycle_details[:starting_budget].to_i %>c.u.
-        </div>
-      <% end %>
-    </div>
-    <div class="row">
-      <div class="col-sm-3"></div>
-      <div class="col-sm-3">
-        <strong>Estimated Total This Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="At the end of the latest billing cycle. Includes any planned budget matching switch offs." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:cost].to_i %>c.u.
-      </div>
-      <div class="col-sm-3">
-        <strong>Billing Date</strong>: <%= @billing_date %>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-3"></div>
-      <div class="col-sm-3">
-        <strong>Billing Cycle Length</strong>: <%= @latest_cycle_details[:length] %>
-      </div>
-      <div class="col-sm-3">
-        <strong>Project End Date</strong>: <%= @project.end_date ? @project.end_date : "none" %>
-      </div>
+    <div class="col-sm-3">
+      <strong>Spend Profile</strong>: <%= @policy.spend_profile.capitalize %>
     </div>
   </div>
-  <%= render '/projects/cycles_table' %>
-  <%= render '/projects/latest_change' %>
+  <div class="row">
+    <div class="col-sm-3"></div>
+    <div class="col-sm-3">
+      <strong>Cost This Billing
+        Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="As of the start of today. Includes some estimation." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:costs_so_far].to_i %>
+      c.u.
+    </div>
+    <% unless @policy.spend_profile.downcase == 'continuous' %>
+      <div class="col-sm-3">
+        <strong>Cycle Budget</strong>:
+        <%= @latest_cycle_details[:starting_budget].to_i %>c.u.
+      </div>
+    <% end %>
+  </div>
+  <div class="row">
+    <div class="col-sm-3"></div>
+    <div class="col-sm-3">
+      <strong>Estimated Total This
+        Cycle</strong><a href="#" class="tool-tip" data-placement="top" title="At the end of the latest billing cycle. Includes any planned budget matching switch offs." onClick="return false;"><sup>?</sup></a>: <%= @latest_cycle_details[:cost].to_i %>
+      c.u.
+    </div>
+    <div class="col-sm-3">
+      <strong>Billing Date</strong>: <%= @billing_date %>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3"></div>
+    <div class="col-sm-3">
+      <strong>Billing Cycle Length</strong>: <%= @latest_cycle_details[:length] %>
+    </div>
+    <div class="col-sm-3">
+      <strong>Project End Date</strong>: <%= @project.end_date ? @project.end_date : "none" %>
+    </div>
+  </div>
+</div>
+<%= render '/projects/cycles_table' %>
+<%= render '/projects/latest_change' %>

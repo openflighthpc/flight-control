@@ -1,23 +1,23 @@
 <% content_for :page_specific_js do %>
-  <%= javascript_pack_tag 'manage_events'%>
+  <%= javascript_pack_tag 'manage_events' %>
   <%= javascript_pack_tag 'toggle_select' %>
 <% end %>
 
 <%= render 'partials/title', locals: { title_text: 'manage events', project_name: @project.name } %>
-  <div class="container mt-5">
-    <%= render '/change_requests/manage_events_filter' %>
-    <%= render '/projects/static_instances_table', locals: { show_pending: false } %>
-    <div class="row">
-      <div class="col-sm-2"></div>
-      <div class="col-sm-8">
-        <h3> Schedule </h3>
-      </div>
+<div class="container mt-5">
+  <%= render '/change_requests/manage_events_filter' %>
+  <%= render '/projects/static_instances_table', locals: { show_pending: false } %>
+  <div class="row">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-8">
+      <h3> Schedule </h3>
     </div>
-    <%= render '/change_requests/in_progress_table' %>
-    <%= render '/change_requests/future_events_table', locals: {requests: @upcoming, type: "upcoming", title: "Upcoming (next 5 minutes)"} %>
-    <%= render '/change_requests/future_events_table', locals: {requests: @future_events, type: "future", title: "Future"} %>
   </div>
-  <div id="project-name" data-project="<%= @project.name %>"></div>
+  <%= render '/change_requests/in_progress_table' %>
+  <%= render '/change_requests/future_events_table', locals: { requests: @upcoming, type: "upcoming", title: "Upcoming (next 5 minutes)" } %>
+  <%= render '/change_requests/future_events_table', locals: { requests: @future_events, type: "future", title: "Future" } %>
+</div>
+<div id="project-name" data-project="<%= @project.name %>"></div>
 <script>
   let groups = <%= raw(@compute_groups.to_json) %>;
 </script>

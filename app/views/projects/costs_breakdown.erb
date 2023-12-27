@@ -1,35 +1,36 @@
 <% content_for :page_specific_js do %>
-  <%= javascript_pack_tag 'chart'%>
-  <%= javascript_pack_tag 'new_data_check'%>
+  <%= javascript_pack_tag 'chart' %>
+  <%= javascript_pack_tag 'new_data_check' %>
   <%= javascript_pack_tag 'toggle_select' %>
 <% end %>
-  <%= render 'partials/title', locals: { title_text: 'costs breakdown', project_name: @project.name } %>
-  <%= render '/projects/chart_filter_form' %>
-  <ul class="nav nav-tabs" id="cost-chart-nav">
-    <li class="nav-item">
-      <a class="nav-link active"
-         href="#daily-costs"
-         role="tab"
-         aria-selected="true"
-         data-toggle="tab"
-      >
-        Daily costs
-      </a>
-    </li>
-   <li class="nav-item" role="presentation">
-     <a class="nav-link"
-        href="#cumulative-costs"
-        role="tab"
-        aria-selected="false"
-        data-toggle="tab"
-      >
-        Cumulative costs
-      </a>
-    </li>
-  </ul>
-  <div class="tab-content">
-    <%= render '/projects/costs_chart' %>
-    <%= render '/projects/cumulative_chart' %>
-  </div>
-  <%= render '/projects/static_instances_table', locals: { show_pending: true } %>
-  <%= render '/projects/latest_change' %>
+
+<%= render 'partials/title', locals: { title_text: 'costs breakdown', project_name: @project.name } %>
+<%= render '/projects/chart_filter_form' %>
+<ul class="nav nav-tabs" id="cost-chart-nav">
+  <li class="nav-item">
+    <a class="nav-link active"
+       href="#daily-costs"
+       role="tab"
+       aria-selected="true"
+       data-toggle="tab"
+    >
+      Daily costs
+    </a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link"
+       href="#cumulative-costs"
+       role="tab"
+       aria-selected="false"
+       data-toggle="tab"
+    >
+      Cumulative costs
+    </a>
+  </li>
+</ul>
+<div class="tab-content">
+  <%= render '/projects/costs_chart' %>
+  <%= render '/projects/cumulative_chart' %>
+</div>
+<%= render '/projects/static_instances_table', locals: { show_pending: true } %>
+<%= render '/projects/latest_change' %>

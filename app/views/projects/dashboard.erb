@@ -4,7 +4,6 @@
   <%= javascript_pack_tag 'editable_event_check'%>
 <% end %>
 
-
 <%= render 'partials/title', locals: { title_text: 'dashboard', project_name: @project.name } %>
 <div class="container-fluid">
   <div class="card-deck mb-4 justify-content-md-center">
@@ -104,5 +103,4 @@
 
   <!-- Data needed to check for any changes to events -->
   <%= render '/projects/latest_change' %>
-
 </div>

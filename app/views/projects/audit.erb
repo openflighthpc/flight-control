@@ -1,14 +1,14 @@
 <% content_for :page_specific_js do %>
-  <%= javascript_pack_tag 'audit'%>
-  <%= javascript_pack_tag 'new_data_check'%>
+  <%= javascript_pack_tag 'audit' %>
+  <%= javascript_pack_tag 'new_data_check' %>
   <%= javascript_pack_tag 'toggle_select' %>
 <% end %>
 
 <%= render 'partials/title', locals: { title_text: 'audit', project_name: @project.name } %>
 <%= render '/projects/audit_filter_form' %>
-  <% if !@list.filtered_logs.any? %>
-    <h4 class="text-center mt-3">No matching logs</h4>
-  <% else %>
-    <%= render '/partials/history' %>
-  <% end %>
-  <%= render '/projects/latest_change' %>
+<% if !@list.filtered_logs.any? %>
+  <h4 class="text-center mt-3">No matching logs</h4>
+<% else %>
+  <%= render '/partials/history' %>
+<% end %>
+<%= render '/projects/latest_change' %>
