@@ -65,11 +65,24 @@ body {
   color: var(--alces-blue);
 }
 
-.full-height {
+.stretch-height {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+}
+
+.full-height {
   flex-basis: calc(100vh - 50px - 2.675rem);
+}
+
+.cloud-bar {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+}
+
+.cloud-bar-padding {
+  padding-bottom: 7vw;
 }
 
 .page-title {
