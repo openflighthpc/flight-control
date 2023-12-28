@@ -264,7 +264,7 @@ window.updateRequestSummary = function() {
   } else {
     timing = `at ${$('#scheduled-date').val()} ${$('#scheduled-time').val()}`;
   }
-  let text = `Set <strong>${countCriteria}</strong> counts ${timing}:<br><br>`;
+  let text = `Set <strong>${countCriteria}</strong> counts ${timing}:<br>`;
   let counts = $('.simple-node-count');
   let includedGroups = [];
   counts.each(function() {
@@ -272,13 +272,12 @@ window.updateRequestSummary = function() {
     if(count.val() != "") {
       let group = count.data('compute-group');
       if(!includedGroups.includes(group)) {
-        text += `<strong>${group}</strong><br>`;
+        text += `<br><strong>${group}</strong><br>`;
         includedGroups.push(group);
       }
       text += `${count.val()} ${count.data('customer-facing')}<br>`
     }
   });
-  text += "<br>";
   if(!now) {
     if($('#weekdays').val() != "") {
       text += `<strong>Repeat:</strong> ${readableWeekdays()}<br>`;
