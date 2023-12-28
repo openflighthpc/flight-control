@@ -355,6 +355,14 @@ td {
   margin-top: 3rem
 }
 
+#wizard-footer .button {
+  display: none;
+}
+
+#wizard-footer .button.visible-button {
+  display: inline-block;
+}
+
 #wizard-choose-when {
   margin-bottom: 2rem;
 }

@@ -37,7 +37,7 @@ function showNextSection() {
   let nextSection = $(`#wizard-choose-${target}`);
   let current = nextButton.data('current');
   backButton.data('previous', current);
-  backButton.css('visibility', 'visible');
+  backButton.addClass('visible-button');
   nextButton.data('current', target);
   if(target === "when") {
     nextButton.data('next', 'review');
@@ -45,9 +45,9 @@ function showNextSection() {
   } else if(target === "extras") {
     nextButton.data('next', 'review');
   } else if(target === "review") {
-    nextButton.hide();
+    nextButton.removeClass('visible-button');
     updateRequestSummary();
-    $('#wizard-submit-button').show();
+    $('#wizard-submit-button').addClass('visible-button');
   }
   $('.wizard-section').hide();
   nextSection.show();
@@ -65,7 +65,7 @@ function showPreviousSection() {
   nextButton.data('current', target);
   nextButton.data('next', origin);
   if(target === "counts") {
-    backButton.css('visibility', 'hidden');
+    backButton.removeClass('visible-button');
   }
   let newPrevious = null;
   if(target === "when") {
@@ -73,8 +73,8 @@ function showPreviousSection() {
   } else if (target === "extras") {
     newPrevious = "when";
   }
-  nextButton.show();
-  $('#wizard-submit-button').hide();
+  nextButton.addClass('visible-button');
+  $('#wizard-submit-button').removeClass('visible-button');
   backButton.data('previous', newPrevious);
   $('.wizard-section').hide();
   targetSection.show();
