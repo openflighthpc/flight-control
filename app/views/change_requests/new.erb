@@ -6,41 +6,42 @@
 
 <%= render 'partials/title', locals: { title_text: "#{@change_request ? 'edit' : 'create'} event", project_name: @project.name } %>
 <div class="wizard text-center">
-  <% if @change_request %>
-    <form action='/events/<%= @change_request.id %>/update' method='post' id='create-event-form'>
-  <% else %>
-    <form action='/events' method='post' id='create-event-form'>
-  <% end %>
-  <%= render '/change_requests/choose_counts' %>
-  <%= render '/change_requests/choose_when' %>
-  <%= render '/change_requests/choose_extras' %>
-  <%= render '/change_requests/review' %>
-  <div class="row justify-content-center" id="wizard-footer">
-    <div>
-      <a class="button mr-4"
-         id="wizard-back-button"
-         data-previous="">
-        BACK
-      </a>
+  <form
+    action='<%= @change_request ? "/events/#{@change_request.id}/update" : '/events' %>'
+    method='post'
+    id='create-event-form'
+  >
+    <%= render '/change_requests/choose_counts' %>
+    <%= render '/change_requests/choose_when' %>
+    <%= render '/change_requests/choose_extras' %>
+    <%= render '/change_requests/review' %>
+    <div class="row justify-content-center" id="wizard-footer">
+      <div>
+        <a class="button mr-4"
+           id="wizard-back-button"
+           data-previous="">
+          BACK
+        </a>
+      </div>
+      <div>
+        <a class="button disabled visible-button"
+           id="wizard-next-button"
+           data-current="counts" data-next="when"
+           title="No counts selected"
+           disabled>
+          NEXT
+        </a>
+        <input type="submit"
+               value="SUBMIT"
+               class="button"
+               id="wizard-submit-button"
+        >
+      </div>
+      <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
+      <%= hidden_field_tag :project, @project.name %>
+      <%= hidden_field_tag(:id, @change_request.id, { id: "request-id" }) if @change_request %>
+      <%= hidden_field_tag(:type, @change_request ? @change_request.type : "OneOffChangeRequest", { id: "request-type" }) %>
     </div>
-    <div>
-      <a class="button disabled visible-button"
-         id="wizard-next-button"
-         data-current="counts" data-next="when"
-         title="No counts selected"
-         disabled>
-        NEXT
-      </a>
-      <input type="submit"
-             value="SUBMIT"
-             class="button"
-             id="wizard-submit-button"
-      >
-    </div>
-    <%= hidden_field_tag :authenticity_token, form_authenticity_token -%>
-    <%= hidden_field_tag :project, @project.name %>
-    <%= hidden_field_tag(:id, @change_request.id, { id: "request-id" }) if @change_request %>
-    <%= hidden_field_tag(:type, @change_request ? @change_request.type : "OneOffChangeRequest", { id: "request-type" }) %>
   </form>
 </div>
 <%= render '/projects/latest_change' %>
