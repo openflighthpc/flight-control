@@ -1,68 +1,70 @@
 <div class="simple-node-details">
   <% pending = @project.pending_actions? %>
   <table class="table table-borderless" id="simple-node-details-table">
+
     <thead>
-      <tr class="border-bottom">
-        <th scope="col"><%= "Group" %></th>
-        <th scope="col">Type</th>
-        <th scope="col" class="text-center">Currently up</th>
-        <% if pending %>
-          <th scope="col" class="text-center">Pending up</th>
-        <% end %>
-        <th scope="col" class="text-center border-left">Requested total</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% total_compute_cost = 0 %>
-      <% @current_instances.each do |group, instances| %>
-        <tr>
-          <td><%= group %></td>
-          <td></td>
-          <td></td>
-          <% if pending %>
-            <td></td>
-          <% end %>
-          <td class="border-left"></td>
-        </tr>
-        <% instances = instances.sort_by {|instance| [instance.customer_facing_type.split(" ")[0], instance.mem.to_f] } %>
-        <% instances.each do |instance| %>
-          <% next if instance.node_limit == 0 %>
-          <% if @change_request && @change_request.counts[group] && @change_request.counts[group][instance.instance_type] %>
-            <%  selected_amount = @change_request.counts[group][instance.instance_type] %>
-          <% end %>
-          <% selector = "#{group}-#{instance.instance_type}".delete("()").gsub(' ', '-').gsub(".", "_") %>
-          <% on = instance.count[:on] %>
-          <tr class="text-nowrap node-row group-<%=group%> <%='pending' if pending && instance.pending_change? %>">
-            <td></td>
-            <td scope="row"><%= instance.customer_facing_type %><a href="#" class="instance-tooltip tool-tip" data-placement="top" title="<%= instance.details_and_cost_description %>" onClick="return false;"><sup>?</sup>
-              </a>
-            </td>
-            <td class="text-center"><%= on %></td>
-            <% if pending %>
-              <td class="text-center"><%= instance.pending_on %></td>
-            <% end %>
-            <td class="d-flex justify-content-center text-center border-left">
-              <select
-                id="<%= selector %>-count-select"
-                name="nodes[<%= selector %>]"
-                class="simple-node-count form-control"
-                autocomplete="off"
-                data-customer-facing="<%= instance.customer_facing_type %>"
-                data-compute-group="<%= group %>"
-              >
-                <option value=''
-                        class="default-node-count"
-                        <%= 'selected' if !selected_amount %>> - </option>
-                <% (0..instance.node_limit).to_a.each do |amount| %>"
-                  <option <%= 'selected' if selected_amount == amount %>>
-                    <%=amount%>
-                  </option>
-                <% end %>
-              </select>
-            </td>
-          </tr>
-        <% end %>
+    <tr class="blue-border-bottom">
+      <th scope="col"><h5><%= "Group" %></h5></th>
+      <th scope="col"><h5>Type</h5></th>
+      <th scope="col" class="text-center"><h5>Currently up</h5></th>
+      <% if pending %>
+        <th scope="col" class="text-center"><h5>Pending up</h5></th>
       <% end %>
+      <th scope="col" class="text-center"><h5>Requested total</h5></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @current_instances.each do |group, instances| %>
+      <% instances = instances.sort_by { |instance| [instance.customer_facing_type.split(" ")[0], instance.mem.to_f] } %>
+      <% instances.each_with_index do |instance, index| %>
+        <% next if instance.node_limit == 0 %>
+        <% if @change_request && @change_request.counts[group] && @change_request.counts[group][instance.instance_type] %>
+          <% selected_amount = @change_request.counts[group][instance.instance_type] %>
+        <% end %>
+        <% selector = "#{group}-#{instance.instance_type}".delete("()").gsub(' ', '-').gsub(".", "_") %>
+        <% on = instance.count[:on] %>
+        <tr
+          class="
+            text-nowrap
+            node-row
+            group-<%= group %>
+            <%= 'pending' if pending && instance.pending_change? %>
+            <%= 'group-first-row' if index == 0 %>
+          "
+        >
+          <td><%= group if index == 0 %></td>
+          <td scope="row"><%= instance.customer_facing_type %>
+            <a href="#" class="instance-tooltip tool-tip" data-placement="top" title="<%= instance.details_and_cost_description %>" onClick="return false;"><sup>?</sup>
+            </a>
+          </td>
+          <td class="text-center"><%= on %></td>
+          <% if pending %>
+            <td class="text-center"><%= instance.pending_on %></td>
+          <% end %>
+          <td class="d-flex justify-content-center text-center">
+            <select
+              id="<%= selector %>-count-select"
+              name="nodes[<%= selector %>]"
+              class="simple-node-count form-control"
+              autocomplete="off"
+              data-customer-facing="<%= instance.customer_facing_type %>"
+              data-compute-group="<%= group %>"
+            >
+              <option value=''
+                      class="default-node-count"
+                      <%= 'selected' if !selected_amount %>> -
+              </option>
+              <% (0..instance.node_limit).to_a.each do |amount| %>"
+                <option <%= 'selected' if selected_amount == amount %>>
+                  <%= amount %>
+                </option>
+              <% end %>
+            </select>
+          </td>
+        </tr>
+      <% end %>
+    <% end %>
     </tbody>
   </table>
 </div>
