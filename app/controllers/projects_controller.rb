@@ -83,7 +83,7 @@ class ProjectsController < ApplicationController
     end
   end
 
-  def billing_management
+  def billing_overview
     get_project
     if !@project
       no_project_redirect

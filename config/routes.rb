@@ -23,7 +23,7 @@ Rails.application.routes.draw do
   # Projects
   get '/dashboard', to: 'projects#dashboard'
   get '/costs-breakdown', to: 'projects#costs_breakdown'
-  get '/billing-management', to: 'projects#billing_management'
+  get '/billing-overview', to: 'projects#billing_overview'
   get '/policies', to: 'projects#policy_page'
   get '/audit', to: 'projects#audit'
   get '/json/data-check', to: 'projects#data_check'

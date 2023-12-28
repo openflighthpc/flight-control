@@ -4,7 +4,7 @@
       <%= link_to "DASHBOARD", dashboard_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "dashboard"}" %>
     </li>
     <%= render '/partials/nav_dropdown', locals: {dropdown_id: 'costsDropdownButton', dropdown_text: 'COSTS', active_nav_options: %w(billing costs)} do %>
-      <%= link_to "Billing overview", billing_management_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
+      <%= link_to "Billing overview", billing_overview_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "billing"}" %>
       <%= link_to "Costs breakdown", costs_breakdown_path(project: @project.name), class: "top nav-link#{' active' if @nav_view == "costs"}" %>
     <% end %>
 
