@@ -1,6 +1,5 @@
 <div class="row mb-4">
-  <div class="col"></div>
-  <div class="col-3 repeat-label">
+  <div class="col-4 repeat-label">
     <br>
     Weekdays:
   </div>
@@ -16,7 +15,6 @@
       </label>
     </div>
   <% end %>
-  <div class="col"></div>
   <input type="text"
          style="display:none;"
          id="weekdays" 
@@ -25,11 +23,10 @@
          <%= "value=#{@change_request.weekdays}" if @change_request %>>
 </div>
 <div class="row form-inline" id="last-date">
-  <div class="col"></div>
-  <div class="col-3 repeat-label">
+  <div class="col-4 repeat-label">
     End Date<a href="#" class="tool-tip" data-placement="top" title="The last day the request will run, if it is on one of the selected days of the week." onClick="return false;"><sup>?</sup></a>:
   </div>
-  <div class="col-7">
+  <div class="col">
     <input type="date" 
            class="form-control scheduled-date-picker scheduled-input"
            id="end-date"

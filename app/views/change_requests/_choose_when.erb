@@ -3,8 +3,7 @@
     <h4>When?</h4>
   </div>
   <div class="row text-center select-timeframe">
-    <div class="col-1"></div>
-    <div class="col-5">
+    <div class="col-6">
       <div class="form-check">
         <input class="form-check-input when-radio" type="radio" name="timeframe" id="time-now" value="now" <%= 'checked' if !@change_request %>>
         <label class="form-check-label" for="time-now">
@@ -12,7 +11,7 @@
         </label>
       </div>
     </div>
-    <div class="col-5">
+    <div class="col-6">
       <div class="form-check">
         <input class="form-check-input when-radio" type="radio" name="timeframe" id="time-future" value="future" <%= 'checked' if @change_request %>>
         <label class="form-check-label" for="time-future">
@@ -22,18 +21,17 @@
     </div>
   </div>
   <div class="row select-when collapse<%= ' show' if @change_request %>" id="future-choice">
-    <div class="col-1"></div>
-    <div class="col-lg-5 col-md-11">
+    <div class="col-lg-6 col-md-12">
       <div class="text-center" id="event-start-title">
         <p>
-          <strong>Event Start</strong>
+          <h5>Event Start</h5>
         </p>
       </div>
       <div class="row form-inline mb-4">
-        <div class="col-4 text-left">
+        <div class="col-4 text-left pl-0">
           Start Date:
         </div>
-        <div class="col-7 request-timings">
+        <div class="col-7 request-timings text-left">
           <input type="date"
                  class="form-control request-date-picker scheduled-input"
                  id="scheduled-date"
@@ -43,10 +41,10 @@
         </div>
       </div>
       <div class="row form-inline mt-4 mb-4">
-        <div class="col-4 text-left">
+        <div class="col-4 text-left pl-0">
           Time:
         </div>
-        <div class="col-7 request-timings">
+        <div class="col-7 text-left request-timings">
           <input type="time"
                  class="form-control request-time-picker scheduled-input"
                  id="scheduled-time"
@@ -58,10 +56,10 @@
         <div id="original-start" data-value='<%= @change_request.date_time.to_s %>'></div>
       <% end %>
     </div>
-    <div class="col-lg-6 col-md-11" id="request-repeat-details">
+    <div class="col-lg-6 col-md-12" id="request-repeat-details">
       <div class="text-center">
         <p>
-          <strong>Repetition (Optional)</strong>
+          <h5>Repetition (Optional)</h5>
         </p>
       </div>
       <%= render '/change_requests/repeat_details' %>
