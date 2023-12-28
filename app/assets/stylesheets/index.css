@@ -14,7 +14,7 @@ body {
 .button {
   background-color: var(--alces-blue);
   border-radius: 2px;
-  border: none;
+  border: 1px solid var(--alces-blue);
   padding: 0.5rem 2rem;
   text-align: center;
   color: white !important;
@@ -40,6 +40,15 @@ body {
 .big-button {
   font-size: 1.3rem;
   padding: 0.7rem 3rem;
+}
+
+.inverted-button {
+  background-color: white;
+  color: var(--alces-blue) !important;
+}
+
+.inverted-button:hover, .inverted-button:visited {
+  color: var(--alces-blue) !important;
 }
 
 .blue-text {
