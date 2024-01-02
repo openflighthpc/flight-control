@@ -1,100 +1,99 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<% project = @project.decorate %>
+<% data = project.billing_history_costs %>
+<% dates = project.billing_history_dates %>
+<% tooltips = project.billing_history_tooltips %>
 
-  <h2 class="ml-2 mb-5 text-center">Billing History</h2>
-  <% data = @billing_cycles.map { |details| details[:cost].to_i } %>
-  <% dates = @billing_dates %>
-  <% tooltips = @billing_cycles.map do |details| %>
-    <% ["#{details[:start]} - #{details[:end]}", "", "Total cost: #{details[:cost].to_i}cu", "", "Click to view costs breakdown for this billing cycle"] %>
-  <% end %>
-  <canvas id="billingHistoryChart"></canvas>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    let data = <%= raw(data.to_json) %>;
-    let dates = <%= raw(dates.to_json) %>;
-    let tooltips = <%= raw(tooltips.to_json) %>;
-    const ctx = document.getElementById('billingHistoryChart');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: dates,
-        datasets: [{
-          data: data,
-          borderWidth: 1,
-          tooltips: tooltips,
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Total (cu)',
-              font: {
-                size: 20,
-              },
-              padding: {
-                bottom: 20
-              }
+<h2 class="ml-2 mb-5 text-center">Billing History</h2>
+<canvas id="billingHistoryChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  let data = <%= raw(data.to_json) %>;
+  let dates = <%= raw(dates.to_json) %>;
+  let tooltips = <%= raw(tooltips.to_json) %>;
+  const ctx = document.getElementById('billingHistoryChart');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        data: data,
+        borderWidth: 1,
+        tooltips: tooltips,
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Total (cu)',
+            font: {
+              size: 20,
             },
-            ticks: {
-              font: {
-                size: 16,
-              },
-              maxTicksLimit: 8
-            },
-            grid: {
-              color: '#CFEDFA'
-            },
-            border: {
-              color: '#AEC7D7'
+            padding: {
+              bottom: 20
             }
           },
-          x: {
-            title: {
-              display: true,
-              text: 'Billing date',
-              font: {
-                size: 20,
-              },
-              padding: {
-                top: 20
-              }
+          ticks: {
+            font: {
+              size: 16,
             },
-            ticks: {
-              font: {
-                size: 16,
-              }
-            },
-            grid: {
-              color: '#CFEDFA'
-            },
-            border: {
-              color: '#AEC7D7'
-            }
+            maxTicksLimit: 8
+          },
+          grid: {
+            color: '#CFEDFA'
+          },
+          border: {
+            color: '#AEC7D7'
           }
         },
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            displayColors: false,
-            bodyAlign: 'center',
-            yAlign: 'bottom',
-            bodyFont: {
-              size: 16
+        x: {
+          title: {
+            display: true,
+            text: 'Billing date',
+            font: {
+              size: 20,
             },
-            callbacks: {
-              title: function () {
-                return ""
-              },
-              label: function (context) {
-                return context.dataset.tooltips[context.dataIndex];
-              }
+            padding: {
+              top: 20
+            }
+          },
+          ticks: {
+            font: {
+              size: 16,
+            }
+          },
+          grid: {
+            color: '#CFEDFA'
+          },
+          border: {
+            color: '#AEC7D7'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          displayColors: false,
+          bodyAlign: 'center',
+          yAlign: 'bottom',
+          bodyFont: {
+            size: 16
+          },
+          callbacks: {
+            title: function () {
+              return ""
+            },
+            label: function (context) {
+              return context.dataset.tooltips[context.dataIndex];
             }
           }
         }
       }
-    });
-  </script>
+    }
+  });
+</script>

@@ -92,8 +92,6 @@ class ProjectsController < ApplicationController
       @nav_view = "billing"
       authorize @project, policy_class: ProjectPolicy
       get_billing_data
-      @billing_cycles = cost_plotter.historic_cycle_details
-      @billing_dates = @project.decorate.billing_dates
       check_missing_instance_details
     end
   end
