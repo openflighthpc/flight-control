@@ -5,7 +5,7 @@
 <% end %>
 
 <%= render 'partials/title', locals: { title_text: "#{@change_request ? 'edit' : 'create'} event", project_name: @project.name } %>
-<div class="wizard text-center">
+<div class="wizard card big-padding align-self-center text-center">
   <form
     action='<%= @change_request ? "/events/#{@change_request.id}/update" : '/events' %>'
     method='post'
