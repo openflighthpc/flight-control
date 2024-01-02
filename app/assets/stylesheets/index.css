@@ -344,6 +344,12 @@ td {
   margin-bottom: 6rem;
 }
 
+#billingHistoryChart {
+  width: max(60vw, 40rem) !important;
+  margin-inline: auto;
+  margin-bottom: 4rem;
+}
+
 .tool-tip {
   color: var(--alces-blue);
 }
