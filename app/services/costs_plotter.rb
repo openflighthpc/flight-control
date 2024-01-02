@@ -1160,7 +1160,7 @@ class CostsPlotter
         end
         @details << cycle_details
       end
-      @details.reverse!
+      @details
     end
     @details
   end
