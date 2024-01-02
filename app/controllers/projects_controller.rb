@@ -1,4 +1,5 @@
 class ProjectsController < ApplicationController
+
   def dashboard
     get_project
     if !@project
@@ -92,6 +93,7 @@ class ProjectsController < ApplicationController
       authorize @project, policy_class: ProjectPolicy
       get_billing_data
       @billing_cycles = cost_plotter.historic_cycle_details
+      @billing_dates = @project.decorate.billing_dates
       check_missing_instance_details
     end
   end
@@ -169,7 +171,7 @@ class ProjectsController < ApplicationController
   end
 
   def cost_plotter
-    @cost_plotter ||= CostsPlotter.new(@project)
+    @cost_plotter ||= @project.costs_plotter
   end
 
   def no_project_redirect

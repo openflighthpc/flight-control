@@ -700,6 +700,10 @@ class Project < ApplicationRecord
     Marshal.load(Marshal.dump(hash))
   end
 
+  def costs_plotter
+    @costs_plotter ||= CostsPlotter.new(self)
+  end
+
   private
 
   def additional_validations
