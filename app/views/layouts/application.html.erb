@@ -39,8 +39,13 @@
         </ul>
       <% end %>
     </nav>
-    <% show_cloud_bar = current_user && @nav_view != "about" %>
-    <div class="container-fluid pl-0 pr-0 stretch-height full-height <%= 'bg-gradient position-relative cloud-bar-padding' if show_cloud_bar %>">
+    <% show_cloud_bar = current_user && (@nav_view != "about" && @nav_view != "billing") %>
+    <% gradient_bg = current_user && @nav_view != "about" %>
+    <div
+      class="container-fluid pl-0 pr-0 stretch-height full-height
+            <%= 'position-relative cloud-bar-padding' if show_cloud_bar %>
+            <%= 'bg-gradient' if gradient_bg %>
+            ">
       <div class="stretch-height <%= "row" if current_user && current_user.multi_project_user? %>">
         <%= render '/partials/project_nav.erb' %>
         <% if current_user && current_user.multi_project_user? %>
@@ -64,7 +69,7 @@
         <% end %>
       </div>
       <% if show_cloud_bar %>
-        <%= image_tag("cloud_bar.svg", class: 'cloud-bar') %>
+        <%= image_tag("cloud_bar.svg", class: 'cloud-bar bottom-cloud-bar') %>
       <% end %>
     </div>
   </body>

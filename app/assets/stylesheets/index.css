@@ -68,6 +68,10 @@ body {
   color: var(--alces-blue);
 }
 
+.bg-cloud {
+  background-color: var(--cloud-white);
+}
+
 .bg-blue {
   background-color: var(--light-bg-blue);
 }
@@ -108,6 +112,14 @@ ul {
 
 .cloud-bar {
   width: 100%;
+}
+
+.mid-cloud-bar {
+  position: relative;
+  bottom: -1px;
+}
+
+.bottom-cloud-bar {
   position: absolute;
   bottom: 0;
 }
@@ -728,6 +740,7 @@ a:hover {
   --alces-blue: #2693D7;
   --alces-grey: #586674;
   --light-bg-blue: #D4F0FD;
+  --cloud-white: #F8FCFC;
   --text-grey: #3D3D3D;
   --navbar-grey: #191919;
 }

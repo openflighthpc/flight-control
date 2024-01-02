@@ -27,5 +27,8 @@
     </ul>
   </div>
 </div>
-<%= render '/projects/cycles_table' %>
-<%= render '/projects/latest_change' %>
+<%= image_tag("cloud_bar.svg", class: 'cloud-bar mid-cloud-bar') %>
+<div class="bg-cloud">
+  <%= render '/projects/cycles_table' %>
+  <%= render '/projects/latest_change' %>
+</div>
