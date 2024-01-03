@@ -17,6 +17,7 @@
   const allTooltips = <%= raw(project.billing_chart_tooltips.to_json) %>;
   const gridColour = '#CFEDFA';
   const borderColour = '#AEC7D7';
+  const alcesBlue = '#2693D7';
 
   const ctx = document.getElementById('billingHistoryChart');
   let chart = new Chart(ctx, {
@@ -92,7 +93,7 @@
       },
       elements: {
         point: {
-          pointBorderColor: '#2693D7',
+          pointBorderColor: pointColours(year),
           pointBorderWidth: 4,
           pointBackgroundColor: '#ffffff',
           pointRadius: 5,
@@ -131,7 +132,8 @@
     });
     chart.options.scales.x.min = minDate(year);
     chart.options.scales.x.max = maxDate(year);
-    chart.update();
+    chart.options.elements.point.pointBorderColor = pointColours(year);
+    chart.update('none');
   }
 
   function minDate(year) {
@@ -140,5 +142,20 @@
 
   function maxDate(year) {
     return `${year}-12-31`;
+  }
+
+  function pointColours(year) {
+    const chartData = allData[year];
+    const numPoints = chartData.length;
+    let colours = [];
+    if (new Date(chartData[numPoints - 1]['x']).getTime() > new Date().getTime()) {
+      for (let i = 0; i < numPoints-1; i++) {
+        colours.push(alcesBlue);
+      }
+      colours.push('#5FD094')
+    } else {
+      colours = alcesBlue;
+    }
+    return colours;
   }
 </script>
