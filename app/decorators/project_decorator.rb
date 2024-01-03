@@ -13,7 +13,8 @@ class ProjectDecorator < Draper::Decorator
 
   def billing_history_dates
     billing_history.map do |cycle|
-      pretty_date(cycle[:end] + 1.day)
+      date = pretty_date(cycle[:end] + 1.day)
+      cycle[:current] ? [date, "(forecast)"] : date
     end
   end
 
