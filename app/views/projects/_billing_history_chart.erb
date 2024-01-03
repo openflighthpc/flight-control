@@ -1,22 +1,21 @@
-<% year = Date.current.year %>
 <% project = @project.decorate %>
+<% year_options = project.billing_history_years %>
+<% latest_year = year_options.max %>
 
 <h2 class="ml-2 mb-5 text-center">Billing History</h2>
-<select name="years" id="years" onchange="changeYear()">
-  <option value="2023">2023</option>
-  <option value="2024" selected="selected">2024</option>
-</select>
+
+<%= select_tag :years, options_for_select(year_options, latest_year), onchange: 'changeYear()' %>
 
 <canvas id="billingHistoryChart"></canvas>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>
-  let year = <%= raw(year) %>;
+  let year = <%= raw(latest_year) %>;
   const allData = <%= raw(project.billing_chart_data.to_json) %>;
   const allTooltips = <%= raw(project.billing_chart_tooltips.to_json) %>;
   const gridColour = '#CFEDFA';
   const borderColour = '#AEC7D7';
-  
+
   const ctx = document.getElementById('billingHistoryChart');
   let chart = new Chart(ctx, {
     type: 'line',
