@@ -5,29 +5,32 @@ class ProjectDecorator < Draper::Decorator
     @billing_history ||= costs_plotter.historic_cycle_details
   end
 
-  def billing_history_costs
-    billing_history.map do |cycle|
-      cycle[:cost]
-    end
+  def billing_history_years
+    billing_history.map { |cycle| billing_date(cycle).year }
+                   .uniq
   end
 
-  def billing_history_dates
-    billing_history.map do |cycle|
-      date = pretty_date(billing_date(cycle))
-      cycle[:current] ? [date, "(forecast)"] : date
-    end
-  end
-
-  def billing_chart_dates(year)
+  def billing_history_by_year(year)
     billing_history.select { |cycle| billing_date(cycle).year == year }
   end
 
-  def billing_chart_data(year)
-    billing_chart_dates(year).map { |cycle| { x: billing_date(cycle), y: cycle[:cost] } }
+  def billing_chart_data
+    billing_history_years.map do |year|
+      [
+        year,
+        billing_history_by_year(year).map { |cycle| { x: billing_date(cycle), y: cycle[:cost] } }
+      ]
+    end.to_h
+  end
+
+  def billing_chart_tooltips
+    billing_history_years.map do |year|
+      [ year, billing_history_tooltips(year) ]
+    end.to_h
   end
 
   def billing_history_tooltips(year)
-    billing_chart_dates(year).map do |cycle|
+    billing_history_by_year(year).map do |cycle|
       tooltip = ["#{pretty_date(cycle[:start])} - #{pretty_date(cycle[:end])}", ""]
       if cycle[:current]
         tooltip << "Cost so far: #{cycle[:costs_so_far]}cu" << ""
@@ -41,7 +44,7 @@ class ProjectDecorator < Draper::Decorator
   private
 
   def pretty_date(date)
-    date.strftime("#{date.day.ordinalize} %b")
+    date.strftime("#{date.day.ordinalize} %b %Y")
   end
 
   def billing_date(cycle)

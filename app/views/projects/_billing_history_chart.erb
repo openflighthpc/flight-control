@@ -2,15 +2,20 @@
 <% project = @project.decorate %>
 
 <h2 class="ml-2 mb-5 text-center">Billing History</h2>
+<select name="years" id="years" onchange="changeData()">
+  <option value="2023">2023</option>
+  <option value="2024" selected="selected">2024</option>
+</select>
+
 <canvas id="billingHistoryChart"></canvas>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>
   let year = <%= raw(year) %>;
-  let data = <%= raw(project.billing_chart_data(year).to_json) %>;
-  let tooltips = <%= raw(project.billing_history_tooltips(year).to_json) %>;
+  let data = <%= raw(project.billing_chart_data[year].to_json) %>;
+  let tooltips = <%= raw(project.billing_chart_tooltips[year].to_json) %>;
   const ctx = document.getElementById('billingHistoryChart');
-  new Chart(ctx, {
+  let chart = new Chart(ctx, {
     type: 'line',
     data: {
       datasets: [{
@@ -113,4 +118,17 @@
       }
     }
   });
+
+  function changeData() {
+    let year = Number(document.getElementById("years").value);
+    let data = <%= raw(project.billing_chart_data.to_json) %>;
+    let tooltips = <%= raw(project.billing_chart_tooltips.to_json) %>;
+    chart.data.datasets.forEach(function(dataset) {
+      dataset.data = data[year];
+      dataset.tooltips = tooltips[year];
+    });
+    chart.options.scales.x.min = `${year - 1}-12-20`;
+    chart.options.scales.x.max = `${year}-12-31`;
+    chart.update();
+  }
 </script>
