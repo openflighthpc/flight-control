@@ -13,13 +13,21 @@ class ProjectDecorator < Draper::Decorator
 
   def billing_history_dates
     billing_history.map do |cycle|
-      date = pretty_date(cycle[:end] + 1.day)
+      date = pretty_date(billing_date(cycle))
       cycle[:current] ? [date, "(forecast)"] : date
     end
   end
 
-  def billing_history_tooltips
-    billing_history.map do |cycle|
+  def billing_chart_dates(year)
+    billing_history.select { |cycle| billing_date(cycle).year == year }
+  end
+
+  def billing_chart_data(year)
+    billing_chart_dates(year).map { |cycle| { x: billing_date(cycle), y: cycle[:cost] } }
+  end
+
+  def billing_history_tooltips(year)
+    billing_chart_dates(year).map do |cycle|
       tooltip = ["#{pretty_date(cycle[:start])} - #{pretty_date(cycle[:end])}", ""]
       if cycle[:current]
         tooltip << "Cost so far: #{cycle[:costs_so_far]}cu" << ""
@@ -34,5 +42,9 @@ class ProjectDecorator < Draper::Decorator
 
   def pretty_date(date)
     date.strftime("#{date.day.ordinalize} %b")
+  end
+
+  def billing_date(cycle)
+    cycle[:end] + 1.day
   end
 end

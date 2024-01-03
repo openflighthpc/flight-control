@@ -1,21 +1,18 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<% year = Date.current.year %>
 <% project = @project.decorate %>
-<% data = project.billing_history_costs %>
-<% dates = project.billing_history_dates %>
-<% tooltips = project.billing_history_tooltips %>
 
 <h2 class="ml-2 mb-5 text-center">Billing History</h2>
 <canvas id="billingHistoryChart"></canvas>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>
-  let data = <%= raw(data.to_json) %>;
-  let dates = <%= raw(dates.to_json) %>;
-  let tooltips = <%= raw(tooltips.to_json) %>;
+  let year = <%= raw(year) %>;
+  let data = <%= raw(project.billing_chart_data(year).to_json) %>;
+  let tooltips = <%= raw(project.billing_history_tooltips(year).to_json) %>;
   const ctx = document.getElementById('billingHistoryChart');
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: dates,
       datasets: [{
         data: data,
         borderWidth: 2,
@@ -70,7 +67,18 @@
           },
           border: {
             color: '#AEC7D7'
-          }
+          },
+          type: 'time',
+          time: {
+            unit: 'month',
+            displayFormats: {
+              'week': 'DD.MM',
+              'month': 'do MMM',
+              'year': 'MMMM',
+            },
+          },
+          min: `${year - 1}-12-20`,
+          max: `${year}-12-31`,
         }
       },
       elements: {
