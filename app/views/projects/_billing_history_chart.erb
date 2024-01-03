@@ -2,11 +2,13 @@
 <% year_options = project.billing_history_years %>
 <% latest_year = year_options.max %>
 
-<h2 class="ml-2 mb-5 text-center">Billing History</h2>
+<h2 class="ml-2 mb-4 text-center">Billing History</h2>
 
-<%= select_tag :years, options_for_select(year_options, latest_year), onchange: 'changeYear()' %>
+<div class="chart-container">
+  <%= select_tag :years, options_for_select(year_options, latest_year), { onchange: 'changeYear()', class: "form-control" } %>
+  <canvas id="billingHistoryChart"></canvas>
+</div>
 
-<canvas id="billingHistoryChart"></canvas>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>

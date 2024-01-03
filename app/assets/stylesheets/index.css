@@ -344,10 +344,22 @@ td {
   margin-bottom: 6rem;
 }
 
-#billingHistoryChart {
+.chart-container {
   width: max(60vw, 40rem) !important;
   margin-inline: auto;
   margin-bottom: 4rem;
+}
+
+.chart-container select {
+  width: fit-content;
+  margin-left: auto;
+}
+
+.chart-container select, .chart-container select:focus {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  box-shadow: none;
 }
 
 .tool-tip {
