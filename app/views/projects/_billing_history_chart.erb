@@ -70,11 +70,7 @@
               top: 20
             }
           },
-          ticks: {
-            font: {
-              size: 16,
-            }
-          },
+          ticks: tickLabelProperties(year),
           grid: {
             color: gridColour
           },
@@ -158,6 +154,7 @@
     });
     chart.options.scales.x.min = minDate(year);
     chart.options.scales.x.max = maxDate(year);
+    chart.options.scales.x.ticks = tickLabelProperties(year);
     chart.options.elements.point.pointBorderColor = pointColours(year);
     chart.update('none');
   }
@@ -196,4 +193,36 @@
     }
     return colours;
   }
+
+  function tickLabelProperties(year) {
+    const standardColor = '#666';
+    const standardWeight = 'normal';
+    const chartData = allData[year];
+    const numPoints = chartData.length;
+    let colours = [];
+    let weights = [];
+    if (new Date(chartData[numPoints - 1]['x']).getTime() > new Date().getTime()) {
+      for (let i = 0; i < numPoints-1; i++) {
+        colours.push(standardColor);
+        weights.push(standardWeight);
+      }
+      colours.push(currentCycleGreen);
+      weights.push('bold');
+      for (let i = 0; i < (12 - numPoints); i++) {
+        colours.push(standardColor);
+        weights.push(standardWeight);
+      }
+    } else {
+      colours = standardColor;
+      weights = standardWeight;
+    }
+    return {
+      color: colours,
+      font: {
+        size: 16,
+        weight: weights,
+      }
+    };
+  }
+
 </script>
