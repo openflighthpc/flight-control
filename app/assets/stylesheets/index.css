@@ -269,11 +269,11 @@ ul {
 }
 
 .chart {
-  margin-left: 4rem;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-  margin-right: 5rem;
   height: 60vh;
+}
+
+.costs-breakdown-container {
+  margin-inline: 13vw;
 }
 
 #costs-chart-form {
@@ -285,20 +285,20 @@ ul {
 }
 
 #cost-chart-nav {
-  margin-left: 4rem;
-  margin-right: 5rem;
+  border: none;
+  justify-content: end;
 }
 
-.costs-pane {
-  border: 1px;
-  border-color: #dee2e6;
-  border-style: solid;
-  border-top: none;
-  margin-top: 0;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-  padding-left: 1rem;
-  padding-right: 3rem;
+#cost-chart-nav .nav-link {
+  color: var(--alces-grey);
+}
+
+#cost-chart-nav .nav-link.active {
+  color: var(--alces-blue);
+}
+
+#cost-chart-nav .nav-link:hover {
+  color: var(--light-link-blue);
 }
 
 .events-table-header {
@@ -653,7 +653,7 @@ nav {
 }
 
 .top.nav-link.active {
-  color: #6bb0db !important;
+  color: var(--light-link-blue) !important;
 }
 
 .top.nav-item:hover,
@@ -758,6 +758,7 @@ a:hover {
   --alces-blue: #2693D7;
   --alces-grey: #586674;
   --light-bg-blue: #D4F0FD;
+  --light-link-blue: #6bb0db;
   --cloud-white: #F8FCFC;
   --text-grey: #3D3D3D;
   --navbar-grey: #191919;
