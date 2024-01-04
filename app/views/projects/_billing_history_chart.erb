@@ -11,6 +11,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.min.js"></script>
 <script>
   let year = <%= raw(latest_year) %>;
   const allData = <%= raw(project.billing_chart_data.to_json) %>;
@@ -30,6 +31,7 @@
       }]
     },
     options: {
+      clip: false,
       scales: {
         y: {
           beginAtZero: true,
@@ -101,6 +103,29 @@
         }
       },
       plugins: {
+        clip: false,
+        annotation: {
+          annotations: {
+            current: {
+              type: 'line',
+              xMin: currentCycle(),
+              xMax: currentCycle(),
+              borderColor: 'transparent',
+              borderWidth: 1,
+              label: {
+                display: true,
+                content: ['(forecast)'],
+                position: 'start',
+                backgroundColor: 'transparent',
+                color: '#5FD094',
+                font: {
+                  size: 16
+                },
+                yAdjust: 63,
+              }
+            }
+          }
+        },
         legend: {
           display: false
         },
@@ -142,6 +167,18 @@
 
   function maxDate(year) {
     return `${year}-12-31`;
+  }
+
+  function currentCycle() {
+    const now = new Date();
+    const yearData = allData[now.getFullYear()];
+    if (yearData !== undefined) {
+      const latestCycleBillingDate = yearData[yearData.length - 1]['x'];
+      if (new Date(latestCycleBillingDate).getTime() > now.getTime()) {
+        return latestCycleBillingDate;
+      }
+    }
+    return 0;
   }
 
   function pointColours(year) {
