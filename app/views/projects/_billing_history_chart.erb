@@ -146,6 +146,13 @@
     }
   });
 
+  document.getElementById('billingHistoryChart').onclick = function(evt){
+    let clickedPoint = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+    if (clickedPoint.length !== 0) {
+      window.open('costs-breakdown');
+    }
+  };
+
   function changeYear() {
     let year = Number(document.getElementById("years").value);
     chart.data.datasets.forEach(function(dataset) {
