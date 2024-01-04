@@ -19,6 +19,7 @@
   const gridColour = '#CFEDFA';
   const borderColour = '#AEC7D7';
   const alcesBlue = '#2693D7';
+  const currentCycleGreen = '#5FD094';
 
   const ctx = document.getElementById('billingHistoryChart');
   let chart = new Chart(ctx, {
@@ -117,7 +118,7 @@
                 content: ['(forecast)'],
                 position: 'start',
                 backgroundColor: 'transparent',
-                color: '#5FD094',
+                color: currentCycleGreen,
                 font: {
                   size: 16
                 },
@@ -189,7 +190,7 @@
       for (let i = 0; i < numPoints-1; i++) {
         colours.push(alcesBlue);
       }
-      colours.push('#5FD094')
+      colours.push(currentCycleGreen);
     } else {
       colours = alcesBlue;
     }
