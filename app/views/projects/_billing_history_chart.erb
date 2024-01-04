@@ -16,6 +16,8 @@
   let year = <%= raw(latest_year) %>;
   const allData = <%= raw(project.billing_chart_data.to_json) %>;
   const allTooltips = <%= raw(project.billing_chart_tooltips.to_json) %>;
+  const allCycles = <%= raw(project.billing_cycle_dates.to_json) %>;
+  const projectName = <%= raw(project.name.to_json) %>;
   const gridColour = '#CFEDFA';
   const borderColour = '#AEC7D7';
   const alcesBlue = '#2693D7';
@@ -149,12 +151,16 @@
   document.getElementById('billingHistoryChart').onclick = function(evt){
     let clickedPoint = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
     if (clickedPoint.length !== 0) {
-      window.open('costs-breakdown');
+      const index = clickedPoint[0]['index'];
+      let year = selectedYear();
+      const cycleStart = allCycles[year][index]['start'];
+      const cycleEnd = allCycles[year][index]['end'];
+      window.open(`costs-breakdown?start_date=${cycleStart}&end_date=${cycleEnd}&project=${projectName}`);
     }
   };
 
   function changeYear() {
-    let year = Number(document.getElementById("years").value);
+    let year = selectedYear();
     chart.data.datasets.forEach(function(dataset) {
       dataset.data = allData[year];
       dataset.tooltips = allTooltips[year];
@@ -164,6 +170,10 @@
     chart.options.scales.x.ticks = tickLabelProperties(year);
     chart.options.elements.point.pointBorderColor = pointColours(year);
     chart.update('none');
+  }
+
+  function selectedYear() {
+    return Number(document.getElementById("years").value);
   }
 
   function minDate(year) {

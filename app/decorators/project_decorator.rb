@@ -21,6 +21,15 @@ class ProjectDecorator < Draper::Decorator
     end.to_h
   end
 
+  def billing_cycle_dates
+    billing_history_years.map do |year|
+      [
+        year,
+        billing_history_by_year(year).map { |cycle| { start: cycle[:start], end: cycle[:end] } }
+      ]
+    end.to_h
+  end
+
   private
 
   def pretty_date(date)
