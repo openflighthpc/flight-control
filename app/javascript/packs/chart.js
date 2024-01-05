@@ -87,6 +87,7 @@ window.validateCostChartDates = function() {
 
 window.addOverBudgetLines = function(){
   const verticalLinePlugin = {
+    id: 'verticalLinePlugin',
     renderVerticalLine: function (chartInstance, pointIndex, type, number) {
       let meta = null;
       if(typeof simple_chart !== 'undefined' && chartInstance === simple_chart ||
@@ -146,18 +147,19 @@ window.addOverBudgetLines = function(){
       for (let i = 0; i < indexes.length; i++) {
         this.renderVerticalLine(chart, indexes[i], "Over budget", 1);
       }
-      if(chart.data.balance_end != undefined && chart.data.balance_end.cycle_index != null) {
+      if(chart.data.balance_end !== undefined && chart.data.balance_end.cycle_index !== null) {
         this.renderVerticalLine(chart, chart.data.balance_end.cycle_index, "Empty balance", 9);
       }
     }
   };
 
-  Chart.plugins.register(verticalLinePlugin);
+  Chart.register(verticalLinePlugin);
 }
 
 // Project start, cycle and project ends
 window.addCycleLines = function(){
   const verticalLinePlugin = {
+    id: 'cycleLinesPlugin',
     renderVerticalLine: function (chartInstance, cycle_details) {
       const pointIndex = cycle_details.index
       let meta = null;
@@ -191,10 +193,9 @@ window.addCycleLines = function(){
         }
       }
       if(meta.data[pointIndex] === undefined) return;
-
-      const lineLeftOffset = meta.data[pointIndex]._model.x
-      const scale = chartInstance.scales['y-axis-0'];
-      const context = chartInstance.chart.ctx;
+      const lineLeftOffset = meta.data[pointIndex].x
+      const scale = chartInstance.scales.y.min;
+      const context = chartInstance.ctx;
       let colour = cycle_details.type === "Project start" ? "#0EA31B" : "#2a4b70"
       context.beginPath();
       context.strokeStyle = colour;
@@ -225,7 +226,7 @@ window.addCycleLines = function(){
     }
   };
 
-  Chart.plugins.register(verticalLinePlugin);
+  Chart.register(verticalLinePlugin);
 }
 
 window.overBudgetDateIndexes = function(){
@@ -307,6 +308,7 @@ window.overBudgetDateIndexes = function(){
 
 window.addShutOffLines = function() {
   const shutOffLinesPlugin = {
+    id: 'shutOffLinesPlugin',
     renderVerticalLine: function (chartInstance, pointIndex, text, number) {
       let meta = null;
       if(typeof simple_chart !== 'undefined' && chartInstance === simple_chart ||
@@ -375,5 +377,5 @@ window.addShutOffLines = function() {
     }
   };
 
-  Chart.plugins.register(shutOffLinesPlugin);
+  Chart.register(shutOffLinesPlugin);
 }

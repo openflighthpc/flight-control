@@ -177,35 +177,58 @@
           text: 'Select a dataset in the legend to toggle visibility',
           padding: 0
         },
-        legend: {
-          labels: {
-            filter: function(item, data) {
-              return !(item.text.includes('forecast') && forecastAndActual());
-            }
-          },
-          onClick: hideRelatedDatasetOnClick
-        },
-        tooltips: {
-          mode: 'index',
-          position: 'nearest',
-          filter: function(tooltipItem, data) {
-              return !(data.datasets[tooltipItem.datasetIndex].label.includes('forecast') && tooltipItem.index === overlapDateIndex())
-          },
-        },
         scales: {
-          xAxes: [{
-            scaleLabel: {
+          x: {
+            title: {
               display: true,
-              labelString: 'Date'
+              text: 'Date',
+              font: {
+                size: 16
+              }
             },
-          }],
-          yAxes: [{
-            scaleLabel: {
+            grid: {
+              color: gridColour
+            },
+            border: {
+              color: borderColour
+            },
+          },
+          y: {
+            title: {
               display: true,
-              labelString: 'Compute Units'
+              text: 'Compute Units',
+              font: {
+                size: 16
+              }
             },
-          }],
+            ticks: {
+              maxTicksLimit: 8
+            },
+            grid: {
+              color: gridColour
+            },
+            border: {
+              color: borderColour
+            },
+          },
         },
+        plugins: {
+          legend: {
+            labels: {
+              filter: function (item, data) {
+                return !(item.text.includes('forecast') && forecastAndActual());
+              }
+            },
+            onClick: hideRelatedDatasetOnClick
+          },
+          tooltips: {
+            mode: 'index',
+            position: 'nearest',
+            filter: function(tooltipItem, data) {
+              return !(data.datasets[tooltipItem.datasetIndex].label.includes('forecast') && tooltipItem.index === overlapDateIndex())
+            },
+          },
+        }
       }
     });
     filterDatasets(cumulative_chart);
