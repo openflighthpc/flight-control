@@ -13,20 +13,18 @@ window.hideRelatedDatasetOnClick = function(e, legendItem, legend) {
   let charts = {"cumulativeChart": "cumulative_chart", "simpleChart": "simple_chart", "costBreakdownChart": "costs_chart"};
   let index = legendItem.datasetIndex;
   let name = legendItem.text.replace("forecast ", "");
-  let chart = eval(charts[e.srcElement.id]);
+  let chart = eval(charts[e.chart.canvas.id]);
   let hidden = chart.getDatasetMeta(index).hidden === true ? null : true;
-
   if (name === "budget") {
     chart.getDatasetMeta(index).hidden = hidden;
   } else {
-    let forecast = chart.data.datasets.find((dataset) => dataset.label === `forecast ${name}`);
-    let actual = chart.data.datasets.find((dataset) => dataset.label === name);
-
-    if(forecast != undefined) {
-      forecast._meta[1] === undefined ? forecast._meta[0].hidden = hidden : forecast._meta[1].hidden = hidden;
+    let forecastIndex = chart.data.datasets.findIndex((dataset) => dataset.label === `forecast ${name}`);
+    let actualIndex = chart.data.datasets.findIndex((dataset) => dataset.label === name);
+    if(forecastIndex !== -1) {
+      chart.getDatasetMeta(forecastIndex).hidden = hidden;
     }
-    if(actual != undefined) {
-      actual._meta[1] === undefined ? actual._meta[0].hidden = hidden : actual._meta[1].hidden = hidden;
+    if(actualIndex !== -1) {
+      chart.getDatasetMeta(actualIndex).hidden = hidden;
     }
   }
   chart.update();
@@ -219,8 +217,10 @@ window.addCycleLines = function(){
 
     afterDatasetsDraw: function (chart, easing) {
       let cycle_thresholds = chart.data.cycle_thresholds;
-      for (let i = 0; i < cycle_thresholds.length && i < chart.data.labels.length; i++) {
-        this.renderVerticalLine(chart, cycle_thresholds[i]);
+      if (cycle_thresholds !== undefined) {
+        for (let i = 0; i < cycle_thresholds.length && i < chart.data.labels.length; i++) {
+          this.renderVerticalLine(chart, cycle_thresholds[i]);
+        }
       }
     }
   };

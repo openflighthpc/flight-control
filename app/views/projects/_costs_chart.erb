@@ -1,6 +1,11 @@
 <div class="chart tab-pane active costs-pane" role="tabpanel" id="daily-costs">
   <canvas id="costBreakdownChart"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.min.js"></script>
+
   <script type="text/javascript">
+    const gridColour = '#CFEDFA';
+    const borderColour = '#AEC7D7';
     let costs = <%= raw(@cost_breakdown.to_json) %>;
     let actual_breakdown_data = [
       {
@@ -9,7 +14,6 @@
         borderColor: 'rgba(120, 63, 191, 0.8)',
         backgroundColor: 'rgba(120, 63, 191, 0.8)',
         type: 'line',
-        fill: false,
         cubicInterpolationMode: 'monotone',
         show: <%= !@datasets || @datasets.include?('budget') %>
         },
@@ -63,7 +67,6 @@
           borderColor: 'rgba(120, 63, 191, 0.4)',
           backgroundColor: 'rgba(120, 63, 191, 0.4)',
           type: 'line',
-          fill: false,
           cubicInterpolationMode: 'monotone',
           borderDash: [1, 1],
           show: <%= !@datasets || @datasets.include?('budget') %>
@@ -132,39 +135,57 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        title: {
-          display: true,
-          text: 'Select a dataset in the legend to toggle visibility',
-          padding: 0
-        },
-        legend: {
-          labels: {
-            filter: function(item, data) {
-              return !(item.text.includes('forecast') && forecastAndActual());
-            }
-          },
-          onClick: hideRelatedDatasetOnClick
-        },
-        tooltips: {
-          mode: 'index',
-          position: 'nearest',
-          filter: function(tooltipItem, data) {
-              return !(data.datasets[tooltipItem.datasetIndex].label.includes('forecast') && tooltipItem.index === overlapDateIndex()) && tooltipItem.value != "NaN"
-          },
-        },
         scales: {
-          xAxes: [{
-            scaleLabel: {
+          x: {
+            title: {
               display: true,
-              labelString: 'Date'
+              text: 'Date',
+              font: {
+                size: 16
+              }
             },
-          }],
-          yAxes: [{
-            scaleLabel: {
+            grid: {
+              color: gridColour
+            },
+            border: {
+              color: borderColour
+            },
+          },
+          y: {
+            title: {
               display: true,
-              labelString: 'Compute Units'
+              text: 'Compute Units',
+              font: {
+                size: 16
+              }
             },
-          }],
+            ticks: {
+              maxTicksLimit: 8
+            },
+            grid: {
+              color: gridColour
+            },
+            border: {
+              color: borderColour
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            labels: {
+              filter: function (item, data) {
+                return !(item.text.includes('forecast') && forecastAndActual());
+              }
+            },
+            onClick: hideRelatedDatasetOnClick
+          },
+          tooltips: {
+            mode: 'index',
+            position: 'nearest',
+            filter: function(tooltipItem, data) {
+              return !(data.datasets[tooltipItem.datasetIndex].label.includes('forecast') && tooltipItem.index === overlapDateIndex()) && tooltipItem.value !== "NaN"
+            },
+          },
         }
       }
     });
