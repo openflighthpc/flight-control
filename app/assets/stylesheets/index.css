@@ -169,6 +169,10 @@ input[type=date] {
   margin-left: 4rem;
 }
 
+.future-events-table .table {
+  min-width: 45rem;
+}
+
 .events-table-header {
   border: 0.08rem solid;
   border-right-width:  0.05rem;
@@ -183,8 +187,46 @@ input[type=date] {
   border-top: 0 !important;
 }
 
+.event-details-container {
+  padding: 0 !important;
+}
+
+.event-details-card {
+  max-width: 45rem;
+  min-width: 45rem;
+  margin-top: 0.2rem;
+  margin-right: auto;
+  margin-left: auto;
+  border-top: none;
+  border-inline: none;
+}
+
+.event-details-card .event-details-column {
+  width: 100%;
+  padding-bottom: 1rem;
+  padding-inline: 0.5rem !important;
+}
+
+.event-details-card .list-group {
+  list-style-type: none;
+}
+
+.event-details-card .event-details-buttons {
+  padding-bottom: 0.5rem;
+}
+
+.budget-switch-off-details-card {
+  max-width: 45.5rem !important;
+  min-width: 45.5rem !important;
+}
+
+.budget-switch-off-text {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
 .timezone-tooltip {
-  color:  white;
+  color: white;
   text-decoration: none
 }
 
@@ -192,9 +234,20 @@ input[type=date] {
   width: 12rem !important;
 }
 
-.edit-button {
-  margin-left: 0.35rem;
-  margin-right: 0.35rem;
+.edit-button, .cancel-button {
+  margin-inline: 0.25rem;
+}
+
+.view-button {
+  box-shadow: none !important;
+}
+
+.view-button > * {
+  pointer-events: none;
+}
+
+.view-button[aria-expanded="true"] .fa-chevron-down {
+  transform: rotate(180deg);
 }
 
 #project-nav {

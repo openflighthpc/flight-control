@@ -107,8 +107,17 @@ function updateScheduledTable(scheduledRequests, type) {
       $(`#${type}-events-table-row`).fadeIn('slow');
     });
   }
-  let existing = $(`#${type}-events-table-row`).find(".schedule-row");
+  let eventsTable = $(`#${type}-events-table-row`);
+  let existing = eventsTable.find(".schedule-row");
   existing.each(function() {
+    let id = $(this).attr('id');
+    let date = $(this).data('date');
+    if(scheduledRequests[date] === undefined || scheduledRequests[date][id] === undefined) {
+      $(this).fadeOut('slow');
+    }
+  });
+  let existingDetails = eventsTable.find(`.${type}.event-details-container`);
+  existingDetails.each(function() {
     let id = $(this).attr('id');
     let date = $(this).data('date');
     if(scheduledRequests[date] === undefined || scheduledRequests[date][id] === undefined) {
@@ -118,21 +127,30 @@ function updateScheduledTable(scheduledRequests, type) {
   let previousId = null;
   Object.keys(scheduledRequests).forEach((date) => {
     let firstForDate = true;
-    Object.keys(scheduledRequests[date]).forEach((scheduledId) => {
+    Object.keys(scheduledRequests[date]).forEach((scheduledId, index) => {
+      let lastForDate = index === Object.keys(scheduledRequests[date]).length - 1;
       let element = $(`#${type}-events-table`).find(`#${scheduledId}`);
       if(element.length === 0) {
-        addNewSchedule(scheduledRequests[date][scheduledId], type, firstForDate, previousId);
+        addNewSchedule(scheduledRequests[date][scheduledId], type, firstForDate, lastForDate, previousId);
         // update formatting & date display to group things correctly by date
         // when new events/ events removed
       } else {
         if(scheduledRequests[date][scheduledId].updated_at != element.data('updated_at')) {
-          updateScheduleDetails(scheduledRequests[date][scheduledId], type, firstForDate);
-        } else if(firstForDate && !element.hasClass("border-top")) {
-          element.addClass("border-top");
-          element.find(".future-event-date").html(date);
-        } else if(!firstForDate && element.hasClass("border-top")) {
-          element.removeClass("border-top");
-          element.find(".future-event-date").html("");
+          updateScheduleDetails(scheduledRequests[date][scheduledId], type, firstForDate, lastForDate);
+        } else {
+          if(firstForDate && !element.hasClass("border-top")) {
+            element.addClass("border-top");
+            element.find(".future-event-date").html(date);
+          } else if(!firstForDate && element.hasClass("border-top")) {
+            element.removeClass("border-top");
+            element.find(".future-event-date").html("");
+          }
+          let detailsCard = $(`#${scheduledId}.table-row`).find(`.event-details-card`);
+          if (lastForDate && !detailsCard.hasClass('border-bottom-0')) {
+            detailsCard.addClass('border-bottom-0');
+          } else if (!lastForDate && detailsCard.hasClass('border-bottom-0')) {
+            detailsCard.removeClass('border-bottom-0');
+          }
         }
       }
       firstForDate = false;
@@ -145,24 +163,24 @@ function updateFuture(scheduledRequests) {
   updateScheduledTable(scheduledRequests, "future");
 }
 
-function addNewSchedule(details, type, firstForDate, previousId) {
-  let html = buildNewSchedule(details, type, firstForDate);
+function addNewSchedule(details, type, firstForDate, lastForDate, previousId) {
+  let html = buildNewSchedule(details, type, firstForDate, lastForDate);
   if(previousId === null) {
     $(`#${type}-events-table-body`).prepend(html);
   } else {
-    let previous = $(`#${type}-events-table`).find(`#${previousId}`);
+    let previous = $(`#${type}-events-table`).find(`.table-row#${previousId}`);
     $(html).insertAfter(previous);
   }
   $(`#${type}-events-table`).find(`#${details.frontend_id}`).fadeIn('slow');
 }
 
-function updateScheduleDetails(details, type, firstForDate) {
-  let html = buildNewSchedule(details, type, firstForDate, true);
+function updateScheduleDetails(details, type, firstForDate, lastForDate) {
+  let html = buildNewSchedule(details, type, firstForDate, lastForDate, true);
   $(`#${type}-events-table`).find(`#${details.frontend_id}`).replaceWith(html);
 }
 
-function buildNewSchedule(details, type, firstForDate, display=false) {
-  let html = `<tr class='schedule-row ${firstForDate ? "border-top" : ""}' id='${details.frontend_id}' data-date='${details.date}'`;
+function buildNewSchedule(details, type, firstForDate, lastForDate, display=false) {
+  let html = `<tr class='text-center schedule-row ${firstForDate ? "border-top" : ""}' id='${details.frontend_id}' data-date='${details.date}'`;
   html += `data-updated_at="${details.updated_at}" ${display ? "" : "style='display:none;'"}>`;
   html += `<td>${firstForDate ? details.date : ""}</td>`;
   html += `<td>${details.time}</td>`;
@@ -188,32 +206,45 @@ function buildNewSchedule(details, type, firstForDate, display=false) {
   let override = details.monitor_override_hours;
   if (override) override = `${override} hour${ override > 1 ? 's' : '' }`;
   html += `<td>${override ? override : '-'}</td>`;
-  html += `<td>${details.description ? details.description : '-'}</td>`
-  if($('#edit-column').length > 0) {
-    html += `<td>`;
-    html += createRequestButtons(details)
-    html += "</td>";
-  }
+
+  let description = $(`#future-event-description-${details.frontend_id}`)
+  html += description[0].outerHTML;
+
+  let viewButton = $(`#view-button-${details.frontend_id}`);
+  html += `<td>`;
+  html += viewButton[0].outerHTML;
+  html += "</td>";
   html += "</tr>";
+
+  let detailsExpanded = viewButton.attr('aria-expanded');
+  html += `<tr id="${details.frontend_id}" class="table-row">`;
+  html += `<td colspan="7" class="${type} event-details-container" id="${details.frontend_id}" data-date="${details.date}">`;
+  html += createEventDetails(details, detailsExpanded, lastForDate);
+  html += "</td>";
+  html += "</tr>";
+
+  viewButton.remove();
+  description.remove();
   return html;
 }
 
-function createRequestButtons(details) {
-  const id = details.frontend_id.split("-")[0];
-  const project = $("[name='project']").val();
-  const token = $('meta[name="csrf-token"]').attr('content');
+function createEventDetails(details, detailsExpanded, lastForDate) {
+  let eventDetails = $(`#event-details-${details.frontend_id}`);
   let html = "";
-  if(details.cancellable) {
-    html = `<form action='/events/${id}/cancel?project=${project}'`;
-    html += `method='post' id='cancel-scheduled-request-${id}'`;
-    html += `onsubmit='return confirm("Are you sure you want to cancel this request?");'>`;
-    html += `<input type="hidden" name="authenticity_token" value="${token}">`;
-    html += `</form> <button class="btn btn-sm btn-danger" form="cancel-scheduled-request-${id}">`;
-    html += ` Cancel </button>`;
+  html += `<div id="event-details-${details.frontend_id}" class="event-details-container collapse${(detailsExpanded === 'true') ? ` show` : ``}">`;
+  html += `<div class="card event-details-card rounded-0 ${lastForDate ? 'border-bottom-0' : ''}">`;
+  html += eventDetails.find(`.event-details-text`)[0].outerHTML;
+  if (eventDetails.find(`.event-details-buttons`)[0]) {
+    html += `<div class="row event-details-buttons justify-content-md-end text-center">`;
+    if(details.editable) {
+      html += eventDetails.find(`.edit-button`)[0].outerHTML;
+    }
+    if(details.cancellable) {
+      html += eventDetails.find(`.button_to`)[0].outerHTML;
+    }
+    html += `</div>`;
   }
-  if(details.editable) {
-    html += ' <button class="btn btn-sm btn-warning"';
-    html += `onclick="window.location.href='${details.link}'"> Edit </button>`
-  }
+  html += `</div></div>`;
+  eventDetails.remove();
   return html;
 }

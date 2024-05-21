@@ -7,24 +7,22 @@
   </div>
 </div>
 <div class="row mb-5 future-events-table" id="<%= locals[:type] %>-events-table-row" <%= "style=display:none;" if !locals[:requests].any? %>>
-  <div class="col-12 text-center">
+  <div class="col-12">
     <table class="table" id="<%= locals[:type] %>-events-table">
-      <thead class="thead-dark" class="events-table-header">
-        <tr>
+      <thead class="thead-dark text-center" class="events-table-header">
+        <tr class="text-center">
           <th colspan="2" class="events-table-explainer"></th>
           <th colspan="<%= @project.front_end_compute_groups.length + 2 %>"
               class="events-table-explainer text-center">
             Target counts / <span class="text-danger"> budget switch offs</span>
           </th>
           <th class="events-table-explainer"></th>
-          <% if @editor %>
-            <th class="events-table-explainer" id="edit-column"></th>
-          <% end %>
+          <th class="events-table-explainer" id="edit-column"></th>
         </tr>
         <tr>
           <th scope="col" class="events-sub-header">Date</th>
           <th scope="col" class="events-sub-header">
-            Time<a href="#" class="tool-tip scheduled-tooltip" data-placement="top" title="In timezone GMT<%= Time.current.to_s.split(" ")[2] %>" onClick="return false;"><sup>?</sup>
+            Time<a href="#" class="timezone-tooltip scheduled-tooltip" data-placement="top" title="In timezone GMT<%= Time.current.to_s.split(" ")[2] %>" onClick="return false;"><sup>?</sup>
             </a>
           <th scope="col" class="events-sub-header">Criteria</th>
           </th class="events-sub-header">
@@ -33,17 +31,15 @@
           <% end %>
           <th scope="col" class="events-sub-header"> Monitor Off </th>
           <th scope="col" class="events-sub-header"> Description </th>
-          <% if @editor %>
-            <th scope="col" class="events-sub-header"> Manage </th>
-          <% end %>
+          <th scope="col" class="events-sub-header">  </th>
         </tr>
       </thead>
       <tbody class="border" id="<%= locals[:type] %>-events-table-body">
         <% locals[:requests].each do |date, schedules| %>
           <% date_shown = false %>
-          <% schedules.each do |schedule| %>
-            <tr class="schedule-row<%= ' border-top' if !date_shown %>"
-                id='<%= schedule.front_end_id %>' data-date="<%= schedule.date %>"
+          <% schedules.each_with_index do |schedule, index| %>
+            <tr class="text-center schedule-row<%= ' border-top' if !date_shown %>"
+                id="<%= schedule.front_end_id %>" data-date="<%= schedule.date %>"
                 data-updated_at="<%= schedule.updated_at %>"
                 >
               <td class="future-event-date">
@@ -62,23 +58,38 @@
               <td>
                 <%= schedule.monitor_override_hours ? "#{schedule.monitor_override_hours} hour#{'s' if schedule.monitor_override_hours > 1}" : "-" if schedule %>
               </td>
-              <td>
+              <td id="future-event-description-<%= schedule.front_end_id %>">
                 <%= schedule.description || schedule.auto_description %>
               </td>
-              <% if @editor %>
-                <td class="d-flex justify-content-center">
-                  <% if schedule.cancellable? %>
-                    <%= button_to "Cancel", {action: "cancel", id: schedule.actual_or_parent_id, project:  schedule.project.name}, {data: { confirm: 'Are you sure you want to cancel this request?' },class: "btn btn-sm btn-danger"} %>
-                  <% end %>
-                  <% if schedule.editable? %>
-                    <button class="btn btn-sm btn-warning edit-button"
-                            onclick="window.location.href='/events/<%= schedule.actual_or_parent_id %>/edit?project=<%= @project.name %>'">
-                      Edit
-                    </button>
-                  <% end %>
-                </td>
-              <% end %>
+              <td>
+                <button class="btn btn-sm btn-link view-button"
+                        id="view-button-<%= schedule.front_end_id %>"
+                        data-toggle="collapse"
+                        data-target="#event-details-<%= schedule.front_end_id %>"
+                        aria-expanded="false"
+                        aria-controls="event-details-<%= schedule.front_end_id %>">
+                  <i class="fa fa-chevron-down"></i>
+                </button>
+              </td>
             </tr>
+          <tr id="<%= schedule.front_end_id %>" class="table-row">
+            <td colspan="7"
+                class="<%= locals[:type] %> event-details-container"
+                id="<%= schedule.front_end_id %>"
+                data-date="<%= schedule.date %>">
+        <div id="event-details-<%= schedule.front_end_id %>" class="event-details-container collapse">
+          <% unless locals[:requests].empty? %>
+            <% if schedule.is_a?(BudgetSwitchOffDecorator) %>
+              <%= render '/change_requests/budget_switch_off_details_card', locals: { bottom_border: index == schedules.length-1 } %>
+            <% else %>
+              <%= render '/change_requests/event_details_card', locals: { event: schedule,
+                                                                          parent_event: schedule.is_a?(BudgetSwitchOffDecorator) ? nil : schedule.parent_request,
+                                                                          editor: @editor,
+                                                                          bottom_border: index == schedules.length-1 } %>
+            <% end %>
+          <% end %>
+        </div>
+      </td></tr>
           <% end %>
         <% end %>
       </tbody>
@@ -86,10 +97,11 @@
   </div>
   <div class="col-1"></div>
 </div>
-<div class="row  mb-5" id="no-<%= locals[:type] %>-events-row" <%= "style=display:none;" if locals[:requests].any? %>>
+<div class="row mb-5" id="no-<%= locals[:type] %>-events-row" <%= "style=display:none;" if locals[:requests].any? %>>
   <div class="col-1"></div>
   <div class="col-10 text-center">
     No events
   </div>
   <div class="col-1"></div>
 </div>
+
