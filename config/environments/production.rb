@@ -117,6 +117,7 @@ Rails.application.configure do
   config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME')
   config.sso_uri = ENV.fetch('SSO_BASE_URL')
   config.sso_domain = ENV.fetch('SSO_DOMAIN')
+  config.sso_use = true
   config.use_ssl = true
 
   config.slack_token = ENV["SLACK_TOKEN"]

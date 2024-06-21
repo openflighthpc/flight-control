@@ -65,6 +65,7 @@ Rails.application.configure do
   config.sso_cookie_name = ENV.fetch('SSO_COOKIE_NAME', 'flight_sso_dev')
   config.sso_domain = "alces-flight.lvh.me"
   config.sso_uri = "http://accounts.alces-flight.lvh.me:4000"
+  config.sso_use = true
   config.use_ssl = false
 
   config.default_url_options = {

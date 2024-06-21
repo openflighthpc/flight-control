@@ -4,6 +4,9 @@ module Devise::Strategies
   class SsoAuthenticatable < Authenticatable
 
     def authenticate!
+      unless Rails.application.config.sso_use
+        return
+      end
       uri = Rails.application.config.sso_uri
       uri = URI(uri)
       uri.path << "/sign-in#{'?permanent=1' if params['user']['remember_me'] == '1'}"
