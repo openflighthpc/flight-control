@@ -1,5 +1,6 @@
 require_relative '../services/aws_instance_details_recorder'
 require_relative '../services/azure_instance_details_recorder'
+require_relative '../services/example_instance_details_recorder'
 require_relative 'project'
 
 class Instance

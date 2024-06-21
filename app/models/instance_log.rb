@@ -1,8 +1,10 @@
 class InstanceLog < ApplicationRecord
   ON_STATUSES = {"azure" => "VM running",
-                 "aws" => "running"}
+                 "aws" => "running",
+                 "example" => "on"}
   OFF_STATUSES = {"azure" => "VM deallocated",
-                 "aws" => "stopped"}
+                 "aws" => "stopped",
+                 "example" => "off"}
   belongs_to :project
   validates :instance_type, :instance_name, :instance_id,
             :region, :status, :date, :last_checked,
@@ -10,7 +12,7 @@ class InstanceLog < ApplicationRecord
   validates :platform,
     presence: true,
     inclusion: {
-      in: %w(aws azure),
+      in: %w(aws azure example),
       message: "%{value} is not a valid platform"
     }
 
@@ -77,7 +79,7 @@ class InstanceLog < ApplicationRecord
   end
 
   def resource_group
-    return if platform == "aws"
+    return if platform == "aws" || platform == "example"
     
     instance_id.split("/")[4]
   end

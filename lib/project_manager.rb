@@ -1,5 +1,6 @@
 require_relative '../app/models/aws_project'
 require_relative '../app/models/azure_project'
+require_relative '../app/models/example_project'
 require 'table_print'
 
 class ProjectManager
@@ -54,7 +55,11 @@ class ProjectManager
     end
 
     if attribute == "regions"
-      update_regions(project)
+      if project.platform == "example"
+        update_example_regions(project)
+      else
+        update_regions(project)
+      end
     elsif attribute == "resource_groups" || attribute == "resource groups"
       update_resource_groups(project)
     elsif attribute == "balance"
@@ -250,16 +255,94 @@ class ProjectManager
     end
   end
 
+  def update_example_regions(project)
+    example_regions = []
+    file = File.open('./lib/platform_files/example_region_names.txt')
+    file.readlines.each do |line|
+      line = line.split(",")
+      example_regions << line[0]
+    end
+    stop = false
+    valid = false
+    while !stop
+      puts "Regions: #{project.regions.join(", ")}"
+      while !valid
+        puts "Add or delete region (add/delete)? "
+        response = STDIN.gets.chomp.downcase.strip
+        if response == "add"
+          valid = true
+          region = get_non_blank("Add region (e.g. Mars)", "Region")
+          continue = false
+          while !continue
+            if !example_regions.include?(region)
+              puts "Warning: #{region} not found in list of valid example regions. Do you wish to continue (y/n)? "
+              response = STDIN.gets.chomp.downcase.strip
+              if response == "n"
+                return update_example_regions(project)
+              elsif response != "y"
+                puts "Invalid select, please try again"
+              else
+                continue = true
+              end
+            else
+              continue = true
+            end
+          end
+          project.regions << region
+          project.save!
+          puts "Region added"
+        elsif response == "delete"
+          if project.regions.length > 1
+            valid = true
+            present = false
+            while !present
+              # we want to allow blanks here so can delete if one (somehow) previously added
+              print "Region to delete: "
+              to_delete = STDIN.gets.chomp.strip
+              present = project.regions.include?(to_delete)
+              if present
+                project.regions.delete(to_delete)
+                project.save!
+                puts "Region deleted"
+              else
+                puts "Region #{to_delete} not present for this project"
+              end
+            end
+          else
+            puts "Cannot delete as must have at least one region"
+          end
+        else
+          puts "Invalid response, please try again"
+        end
+      end
+      yes_or_no = false
+      while !yes_or_no
+        print "Add/ delete another region (y/n)? "
+        action = STDIN.gets.chomp.downcase.strip
+        if action == "n"
+          stop = true
+          yes_or_no = true
+        elsif action != "y"
+          puts "Invalid option. Please try again"
+        else
+          stop = false
+          yes_or_no = true
+          valid = false
+        end
+      end
+    end
+  end
+
   def add_project
     attributes = {}
     print "Project name: "
     attributes[:name] = STDIN.gets.chomp.strip
     valid = false
     while !valid
-      print "Platform (aws or azure): "
+      print "Platform (aws, azure or example): "
       value = STDIN.gets.chomp.downcase.strip
-      valid = ["aws", "azure"].include?(value)
-      valid ? attributes[:platform] = value : (puts "Invalid selection. Please enter aws or azure.")
+      valid = ["aws", "azure", "example"].include?(value)
+      valid ? attributes[:platform] = value : (puts "Invalid selection. Please enter aws, azure or example.")
     end
     attributes[:type] = "#{attributes[:platform].capitalize}Project"
     valid_date = false
@@ -302,6 +385,10 @@ class ProjectManager
       attributes = add_aws_attributes(attributes)
     elsif attributes[:platform.downcase] == "azure"
       attributes = add_azure_attributes(attributes)
+    elsif attributes[:platform.downcase] == "example"
+      attributes = add_example_attributes(attributes)
+      attributes[:security_id] = "id"
+      attributes[:security_key] = "key"
     end
   
     project = Project.new(attributes)
@@ -380,7 +467,7 @@ class ProjectManager
           begin
             project.record_instance_logs
             project.record_cost_logs(project.start_date, Project::DEFAULT_COSTS_DATE - 1.day)
-          rescue AzureApiError, AwsSdkError => e
+          rescue AzureApiError, AwsSdkError, ExampleApiError => e
             puts "Generation of logs for project #{project.name} stopped due to error: "
             puts e
             return
@@ -452,6 +539,35 @@ class ProjectManager
           attributes[:resource_groups] << get_non_blank("Additional resource group name", "Resource group").downcase
         end
       end
+    end
+    attributes
+  end
+
+  def add_example_attributes(attributes)
+    attributes[:regions] = []
+    attributes[:regions] << get_non_blank("Add region (e.g. Mars)", "Region").downcase
+    stop = false
+    while !stop
+      valid = false
+      while !valid
+        print "Additional regions (y/n)? "
+        response = STDIN.gets.chomp.downcase.strip
+        if response == "n"
+          stop = true
+          valid = true
+        elsif response == "y"
+          valid = true
+        else
+          puts "Invalid response. Please try again"
+        end
+      end
+      if !stop
+        attributes[:regions] << get_non_blank("Additional region (e.g. Mars)", "Region")
+      end
+    end
+    attributes[:filter_level] = get_non_blank("Filter level", "Filter level", %w[tag account])
+    if attributes[:filter_level] == "tag"
+      attributes[:project_tag] = get_non_blank("Project tag", "Project tag")
     end
     attributes
   end
@@ -600,12 +716,15 @@ class ProjectManager
       puts "project_tag: #{project.project_tag}" if project.filter_level == "tag"
       puts "access_key_ident: hidden"
       puts "key: hidden"
-    else
+    elsif project.type == "AzureProject"
       puts "resource_groups: #{project.resource_groups.join(", ")}" if project.filter_level == "resource group"
       puts "subscription_id: #{project.subscription_id}"
       puts "tenant_id: #{project.tenant_id}"
       puts "azure_client_id: hidden"
       puts "client_secret: hidden"
+    elsif project.type == "ExampleProject"
+      puts "regions: #{project.regions.join(", ")}"
+      puts "project_tag: #{project.project_tag}" if project.filter_level == "tag"
     end
   end
 
