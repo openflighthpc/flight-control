@@ -11,7 +11,7 @@ class ExampleInstanceManager
   def update_instance_statuses(action, region, instance_ids, verbose=false)
     instance_ids.each do |instance_id|
       command = action.to_s == "on" ? "start-instance" : "stop-instance"
-      uri = "http://0.0.0.0:4567/providers/example-provider/#{command}"
+      uri = Rails.application.config.control_api_uri + "/providers/example-provider/#{command}"
       response = http_request(uri: uri,
                               request_type: "post",
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},

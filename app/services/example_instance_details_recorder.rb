@@ -20,9 +20,9 @@ class ExampleInstanceDetailsRecorder
     regions.each do |region|
       results = nil
 
-      models = JSON.parse(http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/models',
+      models = JSON.parse(http_request(uri: Rails.application.config.control_api_uri + '/providers/example-provider/models',
                                        headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}).body)
-      response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/model-details',
+      response = http_request(uri: Rails.application.config.control_api_uri + '/providers/example-provider/model-details',
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                               query: { "models" => models.join(',') }
                              )
@@ -59,7 +59,7 @@ class ExampleInstanceDetailsRecorder
   end
 
   def validate_credentials
-    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/validate-credentials',
+    response = http_request(uri: Rails.application.config.control_api_uri + '/providers/example-provider/validate-credentials',
                             request_type: "post",
                             headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}
                            )

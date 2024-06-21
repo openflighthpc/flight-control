@@ -15,7 +15,7 @@ class ExampleInstanceRecorder
     log_recorded = false
     if !today_logs.any? || rerun
       log_ids = []
-      response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instances',
+      response = http_request(uri: Rails.application.config.control_api_uri + '/providers/example-provider/instances',
                               headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}
                              )
       raise ExampleApiError, response.body unless response.code == "200"
@@ -60,7 +60,7 @@ class ExampleInstanceRecorder
   end
 
   def validate_credentials
-    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/validate-credentials',
+    response = http_request(uri: Rails.application.config.control_api_uri + '/providers/example-provider/validate-credentials',
                             request_type: "post",
                             headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json}
                            )

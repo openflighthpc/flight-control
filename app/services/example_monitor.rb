@@ -76,7 +76,7 @@ class ExampleMonitor
     logger.info("Getting utilisation data for #{node_id}")
     now = Time.now.to_i
 
-    response = http_request(uri: 'http://0.0.0.0:4567/providers/example-provider/instance_usages',
+    response = http_request(uri: Rails.application.config.control_api_uri + '/providers/example-provider/instance_usages',
                             headers: {'Project-Credentials' => {'PROJECT_NAME': @project.name}.to_json},
                             query: {'instance_ids': node_id,
                                     'scope': scope,

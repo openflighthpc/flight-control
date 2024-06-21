@@ -123,4 +123,6 @@ Rails.application.configure do
   config.usd_gbp_conversion = ENV["USD_GBP_CONVERSION"].to_f
   config.gbp_compute_conversion = ENV["GBP_COMPUTE_CONVERSION"].to_f
   config.at_risk_conversion = ENV["AT_RISK_CONVERSION"].to_f
+
+  config.control_api_uri = "http://127.0.0.1:4567"
 end
